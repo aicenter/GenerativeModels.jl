@@ -1,0 +1,7 @@
+name = "GenerativeModels"
+uuid = "6ac2c632-c4cd-11e9-0501-33c4b9b2f9c9"
+authors = ["Niklas Heim <heim.niklas@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
