@@ -1,5 +1,6 @@
 module GenerativeModels
 
+using BSON
 using DrWatson
 using ValueHistories
 
@@ -9,8 +10,9 @@ using DiffEqFlux
 
 abstract type AbstractAutoEncoder end
 
-include("models/ard_autoencoder.jl")
+include(joinpath("utils", "ode.jl"))
+include(joinpath("utils", "misc.jl"))
 
-include("utils/ode.jl")
+include(joinpath("models", "ard_autoencoder.jl"))
 
 end # module
