@@ -6,20 +6,21 @@ struct ARDAutoEncoder{T<:Real} <: AbstractAutoEncoder
     zsize::Int
     encoder
     decoder
+    σz::Tracker.TrackedArray{T,1}
     γ::Tracker.TrackedArray{T,1}
 end
 
 Flux.@treelike ARDAutoEncoder
 
-"""`ARDAutoEncoder(encoder, decoder)`
+"""`ARDAutoEncoder(xsize, zsize, encoder, decoder)`
 
 AutoEncoder that enforces sparsity on the latent layer.
 """
 function ARDAutoEncoder{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    γ = param(ones(T, zsize))
-    ARDAutoEncoder(xsize, zsize, encoder, decoder, γ)
+    γ = param(ones(T, zsize) .* 0.001f0)
+    σz = param(ones(T, zsize) .* 0.001f0)
+    ARDAutoEncoder(xsize, zsize, encoder, decoder, σz, γ)
 end
-
 
 
 """`encoder_params(m::ARDAutoEncoder, x::AbstractArray)`
@@ -27,10 +28,8 @@ end
 Return the parameters of the latent distribution.
 """
 function encoder_params(m::ARDAutoEncoder, x::AbstractArray)
-    z = m.encoder(x)
-    μz = z[1:m.zsize]
-    σz = z[m.zsize:end]
-    (μz, σz, m.γ)
+    μz = m.encoder(x)
+    (μz, m.σz, m.γ)
 end
 
 
@@ -38,9 +37,9 @@ end
 
 Sample from the latent layer.
 """
-function encoder_sample(m::ARDAutoEncoder{T}, x::AbstractArray) where T
-    (μz, σz, γ) = encoder_params(m, x)
-    γ .* (μz + σz .* randn(T, m.zsize))
+function encoder_sample(m::ARDAutoEncoder{T}, ps) where T
+    (μz, σz, γ) = ps
+    γ .* (μz .+ σz .* randn(T, m.zsize))
 end
 
 
@@ -52,13 +51,31 @@ function decode(m::ARDAutoEncoder, z::AbstractArray)
     m.decoder(z)
 end
 
+function (m::ARDAutoEncoder)(x)
+    (μz, _, γ) = encoder_params(m, x)
+    decode(m, μz .* γ)
+end
+
 
 """`elbo(m::ARDAutoEncoder, x::AbstractArray)`
 
 Computes variational lower bound.
 """
 function elbo(m::ARDAutoEncoder, x::AbstractArray)
-    error("Not implemented")
+    #TODO: fix noise
+
+    noise = 0.01f0
+
+    N = size(x, 2)
+    ps = encoder_params(m, x)
+    (μz, σz, γ) = ps
+    z = encoder_sample(m, ps)
+    xrec = decode(m, z)
+
+    llh = sum(abs2, x - xrec) / noise^2
+    KLz = sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))
+
+    loss = llh + KLz
 end
 
 
@@ -77,4 +94,21 @@ Compute the probability of a latent vector.
 """
 function loglatent(m::ARDAutoEncoder, z::AbstractArray)
     error("Not implemented")
+end
+
+
+function Base.show(io::IO, m::ARDAutoEncoder{T}) where T
+    e = summary(m.encoder)
+    e = sizeof(e)>80 ? e[1:77]*"..." : e
+    d = summary(m.decoder)
+    d = sizeof(d)>80 ? d[1:77]*"..." : d
+    msg = """ARDAutoEncoder{$T}:
+      xsize   = $(m.xsize)
+      zsize   = $(m.zsize)
+      encoder = $(e)
+      decoder = $(d)
+      σz      = $(m.σz)
+      γ       = $(m.γ)
+    """
+    print(io, msg)
 end
