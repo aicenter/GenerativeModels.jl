@@ -51,10 +51,6 @@ end
 function save_checkpoint(filename::String, model::AbstractAutoEncoder,
                          history::MVHistory; keep=100)
     d = DrWatson.@dict(model, history)
-    # if save_svi
-    #     svi_stats = model.svi_stats
-    #     d = DrWatson.@dict(model, svi_stats, history)
-    # end
 
     @info "Saving checkpoint at $filename"
     DrWatson.tagsave(filename, d, true)

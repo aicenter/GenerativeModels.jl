@@ -8,6 +8,7 @@ struct ARDAutoEncoder{T<:Real} <: AbstractAutoEncoder
     decoder
     σz::Tracker.TrackedArray{T,1}
     γ::Tracker.TrackedArray{T,1}
+    σe::Tracker.TrackedArray{T,1}
 end
 
 Flux.@treelike ARDAutoEncoder
@@ -19,7 +20,8 @@ AutoEncoder that enforces sparsity on the latent layer.
 function ARDAutoEncoder{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     γ = param(ones(T, zsize) .* 0.001f0)
     σz = param(ones(T, zsize) .* 0.001f0)
-    ARDAutoEncoder(xsize, zsize, encoder, decoder, σz, γ)
+    σe = param(ones(T, 1) .* 0.001f0)
+    ARDAutoEncoder(xsize, zsize, encoder, decoder, σz, γ, σe)
 end
 
 
@@ -62,20 +64,18 @@ end
 Computes variational lower bound.
 """
 function elbo(m::ARDAutoEncoder, x::AbstractArray)
-    #TODO: fix noise
+    N  = size(x, 2)
+    σe = m.σe[1]
 
-    noise = 0.01f0
-
-    N = size(x, 2)
     ps = encoder_params(m, x)
     (μz, σz, γ) = ps
     z = encoder_sample(m, ps)
     xrec = decode(m, z)
 
-    llh = sum(abs2, x - xrec) / noise^2
+    llh = sum(abs2, x - xrec) ./ σe^2
     KLz = sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))
 
-    loss = llh + KLz
+    loss = llh + KLz + σe^2*N*m.zsize
 end
 
 
@@ -109,6 +109,7 @@ function Base.show(io::IO, m::ARDAutoEncoder{T}) where T
       decoder = $(d)
       σz      = $(m.σz)
       γ       = $(m.γ)
+      σe      = $(m.σe)
     """
     print(io, msg)
 end
