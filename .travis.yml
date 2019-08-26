@@ -7,6 +7,16 @@ julia:
     - 1.1
     - nightly
 
+addons:
+  apt:
+    packages:
+      - python-matplotlib
+      - python3-matplotlib
+env:
+  matrix:
+    - PYTHON=python  # python 2.7
+    - PYTHON=python3 # python 3.5
+
 matrix:
     allow_failures:
         - julia: nightly
