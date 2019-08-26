@@ -16,6 +16,9 @@ Flux.@treelike ARDAutoEncoder
 """`ARDAutoEncoder(xsize, zsize, encoder, decoder)`
 
 AutoEncoder that enforces sparsity on the latent layer.
+p(x|z) = N(x|γ*z, σe);
+p(z)   = N(z|0, σz);
+γ: point estimate
 """
 function ARDAutoEncoder{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     γ = param(ones(T, zsize) .* 0.001f0)

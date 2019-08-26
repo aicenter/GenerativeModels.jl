@@ -1,18 +1,23 @@
 module GenerativeModels
 
-using BSON
-using DrWatson
-using ValueHistories
+    using Reexport
 
-using Flux
-using DifferentialEquations
-using DiffEqFlux
+    @reexport using BSON
+    @reexport using DrWatson
+    @reexport using ValueHistories
+    @reexport using PyPlot
 
-abstract type AbstractAutoEncoder end
+    @reexport using Flux
+    @reexport using DifferentialEquations
+    @reexport using DiffEqFlux
+    @reexport using LinearAlgebra
 
-include(joinpath("utils", "ode.jl"))
-include(joinpath("utils", "misc.jl"))
+    abstract type AbstractAutoEncoder end
 
-include(joinpath("models", "ard_autoencoder.jl"))
+    include(joinpath("utils", "ode.jl"))
+    include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "visualize.jl"))
+
+    include(joinpath("models", "ard_autoencoder.jl"))
 
 end # module

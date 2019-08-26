@@ -17,7 +17,7 @@
     end
     
     init(s...) = randn(Float32, s...) ./ 1000f0
-     encoder = Chain(
+    encoder = Chain(
          Dense(xsize, 50, σ, initW=init),
          Dense(50, 50, σ, initW=init),
          Dense(50, zsize, initW=init))

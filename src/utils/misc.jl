@@ -78,5 +78,3 @@ function generate_sine_data(nr_examples; steps=30, dt=pi/10, freq_range=[1.0, 1.
 
     U, T, Omega
 end
-
-
