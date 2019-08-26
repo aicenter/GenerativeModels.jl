@@ -45,11 +45,11 @@ end
 
 function mvhistory_callback(h::MVHistory, m::AbstractAutoEncoder, lossf::Function, test_data::AbstractArray)
     function callback()
-        (μz, σz, γ) = encoder_params(m, test_data)
+        (μz, σz) = encoder_params(m, test_data)
         σe = m.σe[1]
-        xrec = decode(m, μz .* γ)
+        xrec = decode(m, μz)
         loss = lossf(test_data)
-        ntuple = DrWatson.@ntuple μz σz γ xrec loss σe
+        ntuple = DrWatson.@ntuple μz σz xrec loss σe
         GenerativeModels.push_ntuple!(h, ntuple)
     end
 end

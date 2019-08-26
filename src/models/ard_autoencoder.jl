@@ -7,7 +7,6 @@ struct ARDAutoEncoder{T<:Real} <: AbstractAutoEncoder
     encoder
     decoder
     σz::Tracker.TrackedArray{T,1}
-    γ::Tracker.TrackedArray{T,1}
     σe::Tracker.TrackedArray{T,1}
 end
 
@@ -16,15 +15,14 @@ Flux.@treelike ARDAutoEncoder
 """`ARDAutoEncoder(xsize, zsize, encoder, decoder)`
 
 AutoEncoder that enforces sparsity on the latent layer.
-p(x|z) = N(x|γ*z, σe);
+p(x|z) = N(x|z, σe);
 p(z)   = N(z|0, σz);
-γ: point estimate
+σz: point estimate
 """
 function ARDAutoEncoder{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    γ = param(ones(T, zsize) .* 0.001f0)
     σz = param(ones(T, zsize) .* 0.001f0)
-    σe = param(ones(T, 1) .* 0.001f0)
-    ARDAutoEncoder(xsize, zsize, encoder, decoder, σz, γ, σe)
+    σe = param(ones(T, 1))
+    ARDAutoEncoder(xsize, zsize, encoder, decoder, σz, σe)
 end
 
 
@@ -34,7 +32,7 @@ Return the parameters of the latent distribution.
 """
 function encoder_params(m::ARDAutoEncoder, x::AbstractArray)
     μz = m.encoder(x)
-    (μz, m.σz, m.γ)
+    (μz, m.σz)
 end
 
 
@@ -43,8 +41,8 @@ end
 Sample from the latent layer.
 """
 function encoder_sample(m::ARDAutoEncoder{T}, ps) where T
-    (μz, σz, γ) = ps
-    γ .* (μz .+ σz .* randn(T, m.zsize))
+    (μz, σz) = ps
+    μz .+ σz .* randn(T, m.zsize)
 end
 
 
@@ -57,8 +55,8 @@ function decode(m::ARDAutoEncoder, z::AbstractArray)
 end
 
 function (m::ARDAutoEncoder)(x)
-    (μz, _, γ) = encoder_params(m, x)
-    decode(m, μz .* γ)
+    (μz, _) = encoder_params(m, x)
+    decode(m, μz)
 end
 
 
@@ -71,14 +69,14 @@ function elbo(m::ARDAutoEncoder, x::AbstractArray)
     σe = m.σe[1]
 
     ps = encoder_params(m, x)
-    (μz, σz, γ) = ps
+    (μz, σz) = ps
     z = encoder_sample(m, ps)
     xrec = decode(m, z)
 
-    llh = sum(abs2, x - xrec) ./ σe^2
-    KLz = sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))
+    llh = sum(abs2, x - xrec) / σe^2 / N
+    KLz = (sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))) / N
 
-    loss = llh + KLz + σe^2*N*m.zsize
+    loss = llh + KLz + σe^2*m.zsize
 end
 
 
@@ -111,7 +109,6 @@ function Base.show(io::IO, m::ARDAutoEncoder{T}) where T
       encoder = $(e)
       decoder = $(d)
       σz      = $(m.σz)
-      γ       = $(m.γ)
       σe      = $(m.σe)
     """
     print(io, msg)
