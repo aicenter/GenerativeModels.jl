@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.com/nmheim/GenerativeModels.jl.svg?branch=master)](https://travis-ci.com/nmheim/GenerativeModels.jl)
+
 # GenerativeModels.jl
 
 This library contains a collection of generative models for anomaly detection.
