@@ -5,7 +5,6 @@ module GenerativeModels
     @reexport using BSON
     @reexport using DrWatson
     @reexport using ValueHistories
-    @reexport using PyPlot
 
     @reexport using Flux
     @reexport using DifferentialEquations
