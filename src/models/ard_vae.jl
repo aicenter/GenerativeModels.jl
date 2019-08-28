@@ -1,7 +1,6 @@
 export ARDVAE
-export encoder_mean, encoder_variance, encoder_mean_var, encoder_sample, encoder_loglikelihood
-export prior_mean, prior_variance, prior_mean_var, prior_sample, prior_loglikelihood
-export decoder_mean, decoder_variance, decoder_mean_var, decoder_sample, decoder_loglikelihood
+export encoder_sample, decoder_sample
+export prior_mean, prior_variance, prior_mean_var, prior_sample
 export elbo
 
 struct ARDVAE{T<:Real} <: AbstractVAE
@@ -24,8 +23,8 @@ p(z)   = N(z|0, λz);
 σz: point estimate
 """
 function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize) .* 0.001f0)
-    λz = param(ones(T, zsize) .* 0.001f0)
+    σz = param(ones(T, zsize))
+    λz = param(ones(T, zsize))
     σe = param(ones(T, 1))
     ARDVAE(xsize, zsize, encoder, decoder, λz, σz, σe)
 end

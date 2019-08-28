@@ -13,12 +13,12 @@ module GenerativeModels
     @reexport using LinearAlgebra
 
     abstract type AbstractGN end
-    abstract type AbstractVAE <: AbstractGN end
 
     include(joinpath("utils", "ode.jl"))
     include(joinpath("utils", "misc.jl"))
     include(joinpath("utils", "visualize.jl"))
 
+    include(joinpath("models", "abstract_vae.jl"))
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "ard_vae.jl"))
 
