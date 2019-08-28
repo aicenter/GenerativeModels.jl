@@ -22,67 +22,34 @@ functionality such as `tagsave` to ensure reproducability of simulations.
 The models themselves are defined in `src/models`. Each file contains a specific
 model and should implement the interface below in order to guarantee that each
 functions defined in `src/anomaly_scores` or `src/utils` can be called with any
-of them.
+of them. For example `sample(m::AbstractGN)` should be working with every model:
 
-    """`ARDAutoEncoder(encoder, decoder)`
-    
-    AutoEncoder that enforces sparsity on the latent layer.
-    """
-    function ARDAutoEncoder(xsize::Int, zsize::Int, encoder, decoder)
-        ...
+    function sample(model::AbstractGN)
+        z = prior_sample(model)
+        decoder_sample(model, z)
     end
+
+## Interface 
+
+Every model has to be a subtype of `AbstractGN`. Feel free to add abstract types
+like `AbstractVAE <: AbstractGN` if it suits your needs.
+
+    encoder_mean(m::Model, x::AbstractArray)::AbstractArray
+    encoder_variance(m::Model, x::AbstractArray)::AbstractArray
+    encoder_mean_var(m::Model, x::AbstractArray)::Tuple{AbstractArray, AbstractArray}
+    encoder_sample(m::Model, x::AbstractArray)::AbstractArray
+    encoder_loglikelihood(m::Model, z::AbstractArray)::Real
     
+    prior_mean(m::Model)::AbstractArray
+    prior_variance(m::Model)::AbstractArray
+    prior_mean_var(m::Model)::Tuple{AbstractArray, AbstractArray}
+    prior_sample(m::Model)::AbstractArray
+    prior_loglikelihood(m::Model, z::AbstractArray)::Real
     
+    decoder_mean(m::Model, z::AbstractArray)::AbstractArray
+    decoder_variance(m::Model, z::AbstractArray)::AbstractArray
+    decoder_mean_var(m::Model, z::AbstractArray)::Tuple{AbstractArray, AbstractArray}
+    decoder_sample(m::Model, z::AbstractArray)::AbstractArray
+    decoder_loglikelihood(m::Model, x::AbstractArray, z::AbstractArray)::Real
     
-    """`encoder_params(m::ARDAutoEncoder, x::AbstractArray)`
-    
-    Return a tuple of the parameters of the latent distribution.
-    """
-    function encoder_params(m::ARDAutoEncoder, x::AbstractArray)
-        ...
-    end
-    
-    
-    """`encoder_sample(m::ARDAutoEncoder, x::AbstractArray)`
-    
-    Sample from the latent layer. Returns a vector
-    """
-    function encoder_sample(m::ARDAutoEncoder{T}, x::AbstractArray) where T
-        ...
-    end
-    
-    
-    """`decode(m::ARDAutoEncoder, z::AbstractArray)`
-    
-    Reconstruct from a (sampled) latent vector. Returns a matrix
-    """
-    function decode(m::ARDAutoEncoder, z::AbstractArray)
-        ...
-    end
-    
-    
-    """`elbo(m::ARDAutoEncoder, x::AbstractArray)`
-    
-    Computes variational lower bound. Returns a scalar
-    """
-    function elbo(m::ARDAutoEncoder, x::AbstractArray)
-        ...
-    end
-    
-    
-    """`loglikelihood(m::ARDAutoEncoder, x::AbstractArray, z::AbstractArray)'
-    
-    Computes the log-likelihood of the data.
-    """
-    function loglikelihood(m::ARDAutoEncoder, x::AbstractArray, z::AbstractArray)
-        ...
-    end
-    
-    
-    """`loglatent(m::ARDAutoEncoder, z::AbstractArray)`
-    
-    Compute the probability of a latent vector.
-    """
-    function loglatent(m::ARDAutoEncoder, z::AbstractArray)
-        ...
-    end
+    elbo(m::Model, x::AbstractArray)
