@@ -18,6 +18,6 @@ module GenerativeModels
     include(joinpath("utils", "misc.jl"))
     include(joinpath("utils", "visualize.jl"))
 
-    include(joinpath("models", "ard_autoencoder.jl"))
+    include(joinpath("models", "vae.jl"))
 
 end # module

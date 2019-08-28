@@ -43,12 +43,12 @@ end
 Plots two exemplary reconstructions.
 """
 function plot_reconstruction(model::AbstractAutoEncoder, X::Array{T,2}) where T
-    pred = model(X).data
+    xrec = decoder_mean(model, encoder_mean(model, X)).data
 
     fig, ax = plt.subplots(1,1)
     
     ax.plot(X, "--", label="Truth", color="gray")
-    ax.plot(pred, label="Rec.", color="C0")
+    ax.plot(xrec, label="Rec.", color="C0")
     ax.legend()
     ax.grid()
 
