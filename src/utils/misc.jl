@@ -2,7 +2,7 @@ export save_checkpoint
 export load_checkpoint
 
 
-function save_checkpoint(filename::String, model::AbstractAutoEncoder,
+function save_checkpoint(filename::String, model::AbstractGN,
                          history::MVHistory; keep=100)
     d = DrWatson.@dict(model, history)
 
@@ -39,18 +39,6 @@ function push_ntuple!(history::MVHistory, ntuple::NamedTuple; idx=nothing)
             value = value.data
         end
         push!(history, name, idx, deepcopy(value))
-    end
-end
-
-
-function mvhistory_callback(h::MVHistory, m::AbstractAutoEncoder, lossf::Function, test_data::AbstractArray)
-    function callback()
-        (μz, σz) = encoder_mean_var(m, test_data)
-        σe = m.σe[1]
-        xrec = decoder_mean(m, μz)
-        loss = lossf(test_data)
-        ntuple = DrWatson.@ntuple μz σz xrec loss σe
-        GenerativeModels.push_ntuple!(h, ntuple)
     end
 end
 

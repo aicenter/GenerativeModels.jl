@@ -12,12 +12,14 @@ module GenerativeModels
     @reexport using DiffEqFlux
     @reexport using LinearAlgebra
 
-    abstract type AbstractAutoEncoder end
+    abstract type AbstractGN end
+    abstract type AbstractVAE <: AbstractGN end
 
     include(joinpath("utils", "ode.jl"))
     include(joinpath("utils", "misc.jl"))
     include(joinpath("utils", "visualize.jl"))
 
     include(joinpath("models", "vae.jl"))
+    include(joinpath("models", "ard_vae.jl"))
 
 end # module

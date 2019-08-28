@@ -4,7 +4,7 @@ export prior_mean, prior_variance, prior_mean_var, prior_sample, prior_loglikeli
 export decoder_mean, decoder_variance, decoder_mean_var, decoder_sample, decoder_loglikelihood
 export elbo
 
-struct VAE{T<:Real} <: AbstractAutoEncoder
+struct VAE{T<:Real} <: AbstractVAE
     xsize::Int
     zsize::Int
     encoder
@@ -17,10 +17,9 @@ Flux.@treelike VAE
 
 """`VAE(xsize, zsize, encoder, decoder)`
 
-AutoEncoder that enforces sparsity on the latent layer.
+Variational Auto-Encoder with scalar Gaussian noise on reconstruction.
 p(x|z) = N(x|z, σe);
-p(z)   = N(z|0, σz);
-σz: point estimate
+p(z)   = N(z|0, 1);
 """
 function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     σz = param(ones(T, zsize) .* 0.001f0)
@@ -29,35 +28,37 @@ function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
 end
 
 
-encoder_mean(m::VAE, x::AbstractArray) = m.encoder(x)
-encoder_variance(m::VAE, x::AbstractArray) = m.σz
-encoder_mean_var(m::VAE, x::AbstractArray) = (m.encoder(x), m.σz)
+encoder_mean(m::AbstractVAE, x::AbstractArray) = m.encoder(x)
+encoder_variance(m::AbstractVAE, x::AbstractArray) = softplus.(m.σz)
+encoder_mean_var(m::AbstractVAE, x::AbstractArray) = (m.encoder(x), softplus.(m.σz))
 
 function encoder_sample(m::VAE{T}, x::AbstractArray) where T
+    # defined specifically for VAE type because of datatype T...
     (μz, σz) = encoder_mean_var(m, x)
     μz .+ σz .* randn(T, m.zsize)
 end
 
-encoder_loglikelihood(m::VAE, z::AbstractArray) = error("Not implemented.")
+encoder_loglikelihood(m::AbstractVAE, z::AbstractArray) = error("Not implemented.")
 
 
 prior_mean(m::VAE) = UniformScaling(0)
 prior_variance(m::VAE) = I
 prior_mean_var(m::VAE) = (UniformScaling(0), I)
 prior_sample(m::VAE{T}) where T = randn(T, m.zsize)
-prior_loglikelihood(m::VAE) = error("Not implemented.")
+prior_loglikelihood(m::AbstractVAE) = error("Not implemented.")
 
 
-decoder_mean(m::VAE, z::AbstractArray) = m.decoder(z)
-decoder_variance(m::VAE, z::AbstractArray) = m.σe
-decoder_mean_var(m::VAE, z::AbstractArray) = (m.decoder(z), m.σe)
+decoder_mean(m::AbstractVAE, z::AbstractArray) = m.decoder(z)
+decoder_variance(m::AbstractVAE, z::AbstractArray) = softplus.(m.σe)
+decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (m.decoder(z), softplus.(m.σe))
 
-function decoder_sample(m::VAE, z::AbstractArray)
+function decoder_sample(m::VAE{T}, z::AbstractArray) where T
+    # defined specifically for VAE type because of datatype T...
     (μx, σe) = decoder_mean_var(m, z)
     μx .+ σe .* randn(T, m.xsize)
 end
 
-function decoder_loglikelihood(m::VAE, x::AbstractArray, z::AbstractArray)
+function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
     xrec = decoder_mean(m, z)
     llh  = sum(abs2, x - xrec) / m.σe[1]^2 # TODO: what if σe is not scalar?
 end
@@ -96,4 +97,15 @@ function Base.show(io::IO, m::VAE{T}) where T
       σe      = $(m.σe)
     """
     print(io, msg)
+end
+
+function mvhistory_callback(h::MVHistory, m::AbstractGN, lossf::Function, test_data::AbstractArray)
+    function callback()
+        (μz, σz) = encoder_mean_var(m, test_data)
+        σe = m.σe[1]
+        xrec = decoder_mean(m, μz)
+        loss = lossf(test_data)
+        ntuple = DrWatson.@ntuple μz σz xrec loss σe
+        GenerativeModels.push_ntuple!(h, ntuple)
+    end
 end
