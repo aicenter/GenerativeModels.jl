@@ -21,7 +21,7 @@ p(x|z) = N(x|z, σe);
 p(z)   = N(z|0, 1);
 """
 function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize))
+    σz = param(ones(T, zsize) .* 0.001f0)
     σe = param(ones(T, 1))
     VAE(xsize, zsize, encoder, decoder, σz, σe)
 end
@@ -51,16 +51,16 @@ Computes variational lower bound.
 """
 function elbo(m::VAE{T}, x::AbstractArray) where T
     N  = size(x, 2)
-    σe = m.σe[1] # TODO: what if σe is not scalar?
 
     (μz, σz) = encoder_mean_var(m, x)
     # z = encoder_sample(m, x) TODO: this would recompute μz, σz ... change interface of encoder_sample?
     z = μz .+ σz .* randn(T, m.zsize)
+    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
 
     llh = decoder_loglikelihood(m, x, z) / N
     KLz = (sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))) / N
 
-    loss = llh + KLz + log(σe)*m.zsize/2
+    loss = llh + KLz + σe^2*m.zsize
 end
 
 

@@ -23,16 +23,16 @@ p(z)   = N(z|0, λz);
 σz: point estimate
 """
 function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize))
+    σz = param(ones(T, zsize) .* 0.001f0)
     λz = param(ones(T, zsize))
     σe = param(ones(T, 1))
     ARDVAE(xsize, zsize, encoder, decoder, λz, σz, σe)
 end
 
 
-prior_variance(m::ARDVAE) = softplus.(m.λz)
-prior_mean_var(m::ARDVAE) = (UniformScaling(0), softplus.(m.λz))
-prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* m.λz
+prior_variance(m::ARDVAE) = abs.(m.λz)
+prior_mean_var(m::ARDVAE) = (UniformScaling(0), abs.(m.λz))
+prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* prior_variance(m)
 prior_loglikelihood(m::ARDVAE) = error("Not implemented.")
 
 
@@ -42,16 +42,16 @@ Computes variational lower bound.
 """
 function elbo(m::ARDVAE{T}, x::AbstractArray) where T
     N  = size(x, 2)
-    σe = m.σe[1] # TODO: what if σe is not scalar?
-    λz = m.λz
+    λz = prior_variance(m)
     (μz, σz) = encoder_mean_var(m, x)
     # z = encoder_sample(m, x) TODO: this would recompute μz, σz ... change interface of encoder_sample?
     z = μz .+ σz .* randn(T, m.zsize)
+    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
 
     llh = decoder_loglikelihood(m, x, z) / N
     KLz = (sum(2 .* log.(λz ./ σz)) + sum((σz ./ λz).^2) + sum((μz ./ λz).^2)) / N
 
-    loss = llh + KLz + log(σe)*m.zsize/2
+    loss = llh + KLz + σe^2*m.zsize
 end
 
 
