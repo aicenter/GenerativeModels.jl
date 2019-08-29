@@ -1,5 +1,5 @@
 export order2ode
-export make_order2ode_decoder
+export make_ode_decoder
 
 
 function order2ode(du, u, p, t)
@@ -7,22 +7,37 @@ function order2ode(du, u, p, t)
     du[2] = p[3]*u[1] + p[4]*u[2] + p[6]
 end
 
+function order3ode(du, u, p, t)
+    du[1] = p[1]*u[1] + p[2]*u[2] + p[3]*u[3] + p[10]
+    du[2] = p[4]*u[1] + p[5]*u[2] + p[6]*u[3] + p[11]
+    du[3] = p[7]*u[1] + p[8]*u[2] + p[9]*u[3] + p[12]
+end
 
-"""`make_sine_ode_decoder(xsize::Int, tspan::Tuple{T,T})
 
-Creates an ODE solver function that solves an ODE of 2nd order with six free
-model parameters + two free inital condition parameters.
-The last two parameters are assumed to be the initial conditions to the ODE.
+"""`make_ode_decoder(xsize::Int, tspan::Tuple{T,T})
+
+Creates an ODE solver function that solves an ODE of 2nd or 3rd order.
+The last parameters are assumed to be the initial conditions to the ODE.
 
 Returns the ODE solver function and a named tuple that contains the ODE problem
 setup.
 """
-function make_order2ode_decoder(xsize::Int, tspan::Tuple{T,T}) where T
-    NR_ODE_PS = 8
+function make_ode_decoder(xsize::Int, tspan::Tuple{T,T}, order::Int) where T
+    ode = nothing
+    nr_ode_ps = nothing
+    if order == 2
+        ode = order2ode
+        nr_ode_ps = 8
+    elseif order == 3
+        ode = order3ode
+        nr_ode_ps = 15
+    else
+        error("ODE order $order not implemented!")
+    end
 
-    ode_ps = rand(T, NR_ODE_PS)
-    u0_func(ode_ps, t0) = [ode_ps[end-1], ode_ps[end]]
-    ode_prob = ODEProblem(order2ode, u0_func, tspan, ode_ps)
+    ode_ps = rand(T, nr_ode_ps)
+    u0_func(ode_ps, t0) = [p for p in ode_ps[end-order+1:end]]
+    ode_prob = ODEProblem(ode, u0_func, tspan, ode_ps)
     timesteps = range(tspan[1], stop=tspan[2], length=xsize)
 
     function decode(ode_ps)
@@ -32,7 +47,7 @@ function make_order2ode_decoder(xsize::Int, tspan::Tuple{T,T}) where T
 
     function decoder(Z)
         # TODO: this can be done with mapslices with Zygote -> parallelize?!
-        @assert size(Z, 1) == NR_ODE_PS
+        @assert size(Z, 1) == nr_ode_ps
 
         if length(size(Z)) == 1
             decode(Z)
