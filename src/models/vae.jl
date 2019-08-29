@@ -60,7 +60,7 @@ function elbo(m::VAE{T}, x::AbstractArray) where T
     llh = decoder_loglikelihood(m, x, z) / N
     KLz = (sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))) / N
 
-    loss = llh + KLz + σe^2*m.zsize
+    loss = llh + KLz + log(σe)*m.zsize*N/2
 end
 
 

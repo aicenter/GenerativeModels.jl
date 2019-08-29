@@ -51,7 +51,7 @@ function elbo(m::ARDVAE{T}, x::AbstractArray) where T
     llh = decoder_loglikelihood(m, x, z) / N
     KLz = (sum(2 .* log.(λz ./ σz)) + sum((σz ./ λz).^2) + sum((μz ./ λz).^2)) / N
 
-    loss = llh + KLz + σe^2*m.zsize
+    loss = llh + KLz + log(σe)*m.zsize*N/2
 end
 
 
