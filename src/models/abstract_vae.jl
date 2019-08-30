@@ -30,7 +30,7 @@ decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (m.decoder(z), abs.(m.σe))
 
 function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
     (μx, σe) = decoder_mean_var(m, z)
-    sum((x - μx).^2 ./ σe)
+    dropdims(sum((x - μx).^2 ./ σe, dims=1), dims=1)
 end
 
 function decoder_sample(m::AbstractVAE{T}, μx::AbstractArray, σe::AbstractArray) where T

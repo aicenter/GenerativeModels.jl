@@ -8,23 +8,13 @@
     zsize = 8
     batch = 20
     noise = 0.01f0
+
+    test_data = randn(Float32, xsize, batch)
     
-    function generate(ω1)
-        U, T, Omega = GenerativeModels.generate_sine_data(
-            batch, steps=xsize, dt=dt, freq_range=[ω0, ω1])
-        U .+= randn(Float32, size(U)) * noise
-        return U, T, Omega
-    end
-    
-    encoder = Chain(
-         Dense(xsize, 50, σ),
-         Dense(50, 50, σ),
-         Dense(50, zsize))
+    encoder = Dense(xsize, zsize)
     decoder, _ = make_ode_decoder(xsize, (0f0,xsize*dt), 2)
-    
-    test_data = generate(2.0)[1]
-    
     model = VAE{Float32}(xsize, zsize, encoder, decoder)
+
     loss = elbo(model, test_data)
     ps = params(model)
     @test length(ps) > 0
@@ -35,11 +25,20 @@
     @test σ1 == I
 
     (μz, σz) = encoder_mean_var(model, test_data)
+    z = encoder_sample(model, test_data)
     @test size(μz) == (zsize, batch)
     @test size(σz) == (zsize,)
+    @test size(z) == (zsize, batch)
 
     (μx, σe) = decoder_mean_var(model, μz)
+    xrec = decoder_sample(model, μz)
     @test size(μx) == (xsize, batch)
     @test size(σe) == (1,)
+    @test size(xrec) == (xsize, batch)
 
+    llh = decoder_loglikelihood(model, test_data, z)
+    @test size(llh) == (batch,)
+
+    llh = decoder_loglikelihood(model, test_data[:,1], z[:,1])
+    @test size(llh) == ()
 end

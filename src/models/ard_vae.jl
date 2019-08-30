@@ -46,7 +46,7 @@ function elbo(m::ARDVAE{T}, x::AbstractArray) where T
     (μz, σz) = encoder_mean_var(m, x)
     z = encoder_sample(m, μz, σz)
 
-    llh = decoder_loglikelihood(m, x, z) / N
+    llh = sum(decoder_loglikelihood(m, x, z)) / N
     KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
 
     σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
