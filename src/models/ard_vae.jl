@@ -1,9 +1,8 @@
 export ARDVAE
-export encoder_sample, decoder_sample
 export prior_mean, prior_variance, prior_mean_var, prior_sample
 export elbo
 
-struct ARDVAE{T<:Real} <: AbstractVAE
+struct ARDVAE{T} <: AbstractVAE{T}
     xsize::Int
     zsize::Int
     encoder  # posterior mean
@@ -20,7 +19,8 @@ Flux.@treelike ARDVAE
 AutoEncoder that enforces sparsity on the latent layer.
 p(x|z) = N(x|z, σe);
 p(z)   = N(z|0, λz);
-σz: point estimate
+λz: point estimate;
+q(z|x) = N(z|μz, σz)
 """
 function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     σz = param(ones(T, zsize) / 100)
@@ -41,11 +41,10 @@ prior_loglikelihood(m::ARDVAE) = error("Not implemented.")
 Computes variational lower bound.
 """
 function elbo(m::ARDVAE{T}, x::AbstractArray) where T
-    N  = size(x, 2)
+    N = size(x, 2)
     λz = prior_variance(m)
     (μz, σz) = encoder_mean_var(m, x)
-    # z = encoder_sample(m, x) TODO: this would recompute μz, σz ... change interface of encoder_sample?
-    z = μz .+ sqrt.(σz) .* randn(T, m.zsize)
+    z = encoder_sample(m, μz, σz)
 
     llh = decoder_loglikelihood(m, x, z) / N
     KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
@@ -65,11 +64,13 @@ function Base.show(io::IO, m::ARDVAE{T}) where T
       zsize   = $(m.zsize)
       encoder = $(e)
       decoder = $(d)
+      λz      = $(m.λz)
       σz      = $(m.σz)
       σe      = $(m.σe)
     """
     print(io, msg)
 end
+
 
 function mvhistory_callback(h::MVHistory, m::ARDVAE, lossf::Function, test_data::AbstractArray)
     function callback()
@@ -82,5 +83,3 @@ function mvhistory_callback(h::MVHistory, m::ARDVAE, lossf::Function, test_data:
         GenerativeModels.push_ntuple!(h, ntuple)
     end
 end
-
-

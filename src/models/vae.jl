@@ -1,9 +1,8 @@
 export VAE
-export encoder_sample, decoder_sample
 export prior_mean, prior_variance, prior_mean_var, prior_sample
 export elbo
 
-struct VAE{T<:Real} <: AbstractVAE
+struct VAE{T} <: AbstractVAE{T}
     xsize::Int
     zsize::Int
     encoder
@@ -19,17 +18,12 @@ Flux.@treelike VAE
 Variational Auto-Encoder with scalar Gaussian noise on reconstruction.
 p(x|z) = N(x|z, σe);
 p(z)   = N(z|0, 1);
+q(z|x) = N(z|μz, σz)
 """
 function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize) .* 0.001f0)
+    σz = param(ones(T, zsize) / 100)
     σe = param(ones(T, 1))
     VAE(xsize, zsize, encoder, decoder, σz, σe)
-end
-
-function encoder_sample(m::VAE{T}, x::AbstractArray) where T
-    # defined specifically for VAE type because of datatype T...
-    (μz, σz) = encoder_mean_var(m, x)
-    μz .+ σz .* randn(T, m.zsize)
 end
 
 
@@ -38,12 +32,6 @@ prior_variance(m::VAE) = I
 prior_mean_var(m::VAE) = (UniformScaling(0), I)
 prior_sample(m::VAE{T}) where T = randn(T, m.zsize)
 
-function decoder_sample(m::VAE{T}, z::AbstractArray) where T
-    # defined specifically for VAE type because of datatype T...
-    (μx, σe) = decoder_mean_var(m, z)
-    μx .+ σe .* randn(T, m.xsize)
-end
-
 
 """`elbo(m::VAE, x::AbstractArray)`
 
@@ -51,16 +39,14 @@ Computes variational lower bound.
 """
 function elbo(m::VAE{T}, x::AbstractArray) where T
     N  = size(x, 2)
-
     (μz, σz) = encoder_mean_var(m, x)
-    # z = encoder_sample(m, x) TODO: this would recompute μz, σz ... change interface of encoder_sample?
-    z = μz .+ σz .* randn(T, m.zsize)
-    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
+    z = encoder_sample(m, μz, σz)
 
     llh = decoder_loglikelihood(m, x, z) / N
-    KLz = (sum(μz.^2 .+ σz.^2) / 2. - sum(log.(abs.(σz)))) / N
+    KLz = (sum(μz.^2 .+ σz) / 2. - sum(log.(σz))) / N
 
-    loss = llh + KLz + log(σe)*m.zsize*N/2
+    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
+    loss = llh + KLz + log(σe)*m.zsize/2
 end
 
 
