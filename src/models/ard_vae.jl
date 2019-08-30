@@ -23,16 +23,16 @@ p(z)   = N(z|0, λz);
 σz: point estimate
 """
 function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize) .* 0.001f0)
+    σz = param(ones(T, zsize) / 100)
     λz = param(ones(T, zsize))
-    σe = param(ones(T, 1))
+    σe = param(ones(T, 1) / 10)
     ARDVAE(xsize, zsize, encoder, decoder, λz, σz, σe)
 end
 
 
 prior_variance(m::ARDVAE) = abs.(m.λz)
 prior_mean_var(m::ARDVAE) = (UniformScaling(0), abs.(m.λz))
-prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* prior_variance(m)
+prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* sqrt.(prior_variance(m))
 prior_loglikelihood(m::ARDVAE) = error("Not implemented.")
 
 
@@ -45,13 +45,13 @@ function elbo(m::ARDVAE{T}, x::AbstractArray) where T
     λz = prior_variance(m)
     (μz, σz) = encoder_mean_var(m, x)
     # z = encoder_sample(m, x) TODO: this would recompute μz, σz ... change interface of encoder_sample?
-    z = μz .+ σz .* randn(T, m.zsize)
-    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
+    z = μz .+ sqrt.(σz) .* randn(T, m.zsize)
 
     llh = decoder_loglikelihood(m, x, z) / N
-    KLz = (sum(2 .* log.(λz ./ σz)) + sum((σz ./ λz).^2) + sum((μz ./ λz).^2)) / N
+    KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
 
-    loss = llh + KLz + log(σe)*m.zsize*N/2
+    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
+    loss = llh + KLz + log(σe)*m.zsize
 end
 
 

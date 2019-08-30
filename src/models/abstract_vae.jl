@@ -17,5 +17,5 @@ decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (m.decoder(z), abs.(m.σe))
 
 function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
     xrec = decoder_mean(m, z)
-    llh  = sum(abs2, x - xrec) / m.σe[1]^2 # TODO: what if σe is not scalar?
+    llh  = sum(abs2, x - xrec) / m.σe[1] # TODO: what if σe is not scalar?
 end
