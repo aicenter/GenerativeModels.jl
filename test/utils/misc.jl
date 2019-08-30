@@ -1,7 +1,7 @@
 @testset "utils/misc.jl" begin
     @info "Testing utils/misc.jl"
 
-    model = ARDAutoEncoder{Float32}(1, 1, Dense(1,1), Dense(1,1))
+    model = VAE{Float32}(1, 1, Dense(1,1), Dense(1,1))
 
     warn_logger = SimpleLogger(stdout, Logging.Warn)
     model_dir   = mktempdir()

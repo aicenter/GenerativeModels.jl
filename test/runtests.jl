@@ -9,7 +9,8 @@ using GenerativeModels
 
 @testset "GenerativeModels.jl" begin
     
-include(joinpath("models", "ard_autoencoder.jl"))
+include(joinpath("models", "vae.jl"))
+include(joinpath("models", "ard_vae.jl"))
 
 include(joinpath("utils", "misc.jl"))
 
