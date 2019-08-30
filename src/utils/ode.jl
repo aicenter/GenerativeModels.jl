@@ -13,6 +13,10 @@ function order3ode(du, u, p, t)
     du[3] = p[7]*u[1] + p[8]*u[2] + p[9]*u[3] + p[12]
 end
 
+_ODE = Dict(
+    2 => order2ode,
+    3 => order3ode
+)
 
 """`make_ode_decoder(xsize::Int, tspan::Tuple{T,T})
 
@@ -23,21 +27,12 @@ Returns the ODE solver function and a named tuple that contains the ODE problem
 setup.
 """
 function make_ode_decoder(xsize::Int, tspan::Tuple{T,T}, order::Int) where T
-    ode = nothing
-    nr_ode_ps = nothing
-    if order == 2
-        ode = order2ode
-        nr_ode_ps = 8
-    elseif order == 3
-        ode = order3ode
-        nr_ode_ps = 15
-    else
-        error("ODE order $order not implemented!")
-    end
+    global _ODE
+    nr_ode_ps = order^2 + order*2
 
     ode_ps = rand(T, nr_ode_ps)
     u0_func(ode_ps, t0) = [p for p in ode_ps[end-order+1:end]]
-    ode_prob = ODEProblem(ode, u0_func, tspan, ode_ps)
+    ode_prob = ODEProblem(_ODE[order], u0_func, tspan, ode_ps)
     timesteps = range(tspan[1], stop=tspan[2], length=xsize)
 
     function decode(ode_ps)
