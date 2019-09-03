@@ -21,14 +21,13 @@ function encoder_sample(m::AbstractVAE{T}, x::AbstractArray) where T
 end
 
 
-prior_loglikelihood(m::AbstractVAE) = error("Not implemented.")
-
-
 decoder_mean(m::AbstractVAE, z::AbstractArray) = m.decoder(z)
 decoder_variance(m::AbstractVAE, z::AbstractArray) = abs.(m.σe)
 decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (m.decoder(z), abs.(m.σe))
 
 function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
+    @assert size(x, 1) == m.xsize
+    @assert size(z, 1) == m.zsize
     (μx, σe) = decoder_mean_var(m, z)
     dropdims(sum((x - μx).^2 ./ σe, dims=1), dims=1)
 end

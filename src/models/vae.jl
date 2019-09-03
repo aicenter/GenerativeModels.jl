@@ -1,5 +1,6 @@
 export VAE
 export prior_mean, prior_variance, prior_mean_var, prior_sample
+export prior_loglikelihood
 export elbo
 
 struct VAE{T} <: AbstractVAE{T}
@@ -22,28 +23,33 @@ q(z|x) = N(z|μz, σz)
 """
 function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     σz = param(ones(T, zsize) / 100)
-    σe = param(ones(T, 1))
+    σe = param(ones(T, 1) / 10)
     VAE(xsize, zsize, encoder, decoder, σz, σe)
 end
 
 
-prior_mean(m::VAE) = UniformScaling(0)
+prior_mean(m::VAE{T}) where T = zeros(T, m.zsize)
 prior_variance(m::VAE) = I
-prior_mean_var(m::VAE) = (UniformScaling(0), I)
+prior_mean_var(m::VAE) = (prior_mean(m), prior_variance(m))
 prior_sample(m::VAE{T}) where T = randn(T, m.zsize)
+
+function prior_loglikelihood(m::VAE, z::AbstractArray)
+    @assert size(z, 1) == m.zsize
+    dropdims(sum(z.^2, dims=1), dims=1) / 2
+end
 
 
 """`elbo(m::VAE, x::AbstractArray)`
 
 Computes variational lower bound.
 """
-function elbo(m::VAE{T}, x::AbstractArray) where T
+function elbo(m::VAE, x::AbstractArray)
     N  = size(x, 2)
     (μz, σz) = encoder_mean_var(m, x)
     z = encoder_sample(m, μz, σz)
 
     llh = sum(decoder_loglikelihood(m, x, z)) / N
-    KLz = (sum(μz.^2 .+ σz) / 2. - sum(log.(σz))) / N
+    KLz = (sum(μz.^2 .+ σz) / 2 - sum(log.(σz))) / N
 
     σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
     loss = llh + KLz + log(σe)*m.zsize/2

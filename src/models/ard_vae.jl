@@ -1,5 +1,6 @@
 export ARDVAE
 export prior_mean, prior_variance, prior_mean_var, prior_sample
+export prior_loglikelihood
 export elbo
 
 struct ARDVAE{T} <: AbstractVAE{T}
@@ -30,17 +31,23 @@ function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
 end
 
 
+prior_mean(m::ARDVAE{T}) where T = zeros(T, m.zsize)
 prior_variance(m::ARDVAE) = abs.(m.λz)
-prior_mean_var(m::ARDVAE) = (UniformScaling(0), abs.(m.λz))
+prior_mean_var(m::ARDVAE) = (prior_mean(m), prior_variance(m))
 prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* sqrt.(prior_variance(m))
-prior_loglikelihood(m::ARDVAE) = error("Not implemented.")
+
+function prior_loglikelihood(m::ARDVAE, z::AbstractArray)
+    @assert size(z, 1) == m.zsize
+    σz = prior_variance(m)
+    dropdims(sum(z.^2 ./ σz, dims=1), dims=1) / 2 .+ sum(log.(σz))
+end
 
 
 """`elbo(m::ARDVAE, x::AbstractArray)`
 
 Computes variational lower bound.
 """
-function elbo(m::ARDVAE{T}, x::AbstractArray) where T
+function elbo(m::ARDVAE, x::AbstractArray)
     N = size(x, 2)
     λz = prior_variance(m)
     (μz, σz) = encoder_mean_var(m, x)

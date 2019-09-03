@@ -21,7 +21,7 @@
     @test isa(loss, Tracker.TrackedReal)
     
     (μ0, σ1) = prior_mean_var(model)
-    @test μ0 == UniformScaling(0)
+    @test μ0 == zeros(Float32, zsize)
     @test σ1 == I
 
     (μz, σz) = encoder_mean_var(model, test_data)

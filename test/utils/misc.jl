@@ -1,7 +1,11 @@
 @testset "utils/misc.jl" begin
     @info "Testing utils/misc.jl"
 
-    model = VAE{Float32}(1, 1, Dense(1,1), Dense(1,1))
+    xsize = 10
+    zsize = 8
+    (decoder, _) = make_ode_decoder(xsize, (0f0,1f0), 2)
+    encoder = Dense(xsize, zsize)
+    model = VAE{Float32}(xsize, zsize, encoder, decoder)
 
     warn_logger = SimpleLogger(stdout, Logging.Warn)
     model_dir   = mktempdir()
@@ -27,4 +31,7 @@
     loaded_history = ckpt[:history]
     @test model.encoder.W == loaded_model.encoder.W
 
+    z = randn(Float32, zsize)
+    (x, _) = decoder_mean_var(model, z)
+    @test size(x) == (xsize,)
 end
