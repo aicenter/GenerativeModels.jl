@@ -1,8 +1,8 @@
 using Test
 using Logging
 
-using Flux
-using ValueHistories
+using DifferentialEquations
+using DiffEqFlux
 
 using Revise
 using GenerativeModels

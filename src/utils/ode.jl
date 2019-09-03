@@ -28,6 +28,9 @@ setup.
 """
 function make_ode_decoder(xsize::Int, tspan::Tuple{T,T}, order::Int) where T
     global _ODE
+    ODEProblem = DifferentialEquations.ODEProblem
+    Tsit5 = DifferentialEquations.Tsit5
+    diffeq_rd = DiffEqFlux.diffeq_rd
     nr_ode_ps = order^2 + order*2
 
     ode_ps = rand(T, nr_ode_ps)
