@@ -9,6 +9,8 @@ Plots the values of each history key over time. If elements in history are
 2D arrays only the first axis is plotted ove time.
 """
 function plot_history(history::MVHistory; exclude_keys=[:xrec,])
+    plt = PyPlot.plt
+
     plot_keys = collect(keys(history))
     plot_keys = filter!(x -> !(x in exclude_keys), plot_keys)
 
@@ -43,6 +45,8 @@ end
 Plots two exemplary reconstructions.
 """
 function plot_reconstruction(model::AbstractGM, X::Array{T,2}) where T
+    plt = PyPlot.plt
+
     xrec = decoder_mean(model, encoder_mean(model, X)).data
 
     fig, ax = plt.subplots(1,1)
@@ -56,6 +60,7 @@ function plot_reconstruction(model::AbstractGM, X::Array{T,2}) where T
 end
 
 function plot_sine_ode_params(constant, specific, U, T, Ω)
+    plt = PyPlot.plt
 
     fig, ax = plt.subplots(2,4,figsize=(9,6))
     for a in ax a.grid(true) end
