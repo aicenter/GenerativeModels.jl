@@ -2,7 +2,7 @@ export save_checkpoint
 export load_checkpoint
 
 
-function save_checkpoint(filename::String, model::AbstractGN,
+function save_checkpoint(filename::String, model::AbstractGM,
                          history::MVHistory; keep=100)
     d = DrWatson.@dict(model, history)
 

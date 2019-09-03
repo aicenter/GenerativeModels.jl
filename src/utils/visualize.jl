@@ -38,11 +38,11 @@ function plot_history(history::MVHistory; exclude_keys=[:xrec,])
 end
 
 
-"""`plot_reconstruction(model::AbstractGN, X::Array{T,2})
+"""`plot_reconstruction(model::AbstractGM, X::Array{T,2})
 
 Plots two exemplary reconstructions.
 """
-function plot_reconstruction(model::AbstractGN, X::Array{T,2}) where T
+function plot_reconstruction(model::AbstractGM, X::Array{T,2}) where T
     xrec = decoder_mean(model, encoder_mean(model, X)).data
 
     fig, ax = plt.subplots(1,1)

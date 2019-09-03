@@ -12,7 +12,7 @@ module GenerativeModels
     @reexport using DiffEqFlux
     @reexport using LinearAlgebra
 
-    abstract type AbstractGN end
+    abstract type AbstractGM end
 
     include(joinpath("utils", "ode.jl"))
     include(joinpath("utils", "misc.jl"))

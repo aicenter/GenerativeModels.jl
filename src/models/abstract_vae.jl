@@ -4,7 +4,7 @@ export prior_loglikelihood
 export decoder_mean, decoder_variance, decoder_mean_var
 export decoder_sample, decoder_loglikelihood
 
-abstract type AbstractVAE{T<:Real} <: AbstractGN end
+abstract type AbstractVAE{T<:Real} <: AbstractGM end
 
 encoder_mean(m::AbstractVAE, x::AbstractArray) = m.encoder(x)
 encoder_variance(m::AbstractVAE, x::AbstractArray) = abs.(m.σz)
