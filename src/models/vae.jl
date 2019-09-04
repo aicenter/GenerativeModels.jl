@@ -35,7 +35,7 @@ prior_sample(m::VAE{T}) where T = randn(T, m.zsize)
 
 function prior_loglikelihood(m::VAE, z::AbstractArray)
     @assert size(z, 1) == m.zsize
-    dropdims(sum(z.^2, dims=1), dims=1) / 2
+    -dropdims(sum(z.^2, dims=1), dims=1) / 2
 end
 
 
@@ -48,7 +48,7 @@ function elbo(m::VAE, x::AbstractArray)
     (μz, σz) = encoder_mean_var(m, x)
     z = encoder_sample(m, μz, σz)
 
-    llh = sum(decoder_loglikelihood(m, x, z)) / N
+    llh = -sum(decoder_loglikelihood(m, x, z)) / N
     KLz = (sum(μz.^2 .+ σz) / 2 - sum(log.(σz))) / N
 
     σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?

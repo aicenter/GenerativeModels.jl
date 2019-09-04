@@ -32,14 +32,14 @@ end
 
 
 prior_mean(m::ARDVAE{T}) where T = zeros(T, m.zsize)
-prior_variance(m::ARDVAE) = abs.(m.λz)
+prior_variance(m::ARDVAE) = m.λz.^2
 prior_mean_var(m::ARDVAE) = (prior_mean(m), prior_variance(m))
 prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* sqrt.(prior_variance(m))
 
 function prior_loglikelihood(m::ARDVAE, z::AbstractArray)
     @assert size(z, 1) == m.zsize
     σz = prior_variance(m)
-    dropdims(sum(z.^2 ./ σz, dims=1), dims=1) / 2 .+ sum(log.(σz))
+    -dropdims(sum(z.^2 ./ σz, dims=1), dims=1) / 2 .+ sum(log.(σz))
 end
 
 
@@ -53,7 +53,7 @@ function elbo(m::ARDVAE, x::AbstractArray)
     (μz, σz) = encoder_mean_var(m, x)
     z = encoder_sample(m, μz, σz)
 
-    llh = sum(decoder_loglikelihood(m, x, z)) / N
+    llh = -sum(decoder_loglikelihood(m, x, z)) / N
     KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
 
     σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
@@ -83,7 +83,7 @@ function mvhistory_callback(h::MVHistory, m::ARDVAE, lossf::Function, test_data:
     function callback()
         (μz, σz) = encoder_mean_var(m, test_data)
         λz = m.λz
-        σe = m.σe[1]
+        σe = decoder_variance(m, μz)
         xrec = decoder_mean(m, μz)
         loss = lossf(test_data)
         ntuple = DrWatson.@ntuple μz σz λz xrec loss σe

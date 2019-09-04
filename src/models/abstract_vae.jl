@@ -7,8 +7,8 @@ export decoder_sample, decoder_loglikelihood
 abstract type AbstractVAE{T<:Real} <: AbstractGM end
 
 encoder_mean(m::AbstractVAE, x::AbstractArray) = m.encoder(x)
-encoder_variance(m::AbstractVAE, x::AbstractArray) = abs.(m.σz)
-encoder_mean_var(m::AbstractVAE, x::AbstractArray) = (m.encoder(x), abs.(m.σz))
+encoder_variance(m::AbstractVAE, x::AbstractArray) = m.σz.^2
+encoder_mean_var(m::AbstractVAE, x::AbstractArray) = (encoder_mean(m, x), encoder_variance(m, x))
 encoder_loglikelihood(m::AbstractVAE, z::AbstractArray) = error("Not implemented.")
 
 function encoder_sample(m::AbstractVAE{T}, μz::AbstractArray, σz::AbstractArray) where T
@@ -22,14 +22,14 @@ end
 
 
 decoder_mean(m::AbstractVAE, z::AbstractArray) = m.decoder(z)
-decoder_variance(m::AbstractVAE, z::AbstractArray) = abs.(m.σe)
-decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (m.decoder(z), abs.(m.σe))
+decoder_variance(m::AbstractVAE, z::AbstractArray) = m.σe.^2
+decoder_mean_var(m::AbstractVAE, z::AbstractArray) = (decoder_mean(m, z), decoder_variance(m, z))
 
 function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
     @assert size(x, 1) == m.xsize
     @assert size(z, 1) == m.zsize
     (μx, σe) = decoder_mean_var(m, z)
-    dropdims(sum((x - μx).^2 ./ σe, dims=1), dims=1)
+    -dropdims(sum((x - μx).^2 ./ σe, dims=1), dims=1)
 end
 
 function decoder_sample(m::AbstractVAE{T}, μx::AbstractArray, σe::AbstractArray) where T
