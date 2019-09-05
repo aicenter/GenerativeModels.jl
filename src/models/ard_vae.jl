@@ -30,11 +30,9 @@ function ARDVAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
     ARDVAE(xsize, zsize, encoder, decoder, λz, σz, σe)
 end
 
-
-prior_mean(m::ARDVAE{T}) where T = zeros(T, m.zsize)
-prior_variance(m::ARDVAE) = m.λz.^2
-prior_mean_var(m::ARDVAE) = (prior_mean(m), prior_variance(m))
-prior_sample(m::ARDVAE{T}) where T = randn(T, m.zsize) .* sqrt.(prior_variance(m))
+prior_mean_var(m::ARDVAE{T}) where T = (zeros(T, m.zsize), m.λz.^2)
+encoder_mean_var(m::ARDVAE, x::AbstractArray) = (m.encoder(x), m.σz.^2)
+decoder_mean_var(m::ARDVAE, z::AbstractArray) = (m.decoder(z), m.σe.^2)
 
 function prior_loglikelihood(m::ARDVAE, z::AbstractArray)
     @assert size(z, 1) == m.zsize

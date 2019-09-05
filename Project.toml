@@ -16,8 +16,8 @@ Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
 ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 
 [extras]
-Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
+Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test= ["Test", "Logging"]
+test = ["Test", "Logging"]

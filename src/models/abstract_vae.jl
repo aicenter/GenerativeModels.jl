@@ -16,12 +16,17 @@ prior_mean_var(m::AbstractVAE) = error("Not implemented")
 prior_mean(m::AbstractVAE) = prior_mean_var(m)[1]
 prior_variance(m::AbstractVAE) = prior_mean_var(m)[2]
 
+function prior_sample(m::AbstractVAE{T}) where T
+    (μ, σ) = prior_mean_var(m)
+    μ .+ randn(T, m.zsize) .* sqrt.(σ)
+end
+
 function prior_loglikelihood(m::AbstractVAE, z::AbstractArray)
     (μz, σz) = prior_mean_var(m)
     -sum((z - μz).^2 ./ σz, dims=1)
 end
 
-function prior_sample(m::AbstractVAE{T})
+function prior_sample(m::AbstractVAE{T}) where T
     (μz, σz) = prior_mean_var(m)
     μz .+ sqrt.(σz) .* randn(T, m.zsize)
 end
