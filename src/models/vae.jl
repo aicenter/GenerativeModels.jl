@@ -1,6 +1,5 @@
 export VAE
-export prior_mean, prior_variance, prior_mean_var, prior_sample
-export prior_loglikelihood
+export prior_mean, prior_variance, prior_mean_var
 export elbo
 
 struct VAE{T} <: AbstractVAE{T}
@@ -31,12 +30,6 @@ end
 prior_mean(m::VAE{T}) where T = zeros(T, m.zsize)
 prior_variance(m::VAE) = I
 prior_mean_var(m::VAE) = (prior_mean(m), prior_variance(m))
-prior_sample(m::VAE{T}) where T = randn(T, m.zsize)
-
-function prior_loglikelihood(m::VAE, z::AbstractArray)
-    @assert size(z, 1) == m.zsize
-    -dropdims(sum(z.^2, dims=1), dims=1) / 2
-end
 
 
 """`elbo(m::VAE, x::AbstractArray)`
