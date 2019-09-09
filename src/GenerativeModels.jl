@@ -2,6 +2,7 @@ module GenerativeModels
 
     using Reexport
     using Requires
+    using Statistics
 
     @reexport using BSON
     @reexport using DrWatson
@@ -11,6 +12,7 @@ module GenerativeModels
     @reexport using LinearAlgebra
 
     abstract type AbstractGM end
+    abstract type AbstractVAE{T<:Real} <: AbstractGM end
 
     include(joinpath("utils", "misc.jl"))
 
@@ -21,8 +23,11 @@ module GenerativeModels
         @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("utils", "ode.jl"))
     end
 
-    include(joinpath("models", "abstract_vae.jl"))
+    include(joinpath("pdfs", "abstract_pdfs.jl"))
+    include(joinpath("pdfs", "gaussian.jl"))
+
     include(joinpath("models", "vae.jl"))
-    include(joinpath("models", "ard_vae.jl"))
+    # include(joinpath("models", "vae.jl"))
+    # include(joinpath("models", "ard_vae.jl"))
 
 end # module

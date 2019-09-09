@@ -47,9 +47,9 @@ function make_ode_decoder(xsize::Int, tspan::Tuple{T,T}, order::Int) where T
         # TODO: this can be done with mapslices with Zygote -> parallelize?!
         @assert size(Z, 1) == nr_ode_ps
 
-        if length(size(Z)) == 1
+        if Base.length(size(Z)) == 1
             decode(Z)
-        elseif length(size(Z)) == 2
+        elseif Base.length(size(Z)) == 2
             U = [decode(Z[:, ii]) for ii in 1:size(Z, 2)]
             hcat(U...)
         else

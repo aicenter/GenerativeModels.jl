@@ -8,10 +8,12 @@ using Revise
 using GenerativeModels
 
 @testset "GenerativeModels.jl" begin
+
+include(joinpath("pdfs", "gaussian.jl"))
     
 include(joinpath("models", "vae.jl"))
-include(joinpath("models", "ard_vae.jl"))
+# include(joinpath("models", "ard_vae.jl"))
 
-include(joinpath("utils", "misc.jl"))
+# include(joinpath("utils", "misc.jl"))
 
 end
