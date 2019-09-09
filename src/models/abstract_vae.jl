@@ -17,18 +17,18 @@ prior_mean(m::AbstractVAE) = prior_mean_var(m)[1]
 prior_variance(m::AbstractVAE) = prior_mean_var(m)[2]
 
 function prior_sample(m::AbstractVAE{T}) where T
-    (μ, σ) = prior_mean_var(m)
-    μ .+ randn(T, m.zsize) .* sqrt.(σ)
+    (μ, σ2) = prior_mean_var(m)
+    μ .+ randn(T, m.zsize) .* sqrt.(σ2)
 end
 
 function prior_loglikelihood(m::AbstractVAE, z::AbstractArray)
-    (μz, σz) = prior_mean_var(m)
-    -sum((z - μz).^2 ./ σz, dims=1)
+    (μz, σ2z) = prior_mean_var(m)
+    -sum((z - μz).^2 ./ σ2z, dims=1) # this is not entirely correct - the log(sigma2) and constant terms are missing
 end
 
 function prior_sample(m::AbstractVAE{T}) where T
-    (μz, σz) = prior_mean_var(m)
-    μz .+ sqrt.(σz) .* randn(T, m.zsize)
+    (μz, σ2z) = prior_mean_var(m)
+    μz .+ sqrt.(σ2z) .* randn(T, m.zsize)
 end
 
 
@@ -39,17 +39,17 @@ encoder_mean(m::AbstractVAE, x::AbstractArray) = encoder_mean_var(m, x)[1]
 encoder_variance(m::AbstractVAE, x::AbstractArray) = encoder_mean_var(m, x)[2]
 
 function encoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
-    (μz, σz) = encoder_mean_var(m, x)
-    -sum((z - μz).^2 ./ σz, dims=1)
+    (μz, σ2z) = encoder_mean_var(m, x)
+    -sum((z - μz).^2 ./ σ2z, dims=1)
 end
 
-function encoder_sample(m::AbstractVAE{T}, μz::AbstractArray, σz::AbstractArray) where T
-    μz .+ sqrt.(σz) .* randn(T, m.zsize)
+function encoder_sample(m::AbstractVAE{T}, μz::AbstractArray, σ2z::AbstractArray) where T
+    μz .+ sqrt.(σ2z) .* randn(T, m.zsize)
 end
 
 function encoder_sample(m::AbstractVAE{T}, x::AbstractArray) where T
-    (μz, σz) = encoder_mean_var(m, x)
-    encoder_sample(m, μz, σz)
+    (μz, σ2z) = encoder_mean_var(m, x)
+    encoder_sample(m, μz, σ2z)
 end
 
 
@@ -62,15 +62,15 @@ decoder_variance(m::AbstractVAE, z::AbstractArray) = decoder_mean_var(m, z)[2]
 function decoder_loglikelihood(m::AbstractVAE, x::AbstractArray, z::AbstractArray)
     @assert size(x, 1) == m.xsize
     @assert size(z, 1) == m.zsize
-    (μx, σe) = decoder_mean_var(m, z)
-    -dropdims(sum((x - μx).^2 ./ σe, dims=1), dims=1)
+    (μx, σ2x) = decoder_mean_var(m, z)
+    -dropdims(sum((x - μx).^2 ./ σ2x, dims=1), dims=1)
 end
 
-function decoder_sample(m::AbstractVAE{T}, μx::AbstractArray, σe::AbstractArray) where T
-    μx .+ sqrt.(σe) .* randn(T, m.xsize)
+function decoder_sample(m::AbstractVAE{T}, μx::AbstractArray, σ2x::AbstractArray) where T
+    μx .+ sqrt.(σ2x) .* randn(T, m.xsize)
 end
 
 function decoder_sample(m::AbstractVAE{T}, z::AbstractArray) where T
-    (μx, σe) = decoder_mean_var(m, z)
-    decoder_sample(m, μx, σe)
+    (μx, σ2x) = decoder_mean_var(m, z)
+    decoder_sample(m, μx, σ2x)
 end

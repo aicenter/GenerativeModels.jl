@@ -2,6 +2,7 @@ module GenerativeModels
 
     using Reexport
     using Requires
+    using Statistics
 
     @reexport using BSON
     @reexport using DrWatson
@@ -13,6 +14,8 @@ module GenerativeModels
     abstract type AbstractGM end
 
     include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "utils.jl"))
+
 
     # optional dependencies
     function __init__()

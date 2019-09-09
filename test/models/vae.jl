@@ -1,44 +1,63 @@
+using Test
+using Logging
+
+using Revise
+using GenerativeModels
+
 @testset "models/vae.jl" begin
 
     @info "Testing VAE"
 
-    ω0 = 0.5f0
-    dt = 0.3f0
-    xsize = 30
-    zsize = 8
-    batch = 20
-    noise = 0.01f0
+    xdim = 4
+    zdim = 2
+    N = 10
+    X = randn(xdim, N)
+    T = Float32
 
-    test_data = randn(Float32, xsize, batch)
+    # test the simplest constructor
+    encoder = Dense(xdim, zdim*2)
+    decoder = Dense(zdim, xdim)
+    model_default = VAE(xdim, zdim, encoder, decoder)
+    model_unit = VAE{T}(xdim, zdim, encoder, decoder)
+    model = VAE{T,UnitVar}(xdim, zdim, encoder, decoder)
+    @test typeof(model) == typeof(model_unit)
+    @test typeof(model) == typeof(model_default)    
+    decoder = Dense(zdim, xdim+1)
+    model_scalar = VAE{T,ScalarVar}(xdim, zdim, encoder, decoder)
+    @test typeof(model_scalar) != typeof(model_unit)    
+    @test typeof(model_scalar) != typeof(model_default)
+    decoder = Dense(zdim, xdim*2)
+    model = VAE{T,DiagVar}(xdim, zdim, encoder, decoder)
+    @test typeof(model) != typeof(model_unit)
     
-    encoder = Dense(xsize, zsize)
-    decoder, _ = make_ode_decoder(xsize, (0f0,xsize*dt), 2)
-    model = VAE{Float32}(xsize, zsize, encoder, decoder)
-
-    loss = elbo(model, test_data)
-    ps = params(model)
-    @test length(ps) > 0
-    @test isa(loss, Tracker.TrackedReal)
+    # test prior methods
+    @test prior_mean(model) == zeros(T,zdim)
+    @test eltype(prior_mean(model)) == T
+    b = randn(3,3)
+    @test b*prior_variance(model) == b*prior_variance(model) == b
     
-    (μ0, σ1) = prior_mean_var(model)
-    @test μ0 == zeros(Float32, zsize)
-    @test σ1 == I
+    # encoder
+    @test size(encoder_mean(model, X)) == (zdim,N)
+    @test typeof(encoder_mean(model, X)) <: Tracker.TrackedArray
+    @test size(encoder_variance(model, X)) == (zdim,N)
+    @test typeof(encoder_variance(model, X)) <: Tracker.TrackedArray
+    Z = encoder_sample(model, X)
+    @test size(Z) == (zdim, N)
 
-    (μz, σz) = encoder_mean_var(model, test_data)
-    z = encoder_sample(model, test_data)
-    @test size(μz) == (zsize, batch)
-    @test size(σz) == (zsize,)
-    @test size(z) == (zsize, batch)
-
-    (μx, σe) = decoder_mean_var(model, μz)
-    xrec = decoder_sample(model, μz)
-    @test size(μx) == (xsize, batch)
-    @test size(σe) == (1,)
-    @test size(xrec) == (xsize, batch)
-
-    llh = decoder_loglikelihood(model, test_data, z)
-    @test size(llh) == (batch,)
-
-    llh = decoder_loglikelihood(model, test_data[:,1], z[:,1])
-    @test size(llh) == ()
+    # decoder
+    # diag model
+    @test size(decoder_mean(model, Z)) == (xdim,N)
+    @test typeof(decoder_mean(model, Z)) <: Tracker.TrackedArray
+    @test size(decoder_variance(model, Z)) == (xdim,N)
+    @test typeof(decoder_variance(model, Z)) <: Tracker.TrackedArray
+    # unit model
+    @test size(decoder_mean(model_unit, Z)) == (xdim,N)
+    @test typeof(decoder_mean(model_unit, Z)) <: Tracker.TrackedArray
+    @test decoder_variance(model_unit, Z) == I
+    @test !(typeof(decoder_variance(model_unit, Z)) <: Tracker.TrackedArray)
+    # scalar model
+    @test size(decoder_mean(model_scalar, Z)) == (xdim,N)
+    @test typeof(decoder_mean(model_scalar, Z)) <: Tracker.TrackedArray
+    @test size(decoder_variance(model_scalar, Z)) == (1,N)
+    @test typeof(decoder_variance(model_scalar, Z)) <: Tracker.TrackedArray
 end
