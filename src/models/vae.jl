@@ -1,7 +1,6 @@
 export VAE
 export elbo
 
-
 struct VAE{T} <: AbstractVAE{T}
     xsize::Int
     zsize::Int
@@ -9,6 +8,8 @@ struct VAE{T} <: AbstractVAE{T}
     encoder::CGaussian
     decoder::CGaussian
 end
+
+Flux.@treelike VAE
 
 function VAE(xsize::Int, zsize::Int, enc::CGaussian{T}, dec::CGaussian{T}) where T
     prior = Gaussian(zeros(T, zsize), ones(T, zsize))
@@ -23,7 +24,6 @@ function elbo(m::VAE, x::AbstractArray; β=1)
 end
 
 
-Flux.@treelike VAE
 
 function Base.show(io::IO, m::VAE{T}) where T
     msg = """VAE{$T}:

@@ -1,11 +1,30 @@
 export Gaussian, CGaussian
 export mean, variance, mean_var, sample, loglikelihood, kld
 
+DiagVar = AbstractArray{T,1} where T
+ScalarVar = AbstractArray{T,0} where T
+UnitVar = Array{T,1} where T
+XVar = Union{DiagVar, ScalarVar, UnitVar}
 
-struct Gaussian{T} <: AbstractPDF{T}
+struct Gaussian{T,V<:XVar} <: AbstractPDF{T}
     μ::AbstractArray{T}
-    σ2::AbstractArray{T}
+    σ2::V
 end
+
+function Gaussian(μ::AbstractArray{T}, σ2::Number) where T 
+    p = Gaussian{T,ScalarVar}(μ, zeros(T))
+    p.σ2 .+ σ2
+    p
+end
+
+function Gaussian(μ::AbstractArray{T}, σ2::AbstractArray{T}) where T
+    @assert ndims(μ) == ndims(σ2) == 1
+    @assert size(μ) == size(σ2)
+    Gaussian{T,DiagVar}(μ, σ)
+end
+
+Gaussian(μ::AbstractArray{T}) where T = Gaussian{T,UnitVar}(μ, ones(T, size(μ,1)))
+
 
 length(p::Gaussian) = size(p.μ, 1)
 mean(p::Gaussian) = p.μ
