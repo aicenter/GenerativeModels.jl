@@ -2,27 +2,26 @@
 
     @info "Testing VAE"
 
-    ω0 = 0.5f0
-    dt = 0.3f0
+    ω0 = 0.5
+    dt = 0.3
     xsize = 30
     zsize = 8
     batch = 20
-    noise = 0.01f0
+    noise = 0.01
+    T = Float64
 
     test_data = randn(xsize, batch)
     
     μe  = Dense(xsize, zsize)
-    σ2e = param(ones(zsize))
-    encoder = CGaussian(μe, σ2e)
+    encoder = CGaussian{T,UnitVar}(zsize, xsize, μe)
 
-    μd, _ = make_ode_decoder(xsize, (0f0,xsize*dt), 2)
-    σ2d   = param(ones(1))
-    decoder = CGaussian(μd, σ2d)
+    μd, _ = make_ode_decoder(xsize, (0., xsize*dt), 2)
+    decoder = CGaussian{T,UnitVar}(xsize, zsize, μd)
     model = VAE(xsize, zsize, encoder, decoder)
 
     loss = elbo(model, test_data)
     ps = params(model)
-    @test length(ps) > 0
+    @test Base.length(ps) > 0
     @test isa(loss, Tracker.TrackedReal)
     
 end

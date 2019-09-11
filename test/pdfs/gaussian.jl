@@ -1,6 +1,6 @@
 @testset "src/gaussian.jl" begin
 
-    @info "Testing PDFS"
+    @info "Testing Gaussian"
 
     p  = Gaussian(zeros(2), ones(2))
     μ  = mean(p)
@@ -12,21 +12,7 @@
     @test size(loglikelihood(p, randn(2, 10))) == (1, 10)
     @test size(loglikelihood(p, randn(2))) == (1,)
 
-
-    p  = CGaussian(Dense(2,3), ones(3))
-    z  = randn(2, 10)
-    μ  = mean(p, z)
-    σ2 = variance(p, z)
-    @test typeof(μ) <: TrackedArray
-    @test typeof(σ2) <: Array
-    @test mean_var(p, z) == (μ, σ2)
-    @test size(sample(p, z, batch=10)) == (3, 10)
-
-    x = randn(3, 10)
-    @test size(loglikelihood(p, x, z)) == (1, 10)
-
-    x = randn(3)
-    z = randn(2)
-    @test size(loglikelihood(p, x, z)) == (1,)
+    q = Gaussian(zeros(2), ones(2))
+    @assert kld(p,q)[1] == 0.0
 
 end
