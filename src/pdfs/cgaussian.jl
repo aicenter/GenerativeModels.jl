@@ -50,7 +50,7 @@ end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.encoder(z)
-    return μ, I
+    return μ, ones(T, xlength(p))
 end
 
 mean(p::CGaussian, z::AbstractArray) = mean_var(p, z)[1]
@@ -62,24 +62,11 @@ function sample(p::CGaussian{T}, z::AbstractArray; batch=1) where T
     μ .+ sqrt.(σ2) .* randn(T, k, batch)
 end
 
-function sample(p::CGaussian{T,UnitVar}, z::AbstractArray; batch=1) where T
-    k = xlength(p)
-    mean(p, z) .+ randn(T, k, batch)
-end
-
-
 function loglikelihood(p::CGaussian, x::AbstractArray, z::AbstractArray)
     (μ, σ2) = mean_var(p, z)
     k = xlength(p)
     - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(2π)) ./ 2
 end
-
-function loglikelihood(p::CGaussian{T,UnitVar}, x::AbstractArray, z::AbstractArray) where T
-    μ = mean(p, z)
-    k = xlength(p)
-    - (k + k*log(2π) .+ sum((x - μ).^2, dims=1)) ./ 2
-end
-
 
 function kld(p::CGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
     (μ1, σ1) = mean_var(p, z)
@@ -87,14 +74,6 @@ function kld(p::CGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
     k = xlength(p)
     (-k + sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) .+ sum((μ2 .- μ1).^2 ./ σ1, dims=1)) ./ 2
 end
-
-function kld(p::CGaussian{T,UnitVar}, q::Gaussian{T}, z::AbstractArray) where T
-    (μ1, σ1) = mean_var(p, z)
-    (μ2, σ2) = mean_var(q)
-    k = xlength(p)
-    (-k + sum(log.(σ2)) - sum(σ2) .+ sum((μ2 .- μ1).^2, dims=1)) ./ 2
-end
-
 
 function Base.show(io::IO, p::CGaussian{T,V}) where T where V
     e = repr(p.encoder)

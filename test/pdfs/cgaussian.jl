@@ -57,7 +57,7 @@
     q  = Gaussian(zeros(T, xlength), ones(T, xlength))
 
     @test size(μx) == (xlength, batch)
-    @test σ2 == I
+    @test σ2 == ones(T, xlength)
     @test size(sample(p, z, batch=10)) == (xlength, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
