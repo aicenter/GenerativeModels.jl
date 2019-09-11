@@ -2,18 +2,26 @@ export VAE
 export elbo
 
 struct VAE{T} <: AbstractVAE{T}
-    xsize::Int
-    zsize::Int
     prior::Gaussian
     encoder::CGaussian
     decoder::CGaussian
+
+    function VAE{T}(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T
+        if xlength(e) == zlength(d)
+            new(p, e, d)
+        else
+            error("Encoder and decoder must have same zlength.")
+        end
+    end
+
 end
 
 Flux.@treelike VAE
 
-function VAE(xsize::Int, zsize::Int, enc::CGaussian{T}, dec::CGaussian{T}) where T
-    prior = Gaussian(zeros(T, zsize), ones(T, zsize))
-    VAE{T}(xsize, zsize, prior, enc, dec)
+function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
+    zlen = zlength(dec)
+    prior = Gaussian(zeros(T, zlen), ones(T, zlen))
+    VAE{T}(prior, enc, dec)
 end
 
 function elbo(m::VAE, x::AbstractArray; β=1)
@@ -27,8 +35,6 @@ end
 
 function Base.show(io::IO, m::VAE{T}) where T
     msg = """VAE{$T}:
-      xsize   = $(m.xsize)
-      zsize   = $(m.zsize)
       prior   = $(m.prior)
       encoder = $(m.encoder)
       decoder = $(m.decoder)
