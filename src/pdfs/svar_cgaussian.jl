@@ -1,6 +1,33 @@
-export mean, variance, mean_var, rand, loglikelihood, kld
+export SharedVarCGaussian
+export mean_var
 
-struct SharedVarCGaussian{T} <: AbstractCPDF{T}
+"""
+    SharedVarCGaussian{T}
+
+Conditional Gaussian that maps an input of `zlength` to its mean of `xlength`.
+The mapping must output dimensions appropriate for the chosen variance type
+The variance is the same for all data-points, but can still be represented by
+an optimized `TrackedArray`.
+
+# Arguments
+- `xlength::Int`: length of mean
+- `zlength::Int`: length of condition
+- `mapping`: maps condition z to μ=mapping(z) (e.g. a Flux Chain)
+- `σ2`: shared variance for all data-points
+
+# Example
+```julia-repl
+julia> p = SharedVarCGaussian{Float64}(3, 2, Dense(2, 3), param(ones(3)))
+SharedVarCGaussian{Float64}(xlength=3, zlength=2, mapping=Dense(2, 3), σ2=...)
+
+julia> rand(p, ones(2))
+Tracked 3×1 Array{Float64,2}:
+ 0.1829532154926673
+ 0.1235498922955946
+ 0.0767166501426535
+```
+"""
+struct SharedVarCGaussian{T} <: AbstractCGaussian{T}
     xlength::Int
     zlength::Int
     mapping
@@ -23,30 +50,15 @@ struct SharedVarCGaussian{T} <: AbstractCPDF{T}
 
 end
 
+Flux.@treelike SharedVarCGaussian
+
 mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), p.σ2)
 
-function rand(p::SharedVarCGaussian, z::AbstractArray; batch=1)
-    (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    μ .+ sqrt.(σ2) .* randn(T, k, batch)
-end
-
-function loglikelihood(p::SharedVarCGaussian, x::AbstractArray, z::AbstractArray)
-    (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(2π)) ./ 2
-end
-
-function kld(p::SharedVarCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
-    (μ1, σ1) = mean_var(p, z)
-    (μ2, σ2) = mean_var(q)
-    k = xlength(p)
-    (-k + sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) .+ sum((μ2 .- μ1).^2 ./ σ1, dims=1)) ./ 2
-end
-
-function Base.show(io::IO, p::SharedVarCGaussian{T,V}) where T where V
+function Base.show(io::IO, p::SharedVarCGaussian{T}) where T
     e = repr(p.mapping)
     e = sizeof(e)>50 ? "($(e[1:47])...)" : e
-    msg = "SharedVarCGaussian{$T,$V}(xlength=$(p.xlength), zlength=$(p.zlength), mapping=$e, σ2=$(summary(p.σ2))"
-    print(io, msg)
+    xl = p.xlength
+    zl = p.zlength
+    m = "SharedVarCGaussian{$T}(xlength=$xl, zlength=$zl, mapping=$e, σ2=$(summary(p.σ2))"
+    print(io, m)
 end

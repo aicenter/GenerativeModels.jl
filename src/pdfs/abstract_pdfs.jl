@@ -4,20 +4,6 @@ export AbstractVar, DiagVar, ScalarVar, UnitVar
 abstract type AbstractPDF{T<:Real} end
 abstract type AbstractCPDF{T<:Real} end
 
-"""Abstract variance type"""
-abstract type AbstractVar end
-
-"""Diagonal variance represented as a vector"""
-struct DiagVar <: AbstractVar end
-
-"""Scalar variance represented as a one-element vector"""
-struct ScalarVar <: AbstractVar end
-
-"""Unit variance represented by a vector of ones"""
-struct UnitVar <: AbstractVar end
-
-
-
 """
     mean_var(p::AbstractPDF)
 

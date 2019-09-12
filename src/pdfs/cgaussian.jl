@@ -1,6 +1,17 @@
 export CGaussian
-export mean_var, rand, loglikelihood, kld, xlength, zlength
+export mean_var
 
+"""Abstract variance type"""
+abstract type AbstractVar end
+
+"""Diagonal variance represented as a vector"""
+struct DiagVar <: AbstractVar end
+
+"""Scalar variance represented as a one-element vector"""
+struct ScalarVar <: AbstractVar end
+
+"""Unit variance represented by a vector of ones"""
+struct UnitVar <: AbstractVar end
 
 """
     CGaussian{T,AbstractVar}
@@ -29,7 +40,7 @@ Tracked 3×1 Array{Float64,2}:
  0.0767166501426535
 ```
 """
-struct CGaussian{T,V<:AbstractVar} <: AbstractCPDF{T}
+struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     xlength::Int
     zlength::Int
     mapping
@@ -59,9 +70,6 @@ end
 
 Flux.@treelike CGaussian
 
-xlength(p::CGaussian) = p.xlength
-zlength(p::CGaussian) = p.zlength
-
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
     ex = p.mapping(z)
     return ex[1:p.xlength,:], softplus_safe.(ex[p.xlength+1:end,:])
@@ -70,25 +78,6 @@ end
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.mapping(z)
     return μ, ones(T, xlength(p))
-end
-
-function rand(p::CGaussian{T}, z::AbstractArray; batch=1) where T
-    (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    μ .+ sqrt.(σ2) .* randn(T, k, batch)
-end
-
-function loglikelihood(p::CGaussian, x::AbstractArray, z::AbstractArray)
-    (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(2π)) ./ 2
-end
-
-function kld(p::CGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
-    (μ1, σ1) = mean_var(p, z)
-    (μ2, σ2) = mean_var(q)
-    k = xlength(p)
-    (-k + sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) .+ sum((μ2 .- μ1).^2 ./ σ1, dims=1)) ./ 2
 end
 
 function Base.show(io::IO, p::CGaussian{T,V}) where T where V
