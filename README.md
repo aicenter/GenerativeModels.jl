@@ -16,19 +16,26 @@ reconstruction:
 
     xlen  = 5
     zlen  = 2
+    dtype = Float32
 
-    prior = Gaussian(zeros(zlen), ones(zlen))
+    prior = Gaussian(zeros(dtype, zlen), ones(dtype, zlen))
     
     encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-    encoder_dist = CGaussian{Float32,DiagVar}(zlen, xlen, encoder)
+    encoder_dist = CGaussian{dtype,DiagVar}(zlen, xlen, encoder)
 
     decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-    decoder_dist = decoder_dist = CGaussian{Float32,ScalarVar}(xlen, zlen, decoder)
+    decoder_dist = decoder_dist = CGaussian{dtype,ScalarVar}(xlen, zlen, decoder)
 
-    vae = VAE{Float32}(prior, encoder_dist, decoder_dist)
+    vae = VAE{dtype}(prior, encoder_dist, decoder_dist)
 
 Now you have a model that you can call `params(vae)` on and use Flux as you are
-used to. But say, you want to learn the variance of your prior... Easy!
+used to. You can also easily sample from it once you are done training:
+
+    z = rand(vae.prior, batch=10)  # sample from the prior
+    μ = mean(vae.decoder, z)       # get decoder means
+    x = rand(vae.decoder, z)       # get decoder samples
+
+But say, you want to learn the variance of your prior during training... Easy!
 Just turn the prior variance into a `TrackedArray`:
 
     prior = Gaussian(zeros(zlen), param(ones(zlen)))
@@ -67,7 +74,7 @@ specific model that inherits from `AbstractGM` and has three fields:
 and implements e.g. custom loss functions.
 
 
-### Model / distribution dnterface
+### Model / distribution interface
 
 The distributions used for prior, encoder, and decoder all implement a common
 interface that includes the functions `mean`, `variance`, `mean_var`, `rand`,

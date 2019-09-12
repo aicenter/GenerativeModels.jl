@@ -5,10 +5,10 @@ abstract type AbstractCGaussian{T} <: AbstractCPDF{T} end
 xlength(p::AbstractCGaussian) = p.xlength
 zlength(p::AbstractCGaussian) = p.zlength
 
-function rand(p::AbstractCGaussian{T}, z::AbstractArray; batch=1) where T
+function rand(p::AbstractCGaussian{T}, z::AbstractArray) where T
     (μ, σ2) = mean_var(p, z)
     k = xlength(p)
-    μ .+ sqrt.(σ2) .* randn(T, k, batch)
+    μ .+ sqrt.(σ2) .* randn(T, size(μ))
 end
 
 function loglikelihood(p::AbstractCGaussian, x::AbstractArray, z::AbstractArray)

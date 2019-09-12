@@ -20,7 +20,7 @@
     @test size(μx) == (xlen, batch)
     @test size(σ2) == (1, batch)
     @test mean_var(p, z) == (μx, σ2)
-    @test size(rand(p, z, batch=10)) == (xlen, batch)
+    @test size(rand(p, z)) == (xlen, batch)
 
     x = randn(xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
@@ -43,7 +43,7 @@
 
     @test size(μx) == (xlen, batch)
     @test size(σ2) == (xlen, batch)
-    @test size(rand(p, z, batch=10)) == (xlen, batch)
+    @test size(rand(p, z)) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
 
@@ -58,7 +58,7 @@
 
     @test size(μx) == (xlen, batch)
     @test σ2 == ones(T, xlen)
-    @test size(rand(p, z, batch=10)) == (xlen, batch)
+    @test size(rand(p, z)) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
 

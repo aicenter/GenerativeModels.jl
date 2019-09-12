@@ -71,11 +71,11 @@ Returns variance of a conditional PDF.
 variance(p::AbstractCPDF, z::AbstractArray) = mean_var(p, z)[2]
 
 """
-    rand(p::AbstractCPDF, z::AbstractArray; batch=1)
+    rand(p::AbstractCPDF, z::AbstractArray)
 
 Produce `batch` number of samples from a conditional PDF.
 """
-rand(p::AbstractCPDF, z::AbstractArray; batch=1) = error("Not, implemented!")
+rand(p::AbstractCPDF, z::AbstractArray) = error("Not, implemented!")
 
 """
     loglikelihood(p::AbstractCPDF, x::AbstractArray, z::AbstractArray)
