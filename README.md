@@ -11,34 +11,39 @@ As an example, check out how to build a conventional variational autoencoder
 with a diagonal variance on the latent dimension and a scalar variance on the
 reconstruction:
 
-    using GenerativeModels
-    using Flux
+```julia
+using GenerativeModels
+using Flux
 
-    xlen  = 5
-    zlen  = 2
-    dtype = Float32
+xlen  = 5
+zlen  = 2
+dtype = Float32
 
-    prior = Gaussian(zeros(dtype, zlen), ones(dtype, zlen))
-    
-    encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-    encoder_dist = CGaussian{dtype,DiagVar}(zlen, xlen, encoder)
+prior = Gaussian(zeros(dtype, zlen), ones(dtype, zlen))
 
-    decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-    decoder_dist = decoder_dist = CGaussian{dtype,ScalarVar}(xlen, zlen, decoder)
+encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
+encoder_dist = CGaussian{dtype,DiagVar}(zlen, xlen, encoder)
 
-    vae = VAE{dtype}(prior, encoder_dist, decoder_dist)
+decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
+decoder_dist = decoder_dist = CGaussian{dtype,ScalarVar}(xlen, zlen, decoder)
+
+vae = VAE{dtype}(prior, encoder_dist, decoder_dist)
+```
 
 Now you have a model that you can call `params(vae)` on and use Flux as you are
 used to. You can also easily sample from it once you are done training:
 
-    z = rand(vae.prior, batch=10)  # sample from the prior
-    μ = mean(vae.decoder, z)       # get decoder means
-    x = rand(vae.decoder, z)       # get decoder samples
+```julia
+z = rand(vae.prior, batch=10)  # sample from the prior
+μ = mean(vae.decoder, z)       # get decoder means
+x = rand(vae.decoder, z)       # get decoder samples
+```
 
 But say, you want to learn the variance of your prior during training... Easy!
 Just turn the prior variance into a `TrackedArray`:
-
-    prior = Gaussian(zeros(zlen), param(ones(zlen)))
+```julia
+prior = Gaussian(zeros(zlen), param(ones(zlen)))
+```
 
 Done!
 
@@ -64,12 +69,13 @@ functionality such as `tagsave` to ensure reproducability of simulations.
 
 The models themselves are defined in `src/models`. Each file contains a
 specific model that inherits from `AbstractGM` and has three fields:
-
-    struct Model{T} <: AbstractGM
-        prior::AbstractPDF
-        encoder::AbstractCPDF
-        decoder::AbstractCPDF
-    end
+```julia
+struct Model{T} <: AbstractGM
+    prior::AbstractPDF
+    encoder::AbstractCPDF
+    decoder::AbstractCPDF
+end
+```
 
 and implements e.g. custom loss functions.
 
@@ -82,11 +88,13 @@ interface that includes the functions `mean`, `variance`, `mean_var`, `rand`,
 This interface makes it possible that functions such as the ELBO or the anomaly
 scores can be generalized. E.g. the ELBO code looks like this:
 
-    function elbo(m::AbstractVAE, x::AbstractArray; β=1)
-        z = rand(m.encoder, x)
-        llh = mean(-loglikelihood(m.decoder, x, z))
-        kl  = mean(kld(m.encoder, m.prior, x))
-        llh + β*kl
-    end
+```julia
+function elbo(m::AbstractVAE, x::AbstractArray; β=1)
+    z = rand(m.encoder, x)
+    llh = mean(-loglikelihood(m.decoder, x, z))
+    kl  = mean(kld(m.encoder, m.prior, x))
+    llh + β*kl
+end
+```
 
 Check out `src/pdf/abstract_pdfs.jl` for the fully defined interface.
