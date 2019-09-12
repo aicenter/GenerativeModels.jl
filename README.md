@@ -19,10 +19,10 @@ reconstruction:
 
     prior = Gaussian(zeros(zlen), ones(zlen))
     
-    encoder = Dense(xlen, zlen*2)
+    encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
     encoder_dist = CGaussian{Float32,DiagVar}(zlen, xlen, encoder)
 
-    decoder = Dense(zlen, xlen+1)
+    decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
     decoder_dist = decoder_dist = CGaussian{Float32,ScalarVar}(xlen, zlen, decoder)
 
     vae = VAE{Float32}(prior, encoder_dist, decoder_dist)
