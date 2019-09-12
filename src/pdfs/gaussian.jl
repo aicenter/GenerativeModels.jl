@@ -1,5 +1,5 @@
 export Gaussian
-export mean, variance, mean_var, rand, loglikelihood, kld, length
+export mean_var, rand, loglikelihood, kld, length
 
 """
     Gaussian{T}
@@ -33,58 +33,20 @@ struct Gaussian{T} <: AbstractPDF{T}
 end
 
 Flux.@treelike Gaussian
-
-
 length(p::Gaussian) = size(p.μ, 1)
-"""
-    mean(p::Gaussian)
-
-Returns mean of a `Gaussian`.
-"""
-mean(p::Gaussian) = p.μ
-
-"""
-    variance(p::Gaussian)
-
-Returns variance of a `Gaussian`.
-"""
-variance(p::Gaussian) = p.σ2
-
-"""
-    mean_var(p::Gaussian)
-
-Returns mean and variance of a `Gaussian`. 
-"""
 mean_var(p::Gaussian) = (p.μ, p.σ2)
 
-
-"""
-    rand(p::Gaussian; batch=1)
-
-Produce `batch` number of samples from a `Gaussian`.
-"""
 function rand(p::Gaussian{T}; batch=1) where T
+    (μ, σ2) = mean_var(p)
     k = length(p)
-    μ, σ2 = mean_var(p)
     μ .+ sqrt.(σ2) .* randn(T, k, batch)
 end
 
-
-"""
-    loglikelihood(p::Gaussian, x::AbstractArray)
-
-Computes the log p(x|μ,σ2)
-"""
 function loglikelihood(p::Gaussian, x::AbstractArray)
     k = length(p)
     - (sum((x .- p.μ).^2 ./ p.σ2, dims=1) .+ sum(log.(p.σ2)) .+ k*log(2π)) ./ 2
 end
 
-"""
-    kld(p::Gaussian, q::Gaussian)
-
-Compute Kullback-Leibler divergence between two `Gaussian`s
-"""
 function kld(p::Gaussian, q::Gaussian)
     (μ1, σ1) = mean_var(p)
     (μ2, σ2) = mean_var(q)
