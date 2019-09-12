@@ -15,6 +15,7 @@ module GenerativeModels
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
 
     include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "utils.jl"))
 
     # optional dependencies
     function __init__()

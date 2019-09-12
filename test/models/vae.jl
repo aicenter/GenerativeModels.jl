@@ -31,4 +31,22 @@
     @test Base.length(ps) > 0
     @test isa(loss, Tracker.TrackedReal)
 
+    # simple test for vanilla vae
+    enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen*2], relu, Dense)
+    enc_dist = CGaussian{T,DiagVar}(zlen, xlen, enc)
+
+    dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen+1], relu, Dense)
+    dec_dist = CGaussian{T,ScalarVar}(xlen, zlen, dec)
+
+    model = VAE(enc_dist, dec_dist)
+
+    loss = elbo(model, test_data)
+    ps = params(model)
+    @test Base.length(ps) > 0
+    @test isa(loss, Tracker.TrackedReal)
+
+    zs = sample(model.encoder, test_data)
+    @test size(zs) == (zlen, batch)
+    xs = sample(model.decoder, zs)
+    @test size(xs) == (xlen, batch)     
 end
