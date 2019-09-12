@@ -14,6 +14,10 @@ module GenerativeModels
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
 
+    import Base.length
+    import Random.rand
+    import Statistics.mean
+
     include(joinpath("utils", "misc.jl"))
     include(joinpath("utils", "utils.jl"))
 

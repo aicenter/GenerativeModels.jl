@@ -45,8 +45,8 @@
     @test Base.length(ps) > 0
     @test isa(loss, Tracker.TrackedReal)
 
-    zs = sample(model.encoder, test_data)
+    zs = rand(model.encoder, test_data)
     @test size(zs) == (zlen, batch)
-    xs = sample(model.decoder, zs)
+    xs = rand(model.decoder, zs)
     @test size(xs) == (xlen, batch)     
 end

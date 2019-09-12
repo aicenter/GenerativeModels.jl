@@ -8,7 +8,7 @@
     @test μ == zeros(2)
     @test σ2 == ones(2)
     @test mean_var(p) == (μ, σ2)
-    @test size(sample(p, batch=10)) == (2, 10)
+    @test size(rand(p, batch=10)) == (2, 10)
     @test size(loglikelihood(p, randn(2, 10))) == (1, 10)
     @test size(loglikelihood(p, randn(2))) == (1,)
 

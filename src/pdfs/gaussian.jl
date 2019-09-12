@@ -1,5 +1,5 @@
 export Gaussian
-export mean, variance, mean_var, sample, loglikelihood, kld, length
+export mean, variance, mean_var, rand, loglikelihood, kld, length
 
 struct Gaussian{T} <: AbstractPDF{T}
     μ::AbstractArray{T}
@@ -14,7 +14,7 @@ mean(p::Gaussian) = p.μ
 variance(p::Gaussian) = p.σ2
 mean_var(p::Gaussian) = (p.μ, p.σ2)
 
-function sample(p::Gaussian{T}; batch=1) where T
+function rand(p::Gaussian{T}; batch=1) where T
     k = length(p)
     μ, σ2 = mean_var(p)
     μ .+ sqrt.(σ2) .* randn(T, k, batch)

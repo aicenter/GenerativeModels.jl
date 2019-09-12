@@ -25,9 +25,9 @@ function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
 end
 
 function elbo(m::VAE, x::AbstractArray; β=1)
-    z = sample(m.encoder, x)
-    llh = Statistics.mean(-loglikelihood(m.decoder, x, z))
-    kl  = Statistics.mean(kld(m.encoder, m.prior, x))
+    z = rand(m.encoder, x)
+    llh = mean(-loglikelihood(m.decoder, x, z))
+    kl  = mean(kld(m.encoder, m.prior, x))
     llh + β*kl
 end
 
