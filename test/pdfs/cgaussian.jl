@@ -2,14 +2,14 @@
 
     @info "Testing CGaussian"
 
-    xlength = 3
-    zlength = 2
-    batch   = 10
-    T       = Float64
-    V       = ScalarVar
+    xlen = 3
+    zlen = 2
+    batch = 10
+    T     = Float64
+    V     = ScalarVar
 
-    p  = CGaussian{T,V}(xlength, zlength, Dense(zlength, xlength+1))
-    z  = randn(T, zlength, batch)
+    p  = CGaussian{T,V}(xlen, zlen, Dense(zlen, xlen+1))
+    z  = randn(T, zlen, batch)
     μx = mean(p, z)
     σ2 = variance(p, z)
 
@@ -17,48 +17,48 @@
     @test isa(σ2, TrackedArray{T})
     @test mean_var(p, z) == (μx, σ2)
 
-    @test size(μx) == (xlength, batch)
+    @test size(μx) == (xlen, batch)
     @test size(σ2) == (1, batch)
     @test mean_var(p, z) == (μx, σ2)
-    @test size(rand(p, z, batch=10)) == (xlength, batch)
+    @test size(rand(p, z, batch=10)) == (xlen, batch)
 
-    x = randn(xlength, batch)
+    x = randn(xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
 
-    x = randn(xlength)
-    z = randn(zlength)
+    x = randn(xlen)
+    z = randn(zlen)
     @test size(loglikelihood(p, x, z)) == (1, 1)
 
-    q = Gaussian(zeros(T, xlength), ones(T, xlength))
+    q = Gaussian(zeros(T, xlen), ones(T, xlen))
     @test size(kld(p,q,z)) == (1, 1)
 
 
     V  = DiagVar
-    p  = CGaussian{T,V}(xlength, zlength, Dense(zlength, xlength*2))
-    z  = randn(T, zlength, batch)
-    x  = randn(T, xlength, batch)
+    p  = CGaussian{T,V}(xlen, zlen, Dense(zlen, xlen*2))
+    z  = randn(T, zlen, batch)
+    x  = randn(T, xlen, batch)
     μx = mean(p, z)
     σ2 = variance(p, z)
-    q  = Gaussian(zeros(T, xlength), ones(T, xlength))
+    q  = Gaussian(zeros(T, xlen), ones(T, xlen))
 
-    @test size(μx) == (xlength, batch)
-    @test size(σ2) == (xlength, batch)
-    @test size(rand(p, z, batch=10)) == (xlength, batch)
+    @test size(μx) == (xlen, batch)
+    @test size(σ2) == (xlen, batch)
+    @test size(rand(p, z, batch=10)) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
 
 
     V  = UnitVar
-    p  = CGaussian{T,V}(xlength, zlength, Dense(zlength, xlength))
-    z  = randn(T, zlength, batch)
-    x  = randn(T, xlength, batch)
+    p  = CGaussian{T,V}(xlen, zlen, Dense(zlen, xlen))
+    z  = randn(T, zlen, batch)
+    x  = randn(T, xlen, batch)
     μx = mean(p, z)
     σ2 = variance(p, z)
-    q  = Gaussian(zeros(T, xlength), ones(T, xlength))
+    q  = Gaussian(zeros(T, xlen), ones(T, xlen))
 
-    @test size(μx) == (xlength, batch)
-    @test σ2 == ones(T, xlength)
-    @test size(rand(p, z, batch=10)) == (xlength, batch)
+    @test size(μx) == (xlen, batch)
+    @test σ2 == ones(T, xlen)
+    @test size(rand(p, z, batch=10)) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
 

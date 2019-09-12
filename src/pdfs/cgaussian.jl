@@ -1,5 +1,6 @@
 export CGaussian
 export mean_var
+export AbstractVar, DiagVar, ScalarVar, UnitVar
 
 """Abstract variance type"""
 abstract type AbstractVar end

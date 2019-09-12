@@ -1,5 +1,5 @@
 export mean, variance, mean_var, rand, loglikelihood, kld
-export AbstractVar, DiagVar, ScalarVar, UnitVar
+export length, xlength, zlength
 
 abstract type AbstractPDF{T<:Real} end
 abstract type AbstractCPDF{T<:Real} end
@@ -33,12 +33,19 @@ Produce `batch` number of samples from a PDF.
 rand(p::AbstractPDF; batch=1) = error("Not, implemented!")
 
 """
-    loglikelihood(p::AbstractCPDF, x::AbstractArray)
+    loglikelihood(p::AbstractPDF, x::AbstractArray)
 
 Computes log p(x|μ,σ2).
 """
 loglikelihood(p::AbstractPDF, x::AbstractArray) = error("Not implemented!")
 
+
+"""
+    length(p::AbstractPDF)
+
+Returns the length of a sample.
+"""
+length(p::AbstractPDF) = error("Not implemented!")
 
 
 """
@@ -76,6 +83,20 @@ rand(p::AbstractCPDF, z::AbstractArray; batch=1) = error("Not, implemented!")
 Computes log p(x|z).
 """
 loglikelihood(p::AbstractCPDF, x::AbstractArray, z::AbstractArray) = error("Not implemented!")
+
+"""
+    xlength(p::AbstractCPDF)
+
+Returns the length of a sample in data space.
+"""
+xlength(p::AbstractCPDF) = error("Not implemented!")
+
+"""
+    zlength(p::AbstractCPDF)
+
+Returns the length of a sample in latent space.
+"""
+zlength(p::AbstractCPDF) = error("Not implemented!")
 
 
 

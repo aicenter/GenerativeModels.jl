@@ -1,5 +1,5 @@
 export SharedVarCGaussian
-export mean_var
+export mean_var, variance
 
 """
     SharedVarCGaussian{T}
@@ -53,6 +53,7 @@ end
 Flux.@treelike SharedVarCGaussian
 
 mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), p.σ2)
+variance(p::SharedVarCGaussian) = p.σ2
 
 function Base.show(io::IO, p::SharedVarCGaussian{T}) where T
     e = repr(p.mapping)
