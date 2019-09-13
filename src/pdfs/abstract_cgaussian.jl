@@ -11,10 +11,10 @@ function rand(p::AbstractCGaussian{T}, z::AbstractArray) where T
     μ .+ sqrt.(σ2) .* randn(T, size(μ))
 end
 
-function loglikelihood(p::AbstractCGaussian, x::AbstractArray, z::AbstractArray)
+function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArray) where T
     (μ, σ2) = mean_var(p, z)
     k = xlength(p)
-    - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(2π)) ./ 2
+    - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(T(2π))) ./ 2
 end
 
 function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
