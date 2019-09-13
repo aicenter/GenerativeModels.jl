@@ -34,7 +34,7 @@ end
 
 Flux.@treelike Gaussian
 length(p::Gaussian) = size(p.μ, 1)
-mean_var(p::Gaussian) = (p.μ, p.σ2)
+mean_var(p::Gaussian) = (p.μ, p.σ2.^2)  #TODO: use softplus!
 
 function rand(p::Gaussian{T}; batch=1) where T
     (μ, σ2) = mean_var(p)

@@ -41,28 +41,3 @@ function push_ntuple!(history::MVHistory, ntuple::NamedTuple; idx=nothing)
         push!(history, name, idx, deepcopy(value))
     end
 end
-
-
-"""
-Generate pairs of sine waves and their generating frequency
-"""
-function generate_sine_data(nr_examples; steps=30, dt=pi/10, freq_range=[1.0, 1.2])
-    U = []
-    T = []
-    Omega = []
-    for ii in 1:nr_examples
-        omega = freq_range[1] + rand() * sum(freq_range[2] - freq_range[1])
-        start = rand() * 2pi
-
-        t = range(start, length=steps, step=dt)
-        u = sin.(omega * t)
-        push!(U, Float32.(u))
-        push!(T, Float32.(t))
-        push!(Omega, Float32.(omega))
-    end
-
-    U = hcat(U...)
-    T = hcat(T...)
-
-    U, T, Omega
-end

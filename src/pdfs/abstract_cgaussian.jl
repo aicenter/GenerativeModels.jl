@@ -13,13 +13,12 @@ end
 
 function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArray) where T
     (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    - (sum((x - μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2)) .+ k*log(T(2π))) ./ 2
+    -sum((x - μ).^2 ./ σ2, dims=1)
 end
 
 function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
+    N = size(z, 2)
     (μ1, σ1) = mean_var(p, z)
     (μ2, σ2) = mean_var(q)
-    k = xlength(p)
-    (-k + sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) .+ sum((μ2 .- μ1).^2 ./ σ1, dims=1)) ./ 2
+    (sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) + sum((μ2 .- μ1).^2 ./ σ2)) / N
 end

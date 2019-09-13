@@ -25,7 +25,7 @@ module GenerativeModels
     function __init__()
         @require PyPlot="d330b81b-6aea-500a-939a-2ce795aea3ee" include(joinpath("utils", "visualize.jl"))
         @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" @reexport using DifferentialEquations
-        @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("utils", "ode.jl"))
+        @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("models", "rodent.jl"))
     end
 
     include(joinpath("pdfs", "abstract_pdfs.jl"))
@@ -35,6 +35,5 @@ module GenerativeModels
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
-    include(joinpath("models", "rodent.jl"))
 
 end # module

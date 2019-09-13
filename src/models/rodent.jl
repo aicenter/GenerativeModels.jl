@@ -104,19 +104,18 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
     decoder, (ode_ps=ode_ps, u0_func=u0_func, ode_prob=ode_prob, timesteps=timesteps)
 end
 
-function Rodent(xlen::Int, tspan::Tuple{T,T}, order::Int) where T
+function Rodent(xlen::Int, encoder, tspan::Tuple{T,T}, order::Int) where T
     zlen = get_nr_ode_params(order)
 
     λ2z = param(ones(T, zlen))
     prior = Gaussian(zeros(T, zlen), λ2z)
 
     σ2z = param(ones(T, zlen))
-    μz  = Dense(xlen, zlen)
-    encoder = SharedVarCGaussian{T}(zlen, xlen, μz, σ2z)
+    enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
 
     (μx, _) = make_ode_decoder(xlen, tspan, order)
-    σ2x = param(ones(T, xlen))
-    decoder = SharedVarCGaussian{T}(xlen, zlen, μx, σ2x)
+    σ2x = param(ones(T, 1))
+    dec_dist = SharedVarCGaussian{T}(xlen, zlen, μx, σ2x)
 
-    Rodent{T}(prior, encoder, decoder)
+    Rodent{T}(prior, enc_dist, dec_dist)
 end
