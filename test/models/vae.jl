@@ -32,6 +32,10 @@
     @test isa(loss, Tracker.TrackedReal)
 
     # simple test for vanilla vae
+    xlen = 4
+    zlen = 2
+    test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2)))
+
     enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen*2], relu, Dense)
     enc_dist = CGaussian{T,DiagVar}(zlen, xlen, enc)
 
@@ -49,4 +53,17 @@
     @test size(zs) == (zlen, batch)
     xs = rand(model.decoder, zs)
     @test size(xs) == (xlen, batch)     
+
+    # test training
+    params_init = get_params(model)
+    opt = ADAM()
+    cb(model, data, loss, opt) = nothing
+    data = [test_data for i in 1:10000];
+    lossf(x) = elbo(model, x, β=1e-3)
+    train!(model, data, lossf, opt, cb)
+
+    @test all(param_change(params_init, model)) # did the params change?
+    zs = rand(model.encoder, test_data)
+    xs = mean(model.decoder, zs)
+    @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
 end

@@ -1,3 +1,5 @@
+export train!
+
 # for over/underflow in logs
 """
 	softplus_safe(x,T=Float32)
@@ -43,3 +45,58 @@ ae_layer_builder(lsize::Vector, activation, layer)=
     layer_builder(lsize, 
         Array{Any}(fill(layer, size(lsize,1)-1)), 
         Array{Any}([fill(activation, size(lsize,1)-2); identity]))
+
+### training ###
+"""
+    update(model, optimiser)
+
+Update model parameters using optimiser.
+"""
+function update!(model, optimiser)
+    for p in params(model)
+        Δ = Flux.Optimise.apply!(optimiser, p.data, p.grad)
+        p.data .-= Δ
+        p.grad .= 0
+    end
+end
+
+"""
+    loss_back_update!(model, data, loss, opt)
+
+Basic training step - computation of the loss, backpropagation of gradients and optimisation 
+of weights. The loss and opt arguments can be arrays/lists/tuples.
+"""
+function loss_back_update!(model, data, loss, opt)
+    l = loss(data)
+    Flux.Tracker.back!(l)
+    update!(model, opt)
+end 
+
+"""
+    train!(model, data, loss, optimiser, callback; [usegpu, memory_efficient])
+
+Train the model. Function callback(model, batch, loss, opt) is 
+called every iteration - use it to store or print training progress, stop training etc. 
+"""
+function train!(model, data, loss, optimiser, callback; 
+    usegpu = false, memory_efficient = false)
+    for _data in data
+        try
+            if usegpu
+             _data = _data |> gpu
+            end
+            loss_back_update!(model, _data, loss, optimiser)
+            # now call the callback function
+            # can be an object so it can store some values between individual calls
+            callback(model, _data, loss, optimiser)
+        catch e
+            # setup a special kind of exception for known cases with a break
+            rethrow(e)
+        end
+        if memory_efficient
+            # this might be important for conv nets running on gpu
+            # large nets might still train but slowly
+            GC.gc();
+        end
+    end
+end
