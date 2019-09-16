@@ -1,18 +1,106 @@
 @testset "src/models/rodent.jl" begin
-    
+
+    function generate_sine_data(nr_examples; steps=30, dt=pi/10, freq_range=[1.0, 1.2])
+        U = []
+        T = []
+        Omega = []
+        for ii in 1:nr_examples
+            omega = freq_range[1] + rand() * sum(freq_range[2] - freq_range[1])
+            start = rand() * 2pi
+
+            t = range(start, length=steps, step=dt)
+            u = sin.(omega * t)
+            push!(U, Float32.(u))
+            push!(T, Float32.(t))
+            push!(Omega, Float32.(omega))
+        end
+
+        U = hcat(U...)
+        T = hcat(T...)
+
+        U, T, Omega
+    end
+
+    function generate(ω::T, batch::Int; ω0=0.5, noise=0.01, dt=0.1, steps=20) where T
+        U, Times, Omega = generate_sine_data(
+            batch, steps=steps, dt=T(dt), freq_range=[T(ω0), ω])
+        U .+= randn(T, size(U)) * T(noise)
+        return U, Times, Omega
+    end
+
+    function construct_rodent(setup)
+        @unpack batch, xlen, order, dt, noise, dtype = setup
+        zlen = order^2 + order*2
+        tspan = (0f0, dtype.(xlen*dt))
+
+        init(s...) = randn(dtype, s...)/10000
+        act = σ
+        encoder  = Chain(
+            Dense(xlen, 100, act, initW=init, initb=init),
+            Dense(100, zlen, initW=init, initb=init))
+
+        λ2z = param(-ones(dtype, zlen))
+        prior = Gaussian(zeros(dtype, zlen), λ2z)
+
+        σ2z = param(-ones(dtype, zlen) ./ 100)
+        enc_dist = SharedVarCGaussian{dtype}(zlen, xlen, encoder, σ2z)
+
+        (μx, _) = make_ode_decoder(xlen, tspan, order)
+        σ2x = param(-ones(dtype, 1) ./ 10)
+        dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
+
+        Rodent{dtype}(prior, enc_dist, dec_dist)
+    end
+
     @info "Testing Rodent"
 
-    tspan = (0f0, 1f0)
-    xlen = 30
+    xlen = 20
     order = 2
     batch = 20
+    dt = 0.3
+    dtype = Float32
+    noise = 0.01f0
+    setup = @dict xlen order batch dt dtype noise
 
-    rodent = Rodent(xlen, tspan, order)
-    test_data = randn(Float32, xlen, batch)
+    rodent = construct_rodent(setup)
+    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1]
 
-    loss = elbo(rodent, test_data)
+    ls = elbo(rodent, test_data)
     ps = params(rodent)
     @test length(ps) > 0
-    @test isa(loss, Tracker.TrackedReal{Float32})
-    
+    @test isa(ls, Tracker.TrackedReal{Float32})
+
+    function loss(x)
+        N = size(x, 2)
+        λz = variance(rodent.prior)
+        (μz, σz) = mean_var(rodent.encoder, x)
+        z = rand(rodent.encoder, x)
+
+        llh = -mean(loglikelihood(rodent.decoder, x, z))
+        KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
+
+        σe = variance(rodent.decoder, z)[1]
+        llh + KLz + log(σe)*rodent.decoder.zlength
+    end
+
+    # curr_iter = 0
+    # callbacks = [
+    #   Flux.throttle(()->(
+    #     @info "$curr_iter: $(loss(test_data)) noise: $(sqrt.(variance(rodent.decoder)))"), 1)
+    # ]
+    callbacks() = nothing
+
+    η = 0.001
+    ω = 0.5
+    opt = RMSProp(η)
+    test_data .= generate(ω, batch, dt=dt)[1]
+    for _ in 1:1000
+        # curr_iter += 1
+        data = [(generate(ω, batch, dt=dt)[1],)]
+        Flux.train!(loss, ps, data, opt, cb=callbacks)
+    end
+
+    reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
+    @assert mean(test_data .- reconstruct(rodent, test_data)).^2 < 0.01
+
 end

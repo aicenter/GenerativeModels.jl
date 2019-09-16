@@ -1,10 +1,10 @@
 using Test
 using Logging
+using Parameters
 
 using DifferentialEquations
 using DiffEqFlux
 
-using Revise
 using GenerativeModels
 
 # for testing of parameter change in training
