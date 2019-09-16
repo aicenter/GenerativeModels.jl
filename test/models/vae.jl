@@ -66,4 +66,29 @@
     zs = rand(model.encoder, test_data)
     xs = mean(model.decoder, zs)
     @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
+
+    # wasserstein vae
+    enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen], relu, Dense)
+    enc_dist = CGaussian{T,UnitVar}(zlen, xlen, enc)
+
+    dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen+1], relu, Dense)
+    dec_dist = CGaussian{T,ScalarVar}(xlen, zlen, dec)
+
+    model = VAE(enc_dist, dec_dist)
+
+    # test training
+    params_init = get_params(model)
+    opt = ADAM()
+    cb(model, data, loss, opt) = nothing
+    data = [test_data for i in 1:10000];
+    k(x,y) = GenerativeModels.imq(x,y,1.0);
+    lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(model, x, k)
+    train!(model, data, lossf, opt, cb)
+
+    # this works well but has quite a large variance
+    @test all(param_change(params_init, model)) 
+    zs = mean(model.encoder, test_data)
+    xs = mean(model.decoder, zs)
+    @test all(abs.(test_data - xs) .< 0.2) 
+
 end

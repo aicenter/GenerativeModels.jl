@@ -8,6 +8,7 @@ A softplus with small additive constant for safe operations.
 """
 softplus_safe(x,T=Float32) = softplus(x) .+ T(1e-6)
 
+### Flux chain builders ###
 """
     function layer_builder(d,k,o,n,ftype,lastlayer = "",ltype = "Dense")
 
@@ -100,3 +101,34 @@ function train!(model, data, loss, optimiser, callback;
         end
     end
 end
+
+### MMD ###
+"""
+    rbf(x,y,σ)
+
+Gaussian kernel of x and y.
+"""
+rbf(x,y,σ) = exp.(-(sum((x-y).^2,dims=1)/(2*σ)))
+
+"""
+    imq(x,y,σ)
+
+Inverse multiquadratics kernel of x and y.    
+"""
+imq(x,y,σ) = σ./(σ.+sum(((x-y).^2),dims=1))
+
+"""
+    ekxy(k,X,Y[,σ])
+
+E_{x in X,y in Y}[k(x,y[,σ])] - mean value of kernel k.
+"""
+ekxy(k,X,Y,σ) = mean(k(X,Y,σ))
+ekxy(k,X,Y) = mean(k(X,Y))
+
+"""
+    MMD(k,X,Y[,σ])
+
+Maximum mean discrepancy for samples X and Y given kernel k and parameter σ.    
+"""
+mmd(k,X,Y,σ) = ekxy(k,X,X,σ) - 2*ekxy(k,X,Y,σ) + ekxy(k,Y,Y,σ)
+mmd(k,X,Y) = ekxy(k,X,X) - 2*ekxy(k,X,Y) + ekxy(k,Y,Y)
