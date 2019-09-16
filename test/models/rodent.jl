@@ -94,7 +94,7 @@
     data = [(test_data,) for _ in 1:200]
     Flux.train!(loss, ps, data, opt, cb=cb)
     reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
-    rec_err = mean(test_data .- reconstruct(rodent, test_data)).^2
+    rec_err = mean((test_data .- reconstruct(rodent, test_data)).^2)
     @debug "Rec. Error: $rec_err"
     @assert rec_err < 0.05
 
