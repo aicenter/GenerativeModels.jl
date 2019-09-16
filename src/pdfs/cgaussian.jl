@@ -53,7 +53,7 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
         elseif T == Float64
             mapping = f64(mapping)
         else
-            error("Encoder cannot be converted to type $T")
+            error("Mapping cannot be converted to type $T")
         end
 
         cg = new(xlength, zlength, mapping)
