@@ -73,7 +73,7 @@ Flux.@treelike CGaussian
 
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
     ex = p.mapping(z)
-    return ex[1:p.xlength,:], softplus_safe.(ex[p.xlength+1:end,:])
+    return ex[1:p.xlength,:], softplus_safe.(ex[p.xlength+1:end,:], T)
 end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
