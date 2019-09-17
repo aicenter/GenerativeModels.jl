@@ -98,4 +98,6 @@
     @debug "Rec. Error: $rec_err"
     @assert rec_err < 0.05
 
+
+    Random.seed!()  # reset the seed
 end

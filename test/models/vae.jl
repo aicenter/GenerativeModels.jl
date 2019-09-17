@@ -68,4 +68,6 @@
     zs = rand(model.encoder, test_data)
     xs = mean(model.decoder, zs)
     @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
+
+    Random.seed!()  # reset the seed
 end
