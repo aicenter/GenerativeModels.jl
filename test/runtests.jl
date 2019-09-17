@@ -30,6 +30,6 @@ param_change(frozen_params, model) =
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
     
-    # include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "saveload.jl"))
 
 end
