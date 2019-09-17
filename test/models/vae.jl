@@ -69,5 +69,8 @@
     xs = mean(model.decoder, zs)
     @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
 
+    msg = @capture_out show(model)
+    @test occursin("VAE", msg)
+
     Random.seed!()  # reset the seed
 end

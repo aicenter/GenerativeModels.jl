@@ -11,6 +11,9 @@
     @test size(loglikelihood(p, randn(2))) == (1,)
 
     q = Gaussian(zeros(2), ones(2))
-    @assert kld(p,q)[1] == 0.0
+    @test kld(p,q)[1] == 0.0
+
+    msg = @capture_out show(p)
+    @test occursin("Gaussian", msg)
 
 end
