@@ -1,5 +1,7 @@
 @testset "models/vae.jl" begin
 
+    Random.seed!(1)
+
     @info "Testing VAE"
 
     ω0 = 0.5
