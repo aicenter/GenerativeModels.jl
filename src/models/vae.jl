@@ -1,5 +1,5 @@
 export VAE
-export elbo
+export elbo, mmd
 
 """
     VAE{T}(prior::Gaussian, encoder::CGaussian, decoder::CGaussian)
@@ -51,6 +51,8 @@ function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     kl  = mean(kld(m.encoder, m.prior, x))
     llh + β*kl
 end
+
+mmd(m::AbstractVAE, x::AbstractArray, k) = mmd(m.encoder, m.prior, x, k)
 
 function Base.show(io::IO, m::AbstractVAE{T}) where T
     p = repr(m.prior)

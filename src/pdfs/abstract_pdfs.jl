@@ -1,4 +1,4 @@
-export mean, variance, mean_var, rand, loglikelihood, kld
+export mean, variance, mean_var, rand, loglikelihood, kld, mmd
 export length, xlength, zlength
 
 abstract type AbstractPDF{T<:Real} end
@@ -114,3 +114,11 @@ Compute Kullback-Leibler divergence between a conditional PDF `p` given `z`
 and a PDF `q`.
 """
 kld(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray) = error("Not implemented!")
+
+"""
+    mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k)
+
+Compute the maximum mean discrepancy between a conditional PDF `p` given `z` 
+and a PDF `q`, given kernel `k`.
+"""
+mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, batch=size(z,2)))    
