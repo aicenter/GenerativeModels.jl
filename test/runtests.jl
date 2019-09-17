@@ -25,8 +25,8 @@ param_change(frozen_params, model) =
     include(joinpath("pdfs", "cgaussian.jl"))
     include(joinpath("pdfs", "svar_cgaussian.jl"))
         
-    # include(joinpath("models", "vae.jl"))
-    # include(joinpath("models", "rodent.jl"))
+    include(joinpath("models", "vae.jl"))
+    include(joinpath("models", "rodent.jl"))
     
     include(joinpath("utils", "saveload.jl"))
 

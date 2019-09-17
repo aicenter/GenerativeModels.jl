@@ -7,7 +7,7 @@
     encoder = Dense(xlength, 8)
     model = Rodent(xlength, encoder, (0f0, 1f0), 2)
 
-    warn_logger = SimpleLogger(stdout, Logging.Warn)
+    nowarn_logger = SimpleLogger(stdout, Logging.Error)
     model_dir   = mktempdir()
     @debug "  model_dir: $model_dir"
 
@@ -16,7 +16,7 @@
     model_ckpt = joinpath(model_dir, "ckpt.bson")
     history = MVHistory()
     push!(history, :loss, 1, 1)
-    with_logger(warn_logger) do
+    with_logger(nowarn_logger) do
         save_checkpoint(model_ckpt, model, history, keep=keep)
         save_checkpoint(model_ckpt, model, history, keep=keep)
         save_checkpoint(model_ckpt, model, history, keep=keep)
@@ -27,7 +27,7 @@
 
 
     @debug "  Testing `load_checkpoint`"
-    loaded_model, history = with_logger(warn_logger) do 
+    loaded_model, history = with_logger(nowarn_logger) do 
         load_checkpoint(model_ckpt)
     end
     @test model.encoder.mapping.W == loaded_model.encoder.mapping.W
@@ -38,11 +38,11 @@
     Flux.train!(lossf, params(model), data, opt)
     params_trained = get_params(model)
 
-    with_logger(warn_logger) do
+    with_logger(nowarn_logger) do
         save_checkpoint(model_ckpt, model, history, keep=keep)
     end
 
-    loaded_model, history = with_logger(warn_logger) do 
+    loaded_model, history = with_logger(nowarn_logger) do 
         load_checkpoint(model_ckpt)
     end
 
