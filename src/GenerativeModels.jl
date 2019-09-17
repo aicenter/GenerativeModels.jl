@@ -18,7 +18,7 @@ module GenerativeModels
     import Random.rand
     import Statistics.mean
 
-    include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
 
     # optional dependencies
