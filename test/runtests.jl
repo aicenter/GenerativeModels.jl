@@ -1,11 +1,16 @@
 using Test
 using Logging
 using Parameters
+using Random
 
 using DifferentialEquations
 using DiffEqFlux
 
 using GenerativeModels
+
+# set logging to debug to get more test output
+logger = ConsoleLogger(stdout, Logging.Info)
+global_logger(logger)
 
 # for testing of parameter change in training
 get_params(model) =  map(x->copy(Flux.Tracker.data(x)), collect(params(model)))
@@ -21,6 +26,6 @@ param_change(frozen_params, model) =
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
     
-    # include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "saveload.jl"))
 
 end

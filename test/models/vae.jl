@@ -1,5 +1,7 @@
 @testset "models/vae.jl" begin
 
+    Random.seed!(1)
+
     @info "Testing VAE"
 
     ω0 = 0.5
@@ -91,4 +93,5 @@
     xs = mean(model.decoder, zs)
     @test all(abs.(test_data - xs) .< 0.2) 
 
+    Random.seed!()  # reset the seed
 end

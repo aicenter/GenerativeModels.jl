@@ -17,7 +17,9 @@ julia> xlen = 5; tspan = (0f0, Float32(2π)); order = 2;
 
 julia> z = Float32.([0, 1, -1, 0, 0, 0, 0, 1]);
 
-julia> rodent = Rodent(xlen, tspan, order)
+julia> encoder = Dense(xlen, length(z))
+
+julia> rodent = Rodent(xlen, encoder, tspan, order)
 
 julia> mean(rodent.decoder, z)
 Tracked 5-element Array{Float32,1}:
