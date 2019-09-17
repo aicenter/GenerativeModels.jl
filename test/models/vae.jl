@@ -1,44 +1,73 @@
 @testset "models/vae.jl" begin
 
+    Random.seed!(1)
+
     @info "Testing VAE"
 
-    ω0 = 0.5f0
-    dt = 0.3f0
-    xsize = 30
-    zsize = 8
+    ω0 = 0.5
+    dt = 0.3
+    xlen = 30
+    zlen = 8
     batch = 20
-    noise = 0.01f0
+    noise = 0.01
+    T = Float64
 
-    test_data = randn(Float32, xsize, batch)
+    test_data = randn(xlen, batch)
     
-    encoder = Dense(xsize, zsize)
-    decoder, _ = make_ode_decoder(xsize, (0f0,xsize*dt), 2)
-    model = VAE{Float32}(xsize, zsize, encoder, decoder)
+    μe  = Dense(xlen, zlen)
+    enc = CGaussian{T,UnitVar}(zlen, xlen, μe)
+
+    μd, _ = make_ode_decoder(xlen, (0., xlen*dt), 2)
+    dec   = CGaussian{T,UnitVar}(xlen, zlen, μd)
+    model = VAE(enc, dec)
 
     loss = elbo(model, test_data)
     ps = params(model)
-    @test length(ps) > 0
+    @test Base.length(ps) > 0
     @test isa(loss, Tracker.TrackedReal)
-    
-    (μ0, σ1) = prior_mean_var(model)
-    @test μ0 == zeros(Float32, zsize)
-    @test σ1 == I
 
-    (μz, σz) = encoder_mean_var(model, test_data)
-    z = encoder_sample(model, test_data)
-    @test size(μz) == (zsize, batch)
-    @test size(σz) == (zsize,)
-    @test size(z) == (zsize, batch)
+    prior = Gaussian(param(zeros(T, zlen)), param(ones(T, zlen)))
+    model = VAE{T}(prior, enc, dec)
+    loss = elbo(model, test_data)
+    ps = params(model)
+    @test Base.length(ps) > 0
+    @test isa(loss, Tracker.TrackedReal)
 
-    (μx, σe) = decoder_mean_var(model, μz)
-    xrec = decoder_sample(model, μz)
-    @test size(μx) == (xsize, batch)
-    @test size(σe) == (1,)
-    @test size(xrec) == (xsize, batch)
+    # simple test for vanilla vae
+    xlen = 4
+    zlen = 2
+    test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2)))
 
-    llh = decoder_loglikelihood(model, test_data, z)
-    @test size(llh) == (batch,)
+    enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen*2], relu, Dense)
+    enc_dist = CGaussian{T,DiagVar}(zlen, xlen, enc)
 
-    llh = decoder_loglikelihood(model, test_data[:,1], z[:,1])
-    @test size(llh) == ()
+    dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen+1], relu, Dense)
+    dec_dist = CGaussian{T,ScalarVar}(xlen, zlen, dec)
+
+    model = VAE(enc_dist, dec_dist)
+
+    loss = elbo(model, test_data)
+    ps = params(model)
+    @test Base.length(ps) > 0
+    @test isa(loss, Tracker.TrackedReal)
+
+    zs = rand(model.encoder, test_data)
+    @test size(zs) == (zlen, batch)
+    xs = rand(model.decoder, zs)
+    @test size(xs) == (xlen, batch)     
+
+    # test training
+    params_init = get_params(model)
+    opt = ADAM()
+    cb(model, data, loss, opt) = nothing
+    data = [test_data for i in 1:10000];
+    lossf(x) = elbo(model, x, β=1e-3)
+    train!(model, data, lossf, opt, cb)
+
+    @test all(param_change(params_init, model)) # did the params change?
+    zs = rand(model.encoder, test_data)
+    xs = mean(model.decoder, zs)
+    @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
+
+    Random.seed!()  # reset the seed
 end

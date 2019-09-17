@@ -1,78 +1,68 @@
 export VAE
-export prior_mean, prior_variance, prior_mean_var
 export elbo
 
+"""
+    VAE{T}(prior::Gaussian, encoder::CGaussian, decoder::CGaussian)
+
+Variational Auto-Encoder.
+
+# Example
+Create a vanilla VAE with standard normal prior with:
+```julia-repl
+julia> enc = CGaussian{Float32,DiagVar}(2,5,Dense(5,4))
+CGaussian{Float32,DiagVar}(xlength=2, zlength=5, mapping=Dense(5, 4))
+
+julia> dec = CGaussian{Float32,ScalarVar}(5,2,Dense(2,6))
+CGaussian{Float32,ScalarVar}(xlength=5, zlength=2, mapping=Dense(2, 6))
+
+julia> vae = VAE(enc, dec)
+VAE{Float32}:
+  prior   = Gaussian{Float32}(μ=2-element Array{Float32,1}, σ2=2-element Array{Float32,1})
+  encoder = CGaussian{Float32,DiagVar}(xlength=2, zlength=5, mapping=Dense(5, 4))
+  decoder = CGaussian{Float32,ScalarVar}(xlength=5, zlength=2, mapping=Dense(2, 6))
+```
+"""
 struct VAE{T} <: AbstractVAE{T}
-    xsize::Int
-    zsize::Int
-    encoder
-    decoder
-    σz::Tracker.TrackedArray{T,1}
-    σe::Tracker.TrackedArray{T,1}
+    prior::Gaussian
+    encoder::CGaussian
+    decoder::CGaussian
+
+    function VAE{T}(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T
+        if xlength(e) == zlength(d)
+            new(p, e, d)
+        else
+            error("Encoder and decoder must have same zlength.")
+        end
+    end
+
 end
 
 Flux.@treelike VAE
 
-"""`VAE(xsize, zsize, encoder, decoder)`
-
-Variational Auto-Encoder with scalar Gaussian noise on reconstruction.
-p(x|z) = N(x|z, σe);
-p(z)   = N(z|0, 1);
-q(z|x) = N(z|μz, σz)
-"""
-function VAE{T}(xsize::Int, zsize::Int, encoder, decoder) where T
-    σz = param(ones(T, zsize) / 100)
-    σe = param(ones(T, 1) / 10)
-    VAE(xsize, zsize, encoder, decoder, σz, σe)
+function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
+    zlen = zlength(dec)
+    prior = Gaussian(zeros(T, zlen), ones(T, zlen))
+    VAE{T}(prior, enc, dec)
 end
 
-
-prior_mean(m::VAE{T}) where T = zeros(T, m.zsize)
-prior_variance(m::VAE) = I
-prior_mean_var(m::VAE) = (prior_mean(m), prior_variance(m))
-
-
-"""`elbo(m::VAE, x::AbstractArray)`
-
-Computes variational lower bound.
-"""
-function elbo(m::VAE, x::AbstractArray)
-    N  = size(x, 2)
-    (μz, σz) = encoder_mean_var(m, x)
-    z = encoder_sample(m, μz, σz)
-
-    llh = -sum(decoder_loglikelihood(m, x, z)) / N
-    KLz = (sum(μz.^2 .+ σz) / 2 - sum(log.(σz))) / N
-
-    σe = decoder_variance(m, z)[1] # TODO: what if σe is not scalar?
-    loss = llh + KLz + log(σe)*m.zsize/2
+function elbo(m::AbstractVAE, x::AbstractArray; β=1)
+    z = rand(m.encoder, x)
+    llh = mean(-loglikelihood(m.decoder, x, z))
+    kl  = mean(kld(m.encoder, m.prior, x))
+    llh + β*kl
 end
 
-
-function Base.show(io::IO, m::VAE{T}) where T
-    e = summary(m.encoder)
-    e = sizeof(e)>80 ? e[1:77]*"..." : e
-    d = summary(m.decoder)
-    d = sizeof(d)>80 ? d[1:77]*"..." : d
-    msg = """VAE{$T}:
-      xsize   = $(m.xsize)
-      zsize   = $(m.zsize)
-      encoder = $(e)
-      decoder = $(d)
-      σz      = $(m.σz)
-      σe      = $(m.σe)
+function Base.show(io::IO, m::AbstractVAE{T}) where T
+    p = repr(m.prior)
+    p = sizeof(p)>70 ? "($(p[1:70-3])...)" : p
+    e = repr(m.encoder)
+    e = sizeof(e)>70 ? "($(e[1:70-3])...)" : e
+    d = repr(m.decoder)
+    d = sizeof(d)>70 ? "($(d[1:70-3])...)" : d
+    msg = """$(typeof(m)):
+     prior   = $(p)
+     encoder = $(e)
+     decoder = $(d)
     """
     print(io, msg)
-end
-
-
-function mvhistory_callback(h::MVHistory, m::VAE, lossf::Function, test_data::AbstractArray)
-    function callback()
-        (μz, σz) = encoder_mean_var(m, test_data)
-        σe = m.σe[1]
-        xrec = decoder_mean(m, μz)
-        loss = lossf(test_data)
-        ntuple = DrWatson.@ntuple μz σz xrec loss σe
-        GenerativeModels.push_ntuple!(h, ntuple)
-    end
 end
