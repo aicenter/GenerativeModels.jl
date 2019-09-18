@@ -44,8 +44,8 @@ struct SharedVarCGaussian{T} <: AbstractCGaussian{T}
         end
 
         cg = new(xlength, zlength, mapping, σ2)
-        ex = mapping(randn(T, zlength))
-        size(ex) == (xlength,) ? cg : error("Mapping must return samples of xlength")
+        ex = mapping(randn(T, zlength, 1))
+        size(ex) == (xlength, 1) ? cg : error("Mapping must return samples of xlength")
     end
 
 end
