@@ -2,15 +2,12 @@ using Test
 using Logging
 using Parameters
 using Random
+using Supressor
 
 using DifferentialEquations
 using DiffEqFlux
 
 using GenerativeModels
-
-# Fix seed for reconstruction error tests
-# TODO: does this have to be called in every @testset?
-Random.seed!(1)
 
 # set logging to debug to get more test output
 logger = ConsoleLogger(stdout, Logging.Info)
