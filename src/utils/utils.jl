@@ -43,16 +43,16 @@ function layer_builder(ks::Vector{Int},ftype::String,lastlayer::String = "",ltyp
 end
 
 """
-    ae_layer_builder(lsize, activation, layer)
+    ae_layer_builder(lsize, activation, layer[; last=identity])
 
 Construct encoder/decoder consisting of `length(lsize)-1` layers of type `layer` with 
-`activation` in between. Last activation is always `identity`. Width of layers is defined
+`activation` in between. Default last activation is `identity`. Width of layers is defined
 by the vector `lsize`.
 """
-ae_layer_builder(lsize::Vector, activation, layer)=  
+ae_layer_builder(lsize::Vector, activation, layer; last=identity) =  
     layer_builder(lsize, 
         Array{Any}(fill(layer, size(lsize,1)-1)), 
-        Array{Any}([fill(activation, size(lsize,1)-2); identity]))
+        Array{Any}([fill(activation, size(lsize,1)-2); last]))
 
 ### training ###
 """

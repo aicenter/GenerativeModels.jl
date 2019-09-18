@@ -2,7 +2,7 @@ export VAE
 export elbo, mmd
 
 """
-    VAE{T}(prior::Gaussian, encoder::CGaussian, decoder::CGaussian)
+    VAE{T}([prior::Gaussian,] encoder::CGaussian, decoder::CGaussian)
 
 Variational Auto-Encoder.
 
@@ -31,7 +31,7 @@ struct VAE{T} <: AbstractVAE{T}
         if xlength(e) == zlength(d)
             new(p, e, d)
         else
-            error("Encoder and decoder must have same zlength.")
+            error("Encoder and decoder dimensions do not fit.")
         end
     end
 
@@ -45,6 +45,11 @@ function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
     VAE{T}(prior, enc, dec)
 end
 
+"""
+    elbo(m::AbstractVAE, x::AbstractArray; β=1)
+
+Evidence lower boundary of the VAE model. `β` scales the KLD term.
+"""
 function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     z = rand(m.encoder, x)
     llh = mean(-loglikelihood(m.decoder, x, z))
@@ -52,6 +57,11 @@ function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     llh + β*kl
 end
 
+"""
+    mmd(m::AbstractVAE, x::AbstractArray, k)
+
+Maximum mean discrepancy of a VAE model given data `x` and kernel function `k(x,y)`.
+"""
 mmd(m::AbstractVAE, x::AbstractArray, k) = mmd(m.encoder, m.prior, x, k)
 
 function Base.show(io::IO, m::AbstractVAE{T}) where T
