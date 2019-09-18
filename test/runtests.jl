@@ -2,7 +2,7 @@ using Test
 using Logging
 using Parameters
 using Random
-using Supressor
+using Suppressor
 
 using DrWatson
 using ValueHistories
