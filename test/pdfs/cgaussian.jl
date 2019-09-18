@@ -62,4 +62,7 @@
     @test size(loglikelihood(p, x, z)) == (1, batch)
     @test size(kld(p, q, z)) == (1, batch)
 
+    msg = @capture_out show(p)
+    @test occursin("CGaussian", msg)
+
 end

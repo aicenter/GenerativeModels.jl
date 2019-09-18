@@ -20,6 +20,7 @@ ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
+Suppressor = "fd094767-a336-5f1f-9728-57cf17d0bbfb"
 
 [targets]
-test = ["Test", "Logging", "Parameters"]
+test = ["Test", "Logging", "Parameters", "Suppressor"]

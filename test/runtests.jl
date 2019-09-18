@@ -4,6 +4,9 @@ using Parameters
 using Random
 using Supressor
 
+using DrWatson
+using ValueHistories
+using Flux
 using DifferentialEquations
 using DiffEqFlux
 
@@ -20,14 +23,15 @@ param_change(frozen_params, model) =
 
 @testset "GenerativeModels.jl" begin
 
+    include(joinpath("pdfs", "abstract_pdf.jl"))
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "cgaussian.jl"))
     include(joinpath("pdfs", "svar_cgaussian.jl"))
-        
+
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
     include(joinpath("models", "gan.jl"))
     
-    # include(joinpath("utils", "misc.jl"))
+    include(joinpath("utils", "saveload.jl"))
 
 end
