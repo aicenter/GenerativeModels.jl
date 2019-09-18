@@ -37,10 +37,10 @@ length(p::Gaussian) = size(p.μ, 1)
 #mean_var(p::Gaussian{T}) where T = (p.μ, softplus_safe.(p.σ2, T))
 mean_var(p::Gaussian) = (p.μ, p.σ2.^2)
 
-function rand(p::Gaussian{T}; batch=1) where T
+function rand(p::Gaussian{T}, batchsize::Int=1) where T
     (μ, σ2) = mean_var(p)
     k = length(p)
-    μ .+ sqrt.(σ2) .* randn(T, k, batch)
+    μ .+ sqrt.(σ2) .* randn(T, k, batchsize)
 end
 
 function loglikelihood(p::Gaussian, x::AbstractArray)

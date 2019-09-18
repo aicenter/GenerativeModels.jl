@@ -13,6 +13,7 @@ module GenerativeModels
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
+    abstract type AbstractGAN{T<:Real} <: AbstractGM end
 
     import Base.length
     import Random.rand
@@ -35,5 +36,6 @@ module GenerativeModels
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
+    include(joinpath("models", "gan.jl"))
 
 end # module

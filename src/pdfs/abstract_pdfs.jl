@@ -30,7 +30,7 @@ variance(p::AbstractPDF) = mean_var(p::AbstractPDF)[2]
 
 Produce `batch` number of samples from a PDF.
 """
-rand(p::AbstractPDF; batch=1) = error("Not, implemented!")
+rand(p::AbstractPDF, batchsize::Int=1) = error("Not, implemented!")
 
 """
     loglikelihood(p::AbstractPDF, x::AbstractArray)
@@ -121,4 +121,4 @@ kld(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray) = error("Not implemented!
 Compute the maximum mean discrepancy between a conditional PDF `p` given `z` 
 and a PDF `q`, given kernel `k`.
 """
-mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, batch=size(z,2)))    
+mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))    
