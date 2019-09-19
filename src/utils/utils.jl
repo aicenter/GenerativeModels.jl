@@ -8,6 +8,13 @@ A softplus with small additive constant for safe operations.
 """
 softplus_safe(x,T=Float32) = softplus(x) .+ T(1e-6)
 
+"""
+    freeze(m)
+
+Creates a non-trainable copy of a Flux object.
+"""
+freeze(m) = Flux.mapleaves(Flux.Tracker.data,m)
+
 ### Flux chain builders ###
 """
     function layer_builder(d,k,o,n,ftype,lastlayer = "",ltype = "Dense")
@@ -36,16 +43,16 @@ function layer_builder(ks::Vector{Int},ftype::String,lastlayer::String = "",ltyp
 end
 
 """
-    ae_layer_builder(lsize, activation, layer)
+    ae_layer_builder(lsize, activation, layer[; last=identity])
 
 Construct encoder/decoder consisting of `length(lsize)-1` layers of type `layer` with 
-`activation` in between. Last activation is always `identity`. Width of layers is defined
+`activation` in between. Default last activation is `identity`. Width of layers is defined
 by the vector `lsize`.
 """
-ae_layer_builder(lsize::Vector, activation, layer)=  
+ae_layer_builder(lsize::Vector, activation, layer; last=identity) =  
     layer_builder(lsize, 
         Array{Any}(fill(layer, size(lsize,1)-1)), 
-        Array{Any}([fill(activation, size(lsize,1)-2); identity]))
+        Array{Any}([fill(activation, size(lsize,1)-2); last]))
 
 ### training ###
 """
@@ -132,3 +139,20 @@ Maximum mean discrepancy for samples X and Y given kernel k and parameter σ.
 """
 mmd(k,X,Y,σ) = ekxy(k,X,X,σ) - 2*ekxy(k,X,Y,σ) + ekxy(k,Y,Y,σ)
 mmd(k,X,Y) = ekxy(k,X,X) - 2*ekxy(k,X,Y) + ekxy(k,Y,Y)
+
+### GAN ###
+"""
+    gen_loss([T=Float32], sg)
+
+Generator loss for generated data score `sg`.
+"""
+generator_loss(T,sg) = - mean(log.(sg) .+ eps(T))
+generator_loss(sg) = generator_loss(Float32,sg)
+
+"""
+    disc_loss([T=Float32], st, sg)
+
+Discriminator loss for true data score `st` and generated data score `sg`.
+"""
+discriminator_loss(T,st,sg) = - T(0.5)*(mean(log.(st .+ eps(T))) + mean(log.(1 .- sg) .+ eps(T)))
+discriminator_loss(st,sg) = discriminator_loss(Float32,st,sg)

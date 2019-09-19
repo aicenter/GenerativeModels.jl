@@ -6,7 +6,7 @@
     μ  = mean(p)
     σ2 = variance(p)
     @test mean_var(p) == (μ, σ2)
-    @test size(rand(p, batch=10)) == (2, 10)
+    @test size(rand(p, 10)) == (2, 10)
     @test size(loglikelihood(p, randn(2, 10))) == (1, 10)
     @test size(loglikelihood(p, randn(2))) == (1,)
 

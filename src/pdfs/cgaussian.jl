@@ -57,14 +57,14 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
         end
 
         cg = new(xlength, zlength, mapping)
-        ex = mapping(randn(T, zlength))
+        ex = mapping(randn(T, zlength, 1))
 
         if V == UnitVar
-            size(ex) == (xlength,) ? cg : error("With UnitVar mapping must return samples of xlength")
+            size(ex) == (xlength, 1) ? cg : error("With UnitVar mapping must return samples of xlength")
         elseif V == ScalarVar
-            size(ex) == (xlength+1,) ? cg : error("With ScalarVar mapping must return samples of xlength+1")
+            size(ex) == (xlength+1, 1) ? cg : error("With ScalarVar mapping must return samples of xlength+1")
         else
-            size(ex) == (xlength*2,) ? cg : error("With DiagVar mapping must return samples of xlength*2")
+            size(ex) == (xlength*2, 1) ? cg : error("With DiagVar mapping must return samples of xlength*2")
         end
     end
 end
