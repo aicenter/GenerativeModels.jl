@@ -122,3 +122,17 @@ Compute the maximum mean discrepancy between a conditional PDF `p` given `z`
 and a PDF `q`, given kernel `k`.
 """
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))    
+
+
+function _detect_mapping_variant(mapping, xlength, zlength)
+    ex = mapping(randn(zlength, 1))
+    if size(ex) == (xlength, 1)
+        return UnitVar
+    elseif size(ex) == (xlength+1, 1)
+        return ScalarVar
+    elseif size(ex) == (xlength*2, 1)
+        return DiagVar
+    else
+        error("Mapping could not be matched with any variance type.")
+    end
+end

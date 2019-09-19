@@ -45,28 +45,12 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     xlength::Int
     zlength::Int
     mapping
+end
 
-    function CGaussian{T,V}(xlength, zlength, mapping) where T where V
-
-        if T == Float32
-            mapping = f32(mapping)
-        elseif T == Float64
-            mapping = f64(mapping)
-        else
-            error("Mapping cannot be converted to type $T")
-        end
-
-        cg = new(xlength, zlength, mapping)
-        ex = mapping(randn(T, zlength, 1))
-
-        if V == UnitVar
-            size(ex) == (xlength, 1) ? cg : error("With UnitVar mapping must return samples of xlength")
-        elseif V == ScalarVar
-            size(ex) == (xlength+1, 1) ? cg : error("With ScalarVar mapping must return samples of xlength+1")
-        else
-            size(ex) == (xlength*2, 1) ? cg : error("With DiagVar mapping must return samples of xlength*2")
-        end
-    end
+function CGaussian(xlength::Int, zlength::Int, mapping, T=Float32)
+    mapping = Flux.paramtype(T, mapping)
+    variant = _detect_mapping_variant(mapping, xlength, zlength)
+    CGaussian{T,variant}(xlength, zlength, mapping)
 end
 
 Flux.@treelike CGaussian
