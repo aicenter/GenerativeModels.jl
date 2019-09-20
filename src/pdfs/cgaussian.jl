@@ -48,16 +48,13 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
 end
 
 function CGaussian(xlength::Int, zlength::Int, mapping::Function, T=Float32)
-    V = _detect_mapping_variant(mapping, xlength, randn(T, zlength, 1))
+    V = detect_mapping_variant(mapping, T, xlength, zlength)
     CGaussian{T,V}(xlength, zlength, mapping)
 end
 
 function CGaussian(xlength::Int, zlength::Int, mapping)
-    p = first(params(mapping)).data
-    T = eltype(p)
-    z = randn(T, zlength, 1)
-    z = isa(p, Array) ? z : z |> gpu
-    V = _detect_mapping_variant(mapping, xlength, z)
+    T = eltype(first(params(mapping)).data)
+    V = detect_mapping_variant(mapping, xlength, zlength)
     CGaussian{T,V}(xlength, zlength, mapping)
 end
 

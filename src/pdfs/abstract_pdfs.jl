@@ -124,15 +124,29 @@ and a PDF `q`, given kernel `k`.
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))    
 
 
-function _detect_mapping_variant(mapping, xlength, z)
-    ex = mapping(z)
-    if size(ex) == (xlength, 1)
+function detect_mapping_variant(x::AbstractArray, xlength::Int)
+    N = size(x, 2)
+    if size(x) == (xlength, N)
         return UnitVar
-    elseif size(ex) == (xlength+1, 1)
+    elseif size(x) == (xlength+1, N)
         return ScalarVar
-    elseif size(ex) == (xlength*2, 1)
+    elseif size(x) == (xlength*2, N)
         return DiagVar
     else
         error("Mapping output could not be matched with any variance type.")
     end
+end
+
+function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
+    p = first(params(mapping)).data
+    z = randn(zlength, 1)
+    z = isa(p, Array) ? z : z |> gpu
+    x = mapping(z)
+    detect_mapping_variant(x, xlength)
+end
+
+function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
+    z = randn(T, zlength, 1)
+    x = mapping(z)
+    detect_mapping_variant(x, xlength)
 end

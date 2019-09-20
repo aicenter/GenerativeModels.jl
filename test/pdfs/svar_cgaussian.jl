@@ -9,7 +9,7 @@
 
     mapping = Dense(zlen, xlen)
     var = param(ones(T, xlen))
-    p  = SharedVarCGaussian{T}(xlen, zlen, mapping, var)
+    p  = SharedVarCGaussian(xlen, zlen, mapping, var)
     z  = randn(T, zlen, batch)
     μx = mean(p, z)
     σ2 = variance(p)
