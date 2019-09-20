@@ -28,7 +28,7 @@ The mapping must output dimensions appropriate for the chosen variance type
 
 # Example
 ```julia-repl
-julia> p = CGaussian{Float64,UnitVar}(3, 2, Dense(2, 3))
+julia> p = CGaussian(3, 2, Dense(2, 3))
 CGaussian{Float64,UnitVar}(xlength=3, zlength=2, mapping=Dense(2, 3))
 
 julia> mean_var(p, ones(2))
@@ -47,8 +47,8 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
 end
 
-function CGaussian(xlength::Int, zlength::Int, mapping, T=Float32)
-    mapping = Flux.paramtype(T, mapping)
+function CGaussian(xlength::Int, zlength::Int, mapping)
+    T = eltype(first(params(mapping)).data)
     variant = _detect_mapping_variant(mapping, xlength, zlength)
     CGaussian{T,variant}(xlength, zlength, mapping)
 end

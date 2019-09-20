@@ -125,7 +125,9 @@ mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), ra
 
 
 function _detect_mapping_variant(mapping, xlength, zlength)
-    ex = mapping(randn(zlength, 1))
+    x = randn(zlength, 1)
+    x = isa(first(params(mapping)).data, Array) ? x : x |> gpu
+    ex = mapping(x)
     if size(ex) == (xlength, 1)
         return UnitVar
     elseif size(ex) == (xlength+1, 1)
@@ -133,6 +135,6 @@ function _detect_mapping_variant(mapping, xlength, zlength)
     elseif size(ex) == (xlength*2, 1)
         return DiagVar
     else
-        error("Mapping could not be matched with any variance type.")
+        error("Mapping output could not be matched with any variance type.")
     end
 end
