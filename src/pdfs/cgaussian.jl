@@ -47,10 +47,18 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
 end
 
+function CGaussian(xlength::Int, zlength::Int, mapping::Function, T=Float32)
+    V = _detect_mapping_variant(mapping, xlength, randn(T, zlength, 1))
+    CGaussian{T,V}(xlength, zlength, mapping)
+end
+
 function CGaussian(xlength::Int, zlength::Int, mapping)
-    T = eltype(first(params(mapping)).data)
-    variant = _detect_mapping_variant(mapping, xlength, zlength)
-    CGaussian{T,variant}(xlength, zlength, mapping)
+    p = first(params(mapping)).data
+    T = eltype(p)
+    z = randn(T, zlength, 1)
+    z = isa(p, Array) ? z : z |> gpu
+    V = _detect_mapping_variant(mapping, xlength, z)
+    CGaussian{T,V}(xlength, zlength, mapping)
 end
 
 Flux.@treelike CGaussian

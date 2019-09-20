@@ -124,10 +124,8 @@ and a PDF `q`, given kernel `k`.
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))    
 
 
-function _detect_mapping_variant(mapping, xlength, zlength)
-    x = randn(zlength, 1)
-    x = isa(first(params(mapping)).data, Array) ? x : x |> gpu
-    ex = mapping(x)
+function _detect_mapping_variant(mapping, xlength, z)
+    ex = mapping(z)
     if size(ex) == (xlength, 1)
         return UnitVar
     elseif size(ex) == (xlength+1, 1)
