@@ -23,6 +23,12 @@
     q  = Gaussian(zeros(T, xlen), ones(T, xlen))
     @test size(kld(p, q, z)) == (1, batch)
 
+
+    # Test simple function mapping constructor
+    p = SharedVarCGaussian(xlen, xlen, x->tanh.(x), var)
+    @test isa(p, SharedVarCGaussian{T})
+
+    # Test show function
     msg = @capture_out show(p)
     @test occursin("SharedVarCGaussian", msg)
 

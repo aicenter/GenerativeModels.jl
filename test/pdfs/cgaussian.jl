@@ -70,4 +70,13 @@
     msg = @capture_out show(p)
     @test occursin("CGaussian", msg)
 
+    # Test simple function mapping constructor
+    p = CGaussian(xlen, xlen, x->tanh.(x))
+    @test isa(p, CGaussian{Float32,UnitVar})
+
+    # Test show function
+    msg = @capture_out show(p)
+    @test occursin("CGaussian", msg)
+
+
 end

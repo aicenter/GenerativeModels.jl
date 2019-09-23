@@ -124,17 +124,20 @@ and a PDF `q`, given kernel `k`.
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))    
 
 
-function detect_mapping_variant(x::AbstractArray, xlength::Int)
-    N = size(x, 2)
-    if size(x) == (xlength, N)
+function detect_mapping_variant(x::AbstractVector, xlength::Int) where T
+    if size(x) == (xlength,)
         return UnitVar
-    elseif size(x) == (xlength+1, N)
+    elseif size(x) == (xlength+1,)
         return ScalarVar
-    elseif size(x) == (xlength*2, N)
+    elseif size(x) == (xlength*2,)
         return DiagVar
     else
         error("Mapping output could not be matched with any variance type.")
     end
+end
+
+function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
+    detect_mapping_variant(x[:,1], xlength)
 end
 
 function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
