@@ -27,7 +27,7 @@
     @test isa(loss, Tracker.TrackedReal)
 
     prior = Gaussian(param(zeros(T, zlen)), param(ones(T, zlen)))
-    model = VAE{T}(prior, enc, dec)
+    model = VAE(prior, enc, dec)
     loss = elbo(model, test_data)
     ps = params(model)
     @test Base.length(ps) > 0

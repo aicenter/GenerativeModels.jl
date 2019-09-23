@@ -51,7 +51,7 @@
         σ2x = param(-ones(dtype, 1) ./ 10)
         dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
 
-        Rodent{dtype}(prior, enc_dist, dec_dist)
+        Rodent(prior, enc_dist, dec_dist)
     end
 
     @info "Testing Rodent"
