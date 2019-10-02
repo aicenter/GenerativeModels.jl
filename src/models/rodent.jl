@@ -59,7 +59,19 @@ function order3ode(du, u, p, t)
     du[3] = p[7]*u[1] + p[8]*u[2] + p[9]*u[3] + p[12]
 end
 
-get_nr_ode_params(order) = order^2 + order*2
+function ode_params(Z::AbstractArray)
+    A = reshape(Z[1:order^2, :], order, batchsize*order)
+    b = Z[order^2+1:order^2+order,:]
+    u = Z[end-order+1:end, :]
+    return (A, u, b)
+end
+
+function ode(du, u, p, t)
+    (A, _, b) = ode_params(p)
+    du .= A*u + b
+end
+
+ode_params_length(order) = order^2 + order*2
 
 _ODE = Dict(
     2 => order2ode,
@@ -80,7 +92,7 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
     ODEProblem = DifferentialEquations.ODEProblem
     Tsit5 = DifferentialEquations.Tsit5
     diffeq_rd = DiffEqFlux.diffeq_rd
-    nr_ode_ps = get_nr_ode_params(order)
+    nr_ode_ps = ode_params_length(order)
 
     ode_ps = rand(T, nr_ode_ps)
     u0_func(ode_ps, t0) = [p for p in ode_ps[end-order+1:end]]
@@ -109,7 +121,7 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
 end
 
 function Rodent(xlen::Int, encoder, tspan::Tuple{T,T}, order::Int) where T
-    zlen = get_nr_ode_params(order)
+    zlen = ode_params_length(order)
 
     λ2z = param(ones(T, zlen))
     prior = Gaussian(zeros(T, zlen), λ2z)
