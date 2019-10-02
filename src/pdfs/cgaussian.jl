@@ -67,7 +67,9 @@ end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.mapping(z)
-    return μ, ones(T, xlength(p))
+    σ2 = ones(T, xlength(p))
+    σ2 = isa(μ, Array) ? σ2 : σ2 |> gpu
+    return μ, σ2
 end
 
 function Base.show(io::IO, p::CGaussian{T,V}) where T where V
