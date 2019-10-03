@@ -67,8 +67,7 @@ end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.mapping(z)
-    σ2 = ones(T, xlength(p))
-    σ2 = isa(μ, Array) ? σ2 : σ2 |> gpu
+    σ2 = fill!(similar(μ, xlength(p)), 1)
     return μ, σ2
 end
 

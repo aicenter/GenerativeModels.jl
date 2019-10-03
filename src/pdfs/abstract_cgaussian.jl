@@ -7,10 +7,8 @@ zlength(p::AbstractCGaussian) = p.zlength
 
 function rand(p::AbstractCGaussian{T}, z::AbstractArray) where T
     (μ, σ2) = mean_var(p, z)
-    k = xlength(p)
-    r = randn(T, size(μ))
-    r = isa(μ, Array) ? r : r |> gpu
-    μ .+ sqrt.(σ2) .* r
+    r = randn!(similar(μ))
+    μ .+ sqrt.(σ2) .* r 
 end
 
 function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArray) where T

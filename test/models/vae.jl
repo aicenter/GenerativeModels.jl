@@ -14,7 +14,7 @@
 
     test_data = randn(xlen, batch)
     
-    μe  = Dense(xlen, zlen)
+    μe  = f64(Dense(xlen, zlen))
     enc = CGaussian{T,UnitVar}(zlen, xlen, μe)
 
     μd, _ = make_ode_decoder(xlen, (0., xlen*dt), 2)

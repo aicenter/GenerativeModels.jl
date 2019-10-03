@@ -3,6 +3,7 @@ module GenerativeModels
     using Reexport
     using Requires
     using Statistics
+    using Random
 
     using BSON
     using DrWatson
