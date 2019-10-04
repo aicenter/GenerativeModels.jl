@@ -10,6 +10,7 @@ using Flux
 using DifferentialEquations
 using DiffEqFlux
 
+using Revise
 using GenerativeModels
 
 # set logging to debug to get more test output
@@ -21,6 +22,22 @@ get_params(model) =  map(x->copy(Flux.Tracker.data(x)), collect(params(model)))
 param_change(frozen_params, model) = 
 	map(x-> x[1] != x[2], zip(frozen_params, collect(params(model))))
 
+using CUDAapi
+if has_cuda()
+  try
+    using CuArrays
+    CuArrays.allowscalar(false)
+    @eval has_cuarrays() = true
+  catch ex
+    @warn "CUDA is installed, but CuArrays.jl fails to load" exception=(ex,catch_backtrace())
+    @eval has_cuarrays() = false
+  end
+else
+  has_cuarrays() = false
+end
+
+# Flux.gpu(x) = identity(x)
+
 @testset "GenerativeModels.jl" begin
 
     include(joinpath("pdfs", "abstract_pdf.jl"))
@@ -28,10 +45,10 @@ param_change(frozen_params, model) =
     include(joinpath("pdfs", "cgaussian.jl"))
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
-    include(joinpath("models", "vae.jl"))
-    include(joinpath("models", "rodent.jl"))
-    include(joinpath("models", "gan.jl"))
-    
-    include(joinpath("utils", "saveload.jl"))
+    # include(joinpath("models", "vae.jl"))
+    # include(joinpath("models", "rodent.jl"))
+    # include(joinpath("models", "gan.jl"))
+    # 
+    # include(joinpath("utils", "saveload.jl"))
 
 end
