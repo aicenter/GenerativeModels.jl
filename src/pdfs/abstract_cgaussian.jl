@@ -22,5 +22,9 @@ function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
     N = size(z, 2)
     (μ1, σ1) = mean_var(p, z)
     (μ2, σ2) = mean_var(q)
-    mean(log.(σ2 ./ σ1), dims=1) .+ mean(σ1 ./ σ2, dims=1) .+ mean((μ2 .- μ1).^2 ./ σ2, dims=1)
+    m1 = mean(log.(σ2 ./ σ1), dims=1)
+    m2 = mean(σ1 ./ σ2, dims=1)
+    d  = (μ2 .- μ1).^2
+    m3 = mean(d ./ σ2, dims=1)
+    m1 .+ m2 .+ m3
 end
