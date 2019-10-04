@@ -59,11 +59,15 @@
     μx = mean(p, z)
     σ2 = variance(p, z)
     @test size(μx) == (xlen, batch)
-    if has_cuda() CuArrays.allowscalar(true) end
-    msg = "Performing scalar operations on GPU arrays: "
-    msg *= "This is very slow, consider disallowing these operations with `allowscalar(false)`"
-    @test (@test_logs (:warn, msg) σ2 == ones(T, xlen))
-    if has_cuda() CuArrays.allowscalar(false) end
+    if has_cuda()
+        CuArrays.allowscalar(true)
+        msg = "Performing scalar operations on GPU arrays: "
+        msg *= "This is very slow, consider disallowing these operations with `allowscalar(false)`"
+        @test (@test_logs (:warn, msg) σ2 == ones(T, xlen))
+        CuArrays.allowscalar(false)
+    else
+        @test σ2 == ones(T, xlen)
+    end
     @test size(rand(p, z)) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
 
