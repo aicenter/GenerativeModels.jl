@@ -10,7 +10,7 @@ using Flux
 using DifferentialEquations
 using DiffEqFlux
 
-using Revise
+# using Revise
 using GenerativeModels
 
 # set logging to debug to get more test output
