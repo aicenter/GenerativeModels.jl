@@ -47,7 +47,7 @@
         σ2z = param(-ones(dtype, zlen) ./ 100)
         enc_dist = SharedVarCGaussian{dtype}(zlen, xlen, encoder, σ2z)
 
-        (μx, _) = make_ode_decoder(xlen, tspan, order)
+        μx  = make_ode_decoder(xlen, tspan, order)
         σ2x = param(-ones(dtype, 1) ./ 10)
         dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
 
