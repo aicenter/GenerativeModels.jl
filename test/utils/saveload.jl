@@ -3,7 +3,7 @@
 
     xlength = 10
     keep = 2
-    (decoder, _) = make_ode_decoder(xlength, (0f0,1f0), 2)
+    decoder = make_ode_decoder(xlength, (0f0,1f0), 2)
     encoder = Dense(xlength, 8)
     model = Rodent(xlength, encoder, (0f0, 1f0), 2)
 

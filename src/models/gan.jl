@@ -39,6 +39,8 @@ end
 
 Flux.@treelike GAN
 
+GAN(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = GAN{T}(p, g, d)
+
 function GAN(g::CGaussian{T}, d::CGaussian{T}) where T
     zlen = zlength(g)
     prior = Gaussian(zeros(T, zlen), ones(T, zlen))

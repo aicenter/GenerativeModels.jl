@@ -9,8 +9,8 @@
 
     mapping = Dense(zlen, xlen)
     var = param(ones(T, xlen))
-    p  = SharedVarCGaussian{T}(xlen, zlen, mapping, var)
-    z  = randn(T, zlen, batch)
+    p  = SharedVarCGaussian(xlen, zlen, mapping, var) |> gpu
+    z  = randn(T, zlen, batch) |> gpu
     μx = mean(p, z)
     σ2 = variance(p)
     x  = rand(p, z)
@@ -20,9 +20,15 @@
     @test size(x) == (xlen, batch)
     @test size(loglikelihood(p, x, z)) == (1, batch)
 
-    q  = Gaussian(zeros(T, xlen), ones(T, xlen))
+    q  = Gaussian(zeros(T, xlen), ones(T, xlen)) |> gpu
     @test size(kld(p, q, z)) == (1, batch)
 
+
+    # Test simple function mapping constructor
+    p = SharedVarCGaussian(xlen, xlen, x->tanh.(x), var)
+    @test isa(p, SharedVarCGaussian{T})
+
+    # Test show function
     msg = @capture_out show(p)
     @test occursin("SharedVarCGaussian", msg)
 

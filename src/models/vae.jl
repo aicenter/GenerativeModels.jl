@@ -39,6 +39,8 @@ end
 
 Flux.@treelike VAE
 
+VAE(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T = VAE{T}(p, e, d)
+
 function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
     zlen = zlength(dec)
     prior = Gaussian(zeros(T, zlen), ones(T, zlen))

@@ -28,7 +28,7 @@ The mapping must output dimensions appropriate for the chosen variance type
 
 # Example
 ```julia-repl
-julia> p = CGaussian{Float64,UnitVar}(3, 2, Dense(2, 3))
+julia> p = CGaussian(3, 2, Dense(2, 3))
 CGaussian{Float64,UnitVar}(xlength=3, zlength=2, mapping=Dense(2, 3))
 
 julia> mean_var(p, ones(2))
@@ -45,40 +45,30 @@ struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     xlength::Int
     zlength::Int
     mapping
+end
 
-    function CGaussian{T,V}(xlength, zlength, mapping) where T where V
+function CGaussian(xlength::Int, zlength::Int, mapping::Function, T=Float32)
+    V = detect_mapping_variant(mapping, T, xlength, zlength)
+    CGaussian{T,V}(xlength, zlength, mapping)
+end
 
-        if T == Float32
-            mapping = f32(mapping)
-        elseif T == Float64
-            mapping = f64(mapping)
-        else
-            error("Mapping cannot be converted to type $T")
-        end
-
-        cg = new(xlength, zlength, mapping)
-        ex = mapping(randn(T, zlength, 1))
-
-        if V == UnitVar
-            size(ex) == (xlength, 1) ? cg : error("With UnitVar mapping must return samples of xlength")
-        elseif V == ScalarVar
-            size(ex) == (xlength+1, 1) ? cg : error("With ScalarVar mapping must return samples of xlength+1")
-        else
-            size(ex) == (xlength*2, 1) ? cg : error("With DiagVar mapping must return samples of xlength*2")
-        end
-    end
+function CGaussian(xlength::Int, zlength::Int, mapping)
+    T = eltype(first(params(mapping)).data)
+    V = detect_mapping_variant(mapping, xlength, zlength)
+    CGaussian{T,V}(xlength, zlength, mapping)
 end
 
 Flux.@treelike CGaussian
 
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
     ex = p.mapping(z)
-    return ex[1:p.xlength,:], softplus_safe.(ex[p.xlength+1:end,:], T)
+    return ex[1:p.xlength,:], ex[p.xlength+1:end,:].^2
 end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.mapping(z)
-    return μ, ones(T, xlength(p))
+    σ2 = fill!(similar(μ, xlength(p)), 1)
+    return μ, σ2
 end
 
 function Base.show(io::IO, p::CGaussian{T,V}) where T where V

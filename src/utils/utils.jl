@@ -1,4 +1,4 @@
-export train!
+export train!, softplus_safe
 
 # for over/underflow in logs
 """
@@ -109,20 +109,30 @@ function train!(model, data, loss, optimiser, callback;
     end
 end
 
+
 ### MMD ###
 """
     rbf(x,y,σ)
 
 Gaussian kernel of x and y.
 """
-rbf(x,y,σ) = exp.(-(sum((x-y).^2,dims=1)/(2*σ)))
+function rbf(x,y,σ)
+    d = x-y
+    exp.(-(sum(d .* d,dims=1)/(2*σ)))
+end
+#rbf(x,y,σ) = exp.(-(sum((x-y).^2,dims=1)/(2*σ)))
+
 
 """
     imq(x,y,σ)
 
 Inverse multiquadratics kernel of x and y.    
 """
-imq(x,y,σ) = σ./(σ.+sum(((x-y).^2),dims=1))
+function imq(x,y,σ)
+    d = x-y
+    σ./(σ.+sum((d .* d),dims=1))
+end
+#imq(x,y,σ) = σ./(σ.+sum(((x-y).^2),dims=1))
 
 """
     ekxy(k,X,Y[,σ])

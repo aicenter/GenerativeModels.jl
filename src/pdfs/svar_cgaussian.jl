@@ -32,22 +32,17 @@ struct SharedVarCGaussian{T} <: AbstractCGaussian{T}
     zlength::Int
     mapping
     σ2::AbstractArray{T}
+end
 
-    function SharedVarCGaussian{T}(xlength, zlength, mapping, σ2) where T
+function SharedVarCGaussian(xlength::Int, zlength::Int, mapping::Function, σ2::AbstractArray{T}) where T
+    V = detect_mapping_variant(mapping, T, xlength, zlength)
+    SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
+end
 
-        if T == Float32
-            mapping = f32(mapping)
-        elseif T == Float64
-            mapping = f64(mapping)
-        else
-            error("Encoder cannot be converted to type $T")
-        end
-
-        cg = new(xlength, zlength, mapping, σ2)
-        ex = mapping(randn(T, zlength, 1))
-        size(ex) == (xlength, 1) ? cg : error("Mapping must return samples of xlength")
-    end
-
+function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractArray{T}) where T
+    @assert eltype(first(params(mapping)).data) == T
+    V = detect_mapping_variant(mapping, xlength, zlength)
+    SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
 end
 
 Flux.@treelike SharedVarCGaussian
