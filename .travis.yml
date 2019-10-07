@@ -14,7 +14,6 @@ addons:
       - python3-matplotlib
 env:
   matrix:
-    - PYTHON=python  # python 2.7
     - PYTHON=python3 # python 3.5
 
 matrix:
@@ -24,6 +23,9 @@ matrix:
 fast_finish: true
 notifications:
     email: false
-
+    
+script:
+    - travis_wait 40 julia --color=yes -e 'using Pkg; Pkg.activate(); Pkg.instantiate(); Pkg.test()'
+   
 after_success:
     - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
