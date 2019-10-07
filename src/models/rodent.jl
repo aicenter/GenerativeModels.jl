@@ -48,35 +48,7 @@ Flux.@treelike Rodent
 
 Rodent(p::Gaussian{T}, e::SharedVarCGaussian{T}, d::SharedVarCGaussian{T}) where T = Rodent{T}(p, e, d)
 
-function order2ode(du, u, p, t)
-    du[1] = p[1]*u[1] + p[2]*u[2] + p[5]
-    du[2] = p[3]*u[1] + p[4]*u[2] + p[6]
-end
-
-function order3ode(du, u, p, t)
-    du[1] = p[1]*u[1] + p[2]*u[2] + p[3]*u[3] + p[10]
-    du[2] = p[4]*u[1] + p[5]*u[2] + p[6]*u[3] + p[11]
-    du[3] = p[7]*u[1] + p[8]*u[2] + p[9]*u[3] + p[12]
-end
-
-function ode_params(Z::AbstractArray)
-    A = reshape(Z[1:order^2, :], order, batchsize*order)
-    b = Z[order^2+1:order^2+order,:]
-    u = Z[end-order+1:end, :]
-    return (A, u, b)
-end
-
-function ode(du, u, p, t)
-    (A, _, b) = ode_params(p)
-    du .= A*u + b
-end
-
 ode_params_length(order) = order^2 + order*2
-
-_ODE = Dict(
-    2 => order2ode,
-    3 => order3ode
-)
 
 """
     make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int)
@@ -88,36 +60,43 @@ Returns the ODE solver function and a named tuple that contains the ODE problem
 setup.
 """
 function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
-    global _ODE
     ODEProblem = DifferentialEquations.ODEProblem
-    Tsit5 = DifferentialEquations.Tsit5
     diffeq_rd = DiffEqFlux.diffeq_rd
-    nr_ode_ps = ode_params_length(order)
-
-    ode_ps = rand(T, nr_ode_ps)
-    u0_func(ode_ps, t0) = [p for p in ode_ps[end-order+1:end]]
-    ode_prob = ODEProblem(_ODE[order], u0_func, tspan, ode_ps)
+    Tsit5 = DifferentialEquations.Tsit5
     timesteps = range(tspan[1], stop=tspan[2], length=xlength)
 
-    function decode(ode_ps)
-        sol = diffeq_rd(ode_ps, ode_prob, Tsit5())
-        res = Tracker.collect(sol(timesteps)[1,:])
+    function ode(u, p, t)
+        (A, b, _) = p
+        du = A*u + b
     end
 
-    function decoder(Z)
-        @assert size(Z, 1) == nr_ode_ps
-
-        if Base.length(size(Z)) == 1
-            decode(Z)
-        elseif Base.length(size(Z)) == 2
-            U = [decode(Z[:, ii]) for ii in 1:size(Z, 2)]
-            hcat(U...)
-        else
-            error("Latent input must be either vector or matrix!")
-        end
+    function decode(A::AbstractMatrix, b::AbstractVector, u::AbstractVector)
+        z = (A,b,u)
+        ode_prob = ODEProblem(ode, u, tspan, z)
+        sol = diffeq_rd(z, ode_prob, Tsit5(), saveat=timesteps)
+        res = hcat(sol.u...)[1,:]
     end
 
-    decoder, (ode_ps=ode_ps, u0_func=u0_func, ode_prob=ode_prob, timesteps=timesteps)
+    function decode(A::AbstractArray, b::AbstractMatrix, u::AbstractMatrix)
+        X = [decode(A[:,:,ii], b[:,ii], u[:,ii]) for ii in 1:size(A, 3)]
+        hcat(X...)
+    end
+
+    function decode(z::AbstractVector)
+        A = reshape(z[1:order^2], order, order)
+        b = z[order^2+1:order^2+order]
+        u = z[end-order+1:end]
+        decode(A, b, u)
+    end
+
+    function decode(Z::AbstractMatrix)
+        A = reshape(Z[1:order^2, :], order, order, :)
+        b = Z[order^2+1:order^2+order, :]
+        u = Z[end-order+1:end, :]
+        decode(A, b, u)
+    end
+
+    decode
 end
 
 function Rodent(xlen::Int, encoder, tspan::Tuple{T,T}, order::Int) where T
@@ -129,7 +108,7 @@ function Rodent(xlen::Int, encoder, tspan::Tuple{T,T}, order::Int) where T
     σ2z = param(ones(T, zlen))
     enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
 
-    (μx, _) = make_ode_decoder(xlen, tspan, order)
+    μx  = make_ode_decoder(xlen, tspan, order)
     σ2x = param(ones(T, 1))
     dec_dist = SharedVarCGaussian{T}(xlen, zlen, μx, σ2x)
 

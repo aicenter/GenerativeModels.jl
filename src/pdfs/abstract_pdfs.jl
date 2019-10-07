@@ -149,7 +149,7 @@ function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
 end
 
 function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
-    z = randn(T, zlength, 1)
+    z = param(randn(T, zlength, 1))
     x = mapping(z)
     detect_mapping_variant(x, xlength)
 end
