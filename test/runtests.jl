@@ -8,6 +8,7 @@ using DrWatson
 using ValueHistories
 using Flux
 using DiffEqBase
+using OrdinaryDiffEq
 using DiffEqFlux
 
 # using Revise

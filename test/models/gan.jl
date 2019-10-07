@@ -6,7 +6,7 @@
     xlen = 4
     zlen = 2
     batchsize = 20
-    T = Float64
+    T = Float32
 
     test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) |> gpu
 
