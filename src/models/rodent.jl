@@ -60,9 +60,9 @@ Returns the ODE solver function and a named tuple that contains the ODE problem
 setup.
 """
 function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
-    ODEProblem = DifferentialEquations.ODEProblem
+    ODEProblem = DiffEqBase.ODEProblem
     diffeq_rd = DiffEqFlux.diffeq_rd
-    Tsit5 = DifferentialEquations.Tsit5
+    Tsit5 = OrdinaryDiffEq.Tsit5
     timesteps = range(tspan[1], stop=tspan[2], length=xlength)
 
     function ode(u, p, t)
