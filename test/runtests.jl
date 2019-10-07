@@ -7,7 +7,7 @@ using Suppressor
 using DrWatson
 using ValueHistories
 using Flux
-using DifferentialEquations
+using DiffEqBase
 using DiffEqFlux
 
 # using Revise

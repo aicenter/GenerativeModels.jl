@@ -20,11 +20,12 @@ module GenerativeModels
     import Statistics.mean
 
     include(joinpath("utils", "saveload.jl"))
+    # include(joinpath("utils", "splitdense.jl"))
     include(joinpath("utils", "utils.jl"))
 
     # optional dependencies
     function __init__()
-        @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using DifferentialEquations
+        @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using DiffEqBase
         @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("models", "rodent.jl"))
     end
 
