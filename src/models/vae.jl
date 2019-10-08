@@ -9,10 +9,10 @@ Variational Auto-Encoder.
 # Example
 Create a vanilla VAE with standard normal prior with:
 ```julia-repl
-julia> enc = CGaussian{Float32,DiagVar}(2,5,Dense(5,4))
+julia> enc = CGaussian(2,5,Dense(5,4))
 CGaussian{Float32,DiagVar}(xlength=2, zlength=5, mapping=Dense(5, 4))
 
-julia> dec = CGaussian{Float32,ScalarVar}(5,2,Dense(2,6))
+julia> dec = CGaussian(5,2,Dense(2,6))
 CGaussian{Float32,ScalarVar}(xlength=5, zlength=2, mapping=Dense(2, 6))
 
 julia> vae = VAE(enc, dec)

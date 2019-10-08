@@ -22,21 +22,21 @@ dtype = Float32
 prior = Gaussian(zeros(dtype, zlen), ones(dtype, zlen))
 
 encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-encoder_dist = CGaussian{dtype,DiagVar}(zlen, xlen, encoder)
+encoder_dist = CGaussian(zlen, xlen, encoder)
 
 decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-decoder_dist = decoder_dist = CGaussian{dtype,ScalarVar}(xlen, zlen, decoder)
+decoder_dist = decoder_dist = CGaussian(xlen, zlen, decoder)
 
-vae = VAE{dtype}(prior, encoder_dist, decoder_dist)
+vae = VAE(prior, encoder_dist, decoder_dist)
 ```
 
 Now you have a model that you can call `params(vae)` on and use Flux as you are
 used to. You can also easily sample from it once you are done training:
 
 ```julia
-z = rand(vae.prior, batch=10)  # sample from the prior
-μ = mean(vae.decoder, z)       # get decoder means
-x = rand(vae.decoder, z)       # get decoder samples
+z = rand(vae.prior, 10)   # sample from the prior
+μ = mean(vae.decoder, z)  # get decoder means
+x = rand(vae.decoder, z)  # get decoder samples
 ```
 
 But say, you want to learn the variance of your prior during training... Easy!

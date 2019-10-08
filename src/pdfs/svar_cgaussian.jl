@@ -17,11 +17,11 @@ an optimized `TrackedArray`.
 
 # Example
 ```julia-repl
-julia> p = SharedVarCGaussian{Float64}(3, 2, Dense(2, 3), param(ones(3)))
-SharedVarCGaussian{Float64}(xlength=3, zlength=2, mapping=Dense(2, 3), σ2=...)
+julia> p = SharedVarCGaussian(3, 2, Dense(2, 3), param(ones(Float32, 3)))
+SharedVarCGaussian{Float32}(xlength=3, zlength=2, mapping=Dense(2, 3), σ2=...)
 
 julia> rand(p, ones(2))
-Tracked 3×1 Array{Float64,2}:
+Tracked 3×1 Array{Float32,2}:
  0.1829532154926673
  0.1235498922955946
  0.0767166501426535

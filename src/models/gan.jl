@@ -9,10 +9,10 @@ The Generative Adversarial Network.
 # Example
 Create a GAN with standard normal prior with:
 ```julia-repl
-julia> gen = CGaussian{Float32,UnitVar}(4,2,Dense(2,4))
+julia> gen = CGaussian(4,2,Dense(2,4))
 CGaussian{Float32,UnitVar}(xlength=4, zlength=2, mapping=Dense(2, 4))
 
-julia> disc = CGaussian{Float32,UnitVar}(1,4,Chain(Dense(4,1), x->Flux.σ.(x)))
+julia> disc = CGaussian(1,4,Chain(Dense(4,1), x->Flux.σ.(x)))
 CGaussian{Float32,UnitVar}(xlength=1, zlength=4, mapping=(Chain(Dense(4, 1), getfield(Main, Symbol("##3#4...))
 
 julia> gan = GAN(gen, disc)

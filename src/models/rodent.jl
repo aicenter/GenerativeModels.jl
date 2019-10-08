@@ -70,26 +70,26 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
         du = A*u + b
     end
 
-    function decode(A::AbstractMatrix, b::AbstractVector, u::AbstractVector)
+    function decode(A::TrackedMatrix, b::TrackedVector, u::TrackedVector)
         z = (A,b,u)
         ode_prob = ODEProblem(ode, u, tspan, z)
         sol = diffeq_rd(z, ode_prob, Tsit5(), saveat=timesteps)
         res = hcat(sol.u...)[1,:]
     end
 
-    function decode(A::AbstractArray, b::AbstractMatrix, u::AbstractMatrix)
+    function decode(A::TrackedArray, b::TrackedMatrix, u::TrackedMatrix)
         X = [decode(A[:,:,ii], b[:,ii], u[:,ii]) for ii in 1:size(A, 3)]
         hcat(X...)
     end
 
-    function decode(z::AbstractVector)
+    function decode(z::TrackedVector)
         A = reshape(z[1:order^2], order, order)
         b = z[order^2+1:order^2+order]
         u = z[end-order+1:end]
         decode(A, b, u)
     end
 
-    function decode(Z::AbstractMatrix)
+    function decode(Z::TrackedMatrix)
         A = reshape(Z[1:order^2, :], order, order, :)
         b = Z[order^2+1:order^2+order, :]
         u = Z[end-order+1:end, :]
