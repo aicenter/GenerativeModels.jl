@@ -16,7 +16,8 @@
     μe  = Dense(xlen, zlen)
     enc = CGaussian{T,UnitVar}(zlen, xlen, μe)
 
-    μd    = make_ode_decoder(xlen, (0f0, xlen*dt), 2)
+    d = make_ode_decoder(xlen, (0f0, xlen*dt), 2)
+    μd(z) = d(z)[1,:,:]
     dec   = CGaussian{T,UnitVar}(xlen, zlen, μd)
     model = VAE(enc, dec)
 
