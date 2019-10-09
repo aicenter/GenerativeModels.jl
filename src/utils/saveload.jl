@@ -14,7 +14,7 @@ function save_checkpoint(filename::String, model::AbstractGM,
     d = DrWatson.@dict(model, history)
 
     @info "Saving checkpoint at $filename"
-    DrWatson.tagsave(filename, d, true)
+    DrWatson.tagsave(filename, d, safe=true)
 
     (name, ext) = splitext(filename)
     oldest_ckpt = "$(name)_#$(keep)$(ext)"
