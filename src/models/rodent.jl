@@ -74,12 +74,12 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
         z = (A,b,u)
         ode_prob = ODEProblem(ode, u, tspan, z)
         sol = diffeq_rd(z, ode_prob, Tsit5(), saveat=timesteps)
-        res = hcat(sol.u...)[1,:]
+        res = hcat(sol.u...)
     end
 
     function decode(A::TrackedArray, b::TrackedMatrix, u::TrackedMatrix)
         X = [decode(A[:,:,ii], b[:,ii], u[:,ii]) for ii in 1:size(A, 3)]
-        hcat(X...)
+        cat(X..., dims=ndims(X[1])+1)
     end
 
     function decode(z::TrackedVector)
@@ -99,18 +99,15 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
     decode
 end
 
-function Rodent(xlen::Int, encoder, tspan::Tuple{T,T}, order::Int) where T
-    zlen = ode_params_length(order)
-
+function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     λ2z = param(ones(T, zlen))
     prior = Gaussian(zeros(T, zlen), λ2z)
 
     σ2z = param(ones(T, zlen))
     enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
 
-    μx  = make_ode_decoder(xlen, tspan, order)
     σ2x = param(ones(T, 1))
-    dec_dist = SharedVarCGaussian{T}(xlen, zlen, μx, σ2x)
+    dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
 
     Rodent{T}(prior, enc_dist, dec_dist)
 end
