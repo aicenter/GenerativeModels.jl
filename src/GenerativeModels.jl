@@ -20,7 +20,6 @@ module GenerativeModels
     import Statistics.mean
 
     include(joinpath("utils", "saveload.jl"))
-    # include(joinpath("utils", "splitdense.jl"))
     include(joinpath("utils", "utils.jl"))
 
     # optional dependencies

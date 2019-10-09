@@ -47,7 +47,7 @@ end
 
 Flux.@treelike SharedVarCGaussian
 
-variance(p::SharedVarCGaussian) = p.σ2.^2
+variance(p::SharedVarCGaussian) = p.σ2 .* p.σ2
 mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), variance(p))
 #function mean_var(p::SharedVarCGaussian{T}, z::AbstractArray{T}) where T
 #    (p.mapping(z), softplus_safe.(p.σ2, T))
