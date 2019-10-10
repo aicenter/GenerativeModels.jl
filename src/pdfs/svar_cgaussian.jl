@@ -45,7 +45,9 @@ function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractAr
     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
 end
 
-Flux.@treelike SharedVarCGaussian
+# make sure that constructor is called with parametric type by mapleaves
+Flux.children(m::SharedVarCGaussian) = (m.xlength, m.zlength, m.mapping, m.σ2)
+Flux.mapchildren(f, m::SharedVarCGaussian{T}) where T = SharedVarCGaussian{T}(f.(Flux.children(m))...)
 
 variance(p::SharedVarCGaussian) = p.σ2 .* p.σ2
 mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), variance(p))

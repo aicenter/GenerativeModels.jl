@@ -65,8 +65,8 @@
     noise = 0.01f0
     setup = @dict xlen order batch dt dtype noise
 
-    rodent = construct_rodent(setup)
-    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1]
+    rodent = construct_rodent(setup) |> gpu
+    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] |> gpu
 
     ls = elbo(rodent, test_data)
     ps = params(rodent)
