@@ -40,7 +40,7 @@ function CGaussian(xlength::Int, zlength::Int, mapping::Function, T=Float32)
 end
 
 function CGaussian(xlength::Int, zlength::Int, mapping)
-    T = eltype(first(params(mapping)).data)
+    T = eltype(first(params(mapping)))
     V = detect_mapping_variant(mapping, xlength, zlength)
     CGaussian{T,V}(xlength, zlength, mapping)
 end

@@ -64,7 +64,7 @@ function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
 end
 
 function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
-    p = first(params(mapping)).data
+    p = first(params(mapping))
     z = randn(zlength, 1)
     z = isa(p, Array) ? z : z |> gpu
     x = mapping(z)
