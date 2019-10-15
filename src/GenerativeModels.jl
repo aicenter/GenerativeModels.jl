@@ -9,6 +9,7 @@ module GenerativeModels
     # using DrWatson
     # using ValueHistories
     using Flux
+    using StaticArrays
     # @reexport using LinearAlgebra
 
     abstract type AbstractGM end

@@ -11,6 +11,8 @@ using Flux
 # using OrdinaryDiffEq
 # using DiffEqFlux
 
+using StaticArrays
+
 using Revise
 using GenerativeModels
 

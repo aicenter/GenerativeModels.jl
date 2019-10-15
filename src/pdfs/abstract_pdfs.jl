@@ -122,3 +122,12 @@ Compute the maximum mean discrepancy between a conditional PDF `p` given `z`
 and a PDF `q`, given kernel `k`.
 """
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))
+
+function _trainable(m)
+    ps = Flux.functor(m)[1]
+    (; [k=>ps[k] for k in keys(ps) if !isa(ps[k], StaticArray)]...)
+end
+
+"""Custom function that ignores `StaticArrays`"""
+Flux.trainable(m::AbstractCPDF) = _trainable(m)
+Flux.trainable(m::AbstractPDF) = _trainable(m)
