@@ -27,7 +27,6 @@ using CUDAapi
 if has_cuda()
   try
     using CuArrays
-    CuArrays.allowscalar(false)
     @eval has_cuarrays() = true
   catch ex
     @warn "CUDA is installed, but CuArrays.jl fails to load" exception=(ex,catch_backtrace())

@@ -11,7 +11,8 @@ If the checkpoint already exists it is moved to filename_#1.bson.
 """
 function save_checkpoint(filename::String, model::AbstractGM,
                          history::MVHistory; keep=100)
-    d = DrWatson.@dict(model, history)
+    model = model |> cpu
+    d = @dict model history
 
     @info "Saving checkpoint at $filename"
     DrWatson.tagsave(filename, d, safe=true)
