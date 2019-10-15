@@ -1,6 +1,20 @@
 export loglikelihood, kld, rand, xlength, zlength
+export AbstractVar, DiagVar, ScalarVar, UnitVar
 
 abstract type AbstractCGaussian{T} <: AbstractCPDF{T} end
+
+"""Abstract variance type"""
+abstract type AbstractVar end
+
+"""Diagonal variance represented as a vector"""
+struct DiagVar <: AbstractVar end
+
+"""Scalar variance represented as a one-element vector"""
+struct ScalarVar <: AbstractVar end
+
+"""Unit variance represented by a vector of ones"""
+struct UnitVar <: AbstractVar end
+
 
 xlength(p::AbstractCGaussian) = p.xlength
 zlength(p::AbstractCGaussian) = p.zlength
@@ -29,4 +43,36 @@ function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
     dd = d .* d
     m3 = mean(dd ./ σ2, dims=1)
     m1 .+ m2 .+ m3
+end
+
+
+
+function detect_mapping_variant(x::AbstractVector, xlength::Int) where T
+    if size(x) == (xlength,)
+        return UnitVar
+    elseif size(x) == (xlength+1,)
+        return ScalarVar
+    elseif size(x) == (xlength*2,)
+        return DiagVar
+    else
+        error("Mapping output could not be matched with any variance type.")
+    end
+end
+
+function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
+    detect_mapping_variant(x[:,1], xlength)
+end
+
+function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
+    p = first(params(mapping)).data
+    z = randn(zlength, 1)
+    z = isa(p, Array) ? z : z |> gpu
+    x = mapping(z)
+    detect_mapping_variant(x, xlength)
+end
+
+function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
+    z = param(randn(T, zlength, 1))
+    x = mapping(z)
+    detect_mapping_variant(x, xlength)
 end

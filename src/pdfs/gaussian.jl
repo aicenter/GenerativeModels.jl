@@ -32,7 +32,7 @@ struct Gaussian{T} <: AbstractPDF{T}
     σ2::AbstractArray{T}
 end
 
-Flux.@treelike Gaussian
+Flux.@functor Gaussian
 length(p::Gaussian) = size(p.μ, 1)
 #mean_var(p::Gaussian{T}) where T = (p.μ, softplus_safe.(p.σ2, T))
 mean_var(p::Gaussian) = (p.μ, p.σ2 .* p.σ2)

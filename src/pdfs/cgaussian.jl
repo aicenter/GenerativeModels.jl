@@ -1,18 +1,5 @@
 export CGaussian
 export mean_var
-export AbstractVar, DiagVar, ScalarVar, UnitVar
-
-"""Abstract variance type"""
-abstract type AbstractVar end
-
-"""Diagonal variance represented as a vector"""
-struct DiagVar <: AbstractVar end
-
-"""Scalar variance represented as a one-element vector"""
-struct ScalarVar <: AbstractVar end
-
-"""Unit variance represented by a vector of ones"""
-struct UnitVar <: AbstractVar end
 
 """
     CGaussian{T,AbstractVar}
@@ -59,8 +46,9 @@ function CGaussian(xlength::Int, zlength::Int, mapping)
 end
 
 # make sure that constructor is called with parametric type by mapleaves
-Flux.children(m::CGaussian) = (m.xlength, m.zlength, m.mapping)
-Flux.mapchildren(f, m::CGaussian{T,V}) where T where V = CGaussian{T,V}(f.(Flux.children(m))...)
+# Flux.children(m::CGaussian) = (m.xlength, m.zlength, m.mapping)
+# Flux.mapchildren(f, m::CGaussian{T,V}) where T where V = CGaussian{T,V}(f.(Flux.children(m))...)
+Flux.@functor CGaussian
 
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
     ex = p.mapping(z)
