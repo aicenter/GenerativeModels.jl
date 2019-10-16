@@ -6,8 +6,8 @@ module GenerativeModels
     using Random
 
     # using BSON
-    # using DrWatson
-    # using ValueHistories
+    using DrWatson
+    using ValueHistories
     using Flux
     using StaticArrays
     # @reexport using LinearAlgebra
@@ -20,9 +20,8 @@ module GenerativeModels
     import Random.rand
     import Statistics.mean
 
-    # include(joinpath("utils", "saveload.jl"))
-    # include(joinpath("utils", "layers.jl"))
-    # include(joinpath("utils", "utils.jl"))
+    include(joinpath("utils", "saveload.jl"))
+    include(joinpath("utils", "utils.jl"))
 
     # # optional dependencies
     # function __init__()
