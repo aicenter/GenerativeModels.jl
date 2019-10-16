@@ -8,8 +8,9 @@ module GenerativeModels
     # using BSON
     using DrWatson
     using ValueHistories
-    using Flux
     using StaticArrays
+    using CuArrays
+    using Flux, Zygote
     # @reexport using LinearAlgebra
 
     abstract type AbstractGM end
@@ -19,6 +20,8 @@ module GenerativeModels
     import Base.length
     import Random.rand
     import Statistics.mean
+
+    Zygote.@nograd similar, randn!, fill!
 
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
@@ -36,7 +39,7 @@ module GenerativeModels
     include(joinpath("pdfs", "cgaussian.jl"))
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
-    # include(joinpath("models", "vae.jl"))
+    include(joinpath("models", "vae.jl"))
     # include(joinpath("models", "gan.jl"))
 
 end # module
