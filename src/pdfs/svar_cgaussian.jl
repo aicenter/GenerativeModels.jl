@@ -40,14 +40,12 @@ function SharedVarCGaussian(xlength::Int, zlength::Int, mapping::Function, σ2::
 end
 
 function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractArray{T}) where T
-    @assert eltype(first(params(mapping)).data) == T
+    @assert eltype(first(params(mapping))) == T
     V = detect_mapping_variant(mapping, xlength, zlength)
     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
 end
 
-# make sure that constructor is called with parametric type by mapleaves
-Flux.children(m::SharedVarCGaussian) = (m.xlength, m.zlength, m.mapping, m.σ2)
-Flux.mapchildren(f, m::SharedVarCGaussian{T}) where T = SharedVarCGaussian{T}(f.(Flux.children(m))...)
+Flux.@functor SharedVarCGaussian
 
 variance(p::SharedVarCGaussian) = p.σ2 .* p.σ2
 mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), variance(p))

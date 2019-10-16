@@ -8,7 +8,7 @@
     T     = Float32
 
     mapping = Dense(zlen, xlen)
-    var = param(ones(T, xlen))
+    var = ones(T, xlen)
     p  = SharedVarCGaussian(xlen, zlen, mapping, var) |> gpu
     z  = randn(T, zlen, batch) |> gpu
     μx = mean(p, z)

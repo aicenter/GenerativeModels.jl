@@ -35,7 +35,7 @@ module GenerativeModels
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))
     include(joinpath("pdfs", "cgaussian.jl"))
-    # include(joinpath("pdfs", "svar_cgaussian.jl"))
+    include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     # include(joinpath("models", "vae.jl"))
     # include(joinpath("models", "gan.jl"))

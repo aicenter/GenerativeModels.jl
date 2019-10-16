@@ -45,9 +45,6 @@ function CGaussian(xlength::Int, zlength::Int, mapping)
     CGaussian{T,V}(xlength, zlength, mapping)
 end
 
-# make sure that constructor is called with parametric type by mapleaves
-# Flux.children(m::CGaussian) = (m.xlength, m.zlength, m.mapping)
-# Flux.mapchildren(f, m::CGaussian{T,V}) where T where V = CGaussian{T,V}(f.(Flux.children(m))...)
 Flux.@functor CGaussian
 
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
