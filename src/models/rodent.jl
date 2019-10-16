@@ -44,7 +44,7 @@ struct Rodent{T} <: AbstractVAE{T}
     end
 end
 
-Flux.@treelike Rodent
+Flux.@functor Rodent
 
 Rodent(p::Gaussian{T}, e::SharedVarCGaussian{T}, d::SharedVarCGaussian{T}) where T = Rodent{T}(p, e, d)
 
@@ -61,7 +61,6 @@ setup.
 """
 function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
     ODEProblem = DiffEqBase.ODEProblem
-    diffeq_rd = DiffEqFlux.diffeq_rd
     Tsit5 = OrdinaryDiffEq.Tsit5
     timesteps = range(tspan[1], stop=tspan[2], length=xlength)
 
@@ -70,26 +69,26 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
         du = A*u + b
     end
 
-    function decode(A::TrackedMatrix, b::TrackedVector, u::TrackedVector)
+    function decode(A::AbstractMatrix, b::AbstractVector, u::AbstractVector)
         z = (A,b,u)
         ode_prob = ODEProblem(ode, u, tspan, z)
-        sol = diffeq_rd(z, ode_prob, Tsit5(), saveat=timesteps)
+        sol = solve(ode_prob, Tsit5(), saveat=timesteps)
         res = hcat(sol.u...)
     end
 
-    function decode(A::TrackedArray, b::TrackedMatrix, u::TrackedMatrix)
+    function decode(A::AbstractArray, b::AbstractMatrix, u::AbstractMatrix)
         X = [decode(A[:,:,ii], b[:,ii], u[:,ii]) for ii in 1:size(A, 3)]
         cat(X..., dims=ndims(X[1])+1)
     end
 
-    function decode(z::TrackedVector)
+    function decode(z::AbstractVector)
         A = reshape(z[1:order^2], order, order)
         b = z[order^2+1:order^2+order]
         u = z[end-order+1:end]
         decode(A, b, u)
     end
 
-    function decode(Z::TrackedMatrix)
+    function decode(Z::AbstractMatrix)
         A = reshape(Z[1:order^2, :], order, order, :)
         b = Z[order^2+1:order^2+order, :]
         u = Z[end-order+1:end, :]
@@ -100,13 +99,14 @@ function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
 end
 
 function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
-    λ2z = param(ones(T, zlen))
-    prior = Gaussian(zeros(T, zlen), λ2z)
+    λ2z = ones(T, zlen)
+    μpz = @SVector zeros(T, zlen)
+    prior = Gaussian(μpz, λ2z)
 
-    σ2z = param(ones(T, zlen))
+    σ2z = ones(T, zlen)
     enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
 
-    σ2x = param(ones(T, 1))
+    σ2x = ones(T, 1)
     dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
 
     Rodent{T}(prior, enc_dist, dec_dist)

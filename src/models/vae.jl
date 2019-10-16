@@ -37,7 +37,7 @@ struct VAE{T} <: AbstractVAE{T}
 
 end
 
-Flux.@treelike VAE
+Flux.@functor VAE
 
 VAE(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T = VAE{T}(p, e, d)
 

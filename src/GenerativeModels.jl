@@ -5,12 +5,15 @@ module GenerativeModels
     # using Statistics
     using Random
 
-    # using BSON
+    using BSON
     using DrWatson
     using ValueHistories
     using StaticArrays
     using CuArrays
     using Flux, Zygote
+
+    using DiffEqBase
+    using OrdinaryDiffEq
     # @reexport using LinearAlgebra
 
     abstract type AbstractGM end
@@ -26,11 +29,10 @@ module GenerativeModels
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
 
-    # # optional dependencies
+    # optional dependencies
     # function __init__()
-    #     @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using DiffEqBase
-    #     @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using OrdinaryDiffEq
-    #     @require DiffEqFlux="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("models", "rodent.jl"))
+    #     @require DiffEqBase="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using OrdinaryDiffEq
+    #     @require DiffEqBase="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("models", "rodent.jl"))
     # end
 
     include(joinpath("pdfs", "abstract_pdfs.jl"))
@@ -40,6 +42,7 @@ module GenerativeModels
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
-    # include(joinpath("models", "gan.jl"))
+    include(joinpath("models", "rodent.jl"))
+    include(joinpath("models", "gan.jl"))
 
 end # module

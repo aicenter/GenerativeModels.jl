@@ -56,6 +56,7 @@ end
 
 function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
     μ = p.mapping(z)
+    #σ2 = SVector{xlength(p)}(fill!(similar(μ, xlength(p)), 1)) TODO: use StaticArray
     σ2 = fill!(similar(μ, xlength(p)), 1)
     return μ, σ2
 end

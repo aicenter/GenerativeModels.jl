@@ -41,15 +41,15 @@
             Dense(xlen, 100, act, initW=init, initb=init),
             Dense(100, zlen, initW=init, initb=init))
 
-        λ2z = param(-ones(dtype, zlen))
+        λ2z = -ones(dtype, zlen)
         prior = Gaussian(zeros(dtype, zlen), λ2z)
 
-        σ2z = param(-ones(dtype, zlen) ./ 100)
+        σ2z = -ones(dtype, zlen) ./ 100
         enc_dist = SharedVarCGaussian{dtype}(zlen, xlen, encoder, σ2z)
 
         dec = make_ode_decoder(xlen, tspan, order)
         μx(z) = dec(z)[1,:,:]
-        σ2x = param(-ones(dtype, 1) ./ 10)
+        σ2x = -ones(dtype, 1) ./ 10
         dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
 
         Rodent(prior, enc_dist, dec_dist)
@@ -65,13 +65,14 @@
     noise = 0.01f0
     setup = @dict xlen order batch dt dtype noise
 
-    rodent = construct_rodent(setup) |> gpu
-    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] |> gpu
+    rodent = construct_rodent(setup) # |> gpu
+    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] # |> gpu
+    #test_data = test_data[:,1]
 
     ls = elbo(rodent, test_data)
     ps = params(rodent)
     @test length(ps) > 0
-    @test isa(ls, Tracker.TrackedReal{Float32})
+    @test isa(ls, dtype)
 
     function loss(x)
         N = size(x, 2)

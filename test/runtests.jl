@@ -1,14 +1,15 @@
 using Test
 using Suppressor
 using Logging
-# using Parameters
+using Parameters
 using Random
-# 
-# using DrWatson
-# using ValueHistories
+
+using DrWatson
+using ValueHistories
 using Flux
-# using DiffEqBase
-# using OrdinaryDiffEq
+using DiffEqBase
+using OrdinaryDiffEq
+using BSON
 # using DiffEqFlux
 
 using StaticArrays
@@ -48,8 +49,8 @@ end
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
-    # include(joinpath("models", "rodent.jl"))
     # include(joinpath("models", "gan.jl"))
+    # include(joinpath("models", "rodent.jl"))
 
     # include(joinpath("utils", "saveload.jl"))
 
