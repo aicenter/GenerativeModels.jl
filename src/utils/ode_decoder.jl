@@ -41,6 +41,9 @@ end
 (dec::ODEDecoder)(Z::AbstractMatrix) = hcat([dec(Z[:,ii]) for ii in 1:size(Z,2)]...)
 
 ddec(dec::ODEDecoder, z::AbstractVector) = ForwardDiff.jacobian(dec, z)
-@adjoint (dec::ODEDecoder)(z::AbstractVector) = (dec(z), Δ -> (J = Δ' * ddec(dec, z); (J',)))
+@adjoint function (dec::ODEDecoder)(z::AbstractVector)
+    (dec(z), Δ -> (J=Δ'*ddec(dec, z); (nothing,J')))
+    # TODO: why is the nothing needed???
+end
 
 #@adjoint decode(z::AbstractVector) = (decode(z),        Δ -> (J = Δ' * ddec(z); (J',)))
