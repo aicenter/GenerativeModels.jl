@@ -50,64 +50,57 @@ Rodent(p::Gaussian{T}, e::SharedVarCGaussian{T}, d::SharedVarCGaussian{T}) where
 
 ode_params_length(order) = order^2 + order*2
 
-"""
-    make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int)
-
-Creates an ODE solver function that solves an ODE of order N.
-The last parameters are assumed to be the initial conditions to the ODE.
-
-Returns the ODE solver function and a named tuple that contains the ODE problem
-setup.
-"""
-function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
-    ODEProblem = DiffEqBase.ODEProblem
-    Tsit5 = OrdinaryDiffEq.Tsit5
-    timesteps = range(tspan[1], stop=tspan[2], length=xlength)
-
-    function ode(u, p, t)
-        (A, b, _) = p
-        du = A*u + b
-    end
-
-    function decode(A::AbstractMatrix, b::AbstractVector, u::AbstractVector)
-        z = (A,b,u)
-        ode_prob = ODEProblem(ode, u, tspan, z)
-        sol = solve(ode_prob, Tsit5(), saveat=timesteps)
-        res = hcat(sol.u...)
-    end
-
-    function decode(A::AbstractArray, b::AbstractMatrix, u::AbstractMatrix)
-        X = [decode(A[:,:,ii], b[:,ii], u[:,ii]) for ii in 1:size(A, 3)]
-        cat(X..., dims=ndims(X[1])+1)
-    end
-
-    function decode(z::AbstractVector)
-        A = reshape(z[1:order^2], order, order)
-        b = z[order^2+1:order^2+order]
-        u = z[end-order+1:end]
-        decode(A, b, u)
-    end
-
-    function decode(Z::AbstractMatrix)
-        A = reshape(Z[1:order^2, :], order, order, :)
-        b = Z[order^2+1:order^2+order, :]
-        u = Z[end-order+1:end, :]
-        decode(A, b, u)
-    end
-
-    decode
-end
-
-function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
-    λ2z = ones(T, zlen)
-    μpz = @SVector zeros(T, zlen)
-    prior = Gaussian(μpz, λ2z)
-
-    σ2z = ones(T, zlen)
-    enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
-
-    σ2x = ones(T, 1)
-    dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
-
-    Rodent{T}(prior, enc_dist, dec_dist)
-end
+# """
+#     make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int)
+# 
+# Creates an ODE solver function that solves an ODE of order N.
+# The last parameters are assumed to be the initial conditions to the ODE.
+# 
+# Returns the ODE solver function and a named tuple that contains the ODE problem
+# setup.
+# """
+# function make_ode_decoder(xlength::Int, tspan::Tuple{T,T}, order::Int) where T
+#     timesteps = range(tspan[1], stop=tspan[2], length=xlength)
+# 
+#     function ode(u, p, t)
+#         (A, b, _) = p
+#         du = A*u + b
+#     end
+# 
+#     function decode(A::AbstractMatrix, b::AbstractVector, u0::AbstractVector)
+#         p = (A,b,u0)
+#         #_prob = remake(prob; u0=convert.(eltype(A),u0), p=z) # TODO: use remake instead?
+#         prob = ODEProblem(ode, u0, tspan, p)
+#         sol = solve(prob, Tsit5(), saveat=1) #TODO: maybe use Vern9 ????
+#         res = hcat(sol.u...)[1,:]
+#     end
+#     
+#     function split_latent(z::AbstractVector)
+#         A = reshape(z[1:order^2], order, order)
+#         b = z[order^2+1:order^2+order]
+#         u = z[end-order+1:end]
+#         return (A,b,u)
+#     end
+#     
+#     decode(z::AbstractVector) = decode(split_latent(z)...)
+#     decode(Z::AbstractMatrix) = hcat([decode(Z[:,ii]) for ii in 1:size(Z,2)]...)
+# 
+#     ddec(z::AbstractVector) = ForwardDiff.jacobian(decode, z)
+#     @adjoint decode(z::AbstractVector) = (decode(z), Δ -> (J = Δ' * ddec(z); (J',)))
+# 
+#     return decode
+# end
+# 
+# function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
+#     λ2z = ones(T, zlen)
+#     μpz = @SVector zeros(T, zlen)
+#     prior = Gaussian(μpz, λ2z)
+# 
+#     σ2z = ones(T, zlen)
+#     enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
+# 
+#     σ2x = ones(T, 1)
+#     dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
+# 
+#     Rodent{T}(prior, enc_dist, dec_dist)
+# end

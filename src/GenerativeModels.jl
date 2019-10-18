@@ -10,10 +10,12 @@ module GenerativeModels
     using ValueHistories
     using StaticArrays
     using CuArrays
-    using Flux, Zygote
+    using Flux
+    using Zygote: @nograd, @adjoint
+    using ForwardDiff
 
-    using DiffEqBase
-    using OrdinaryDiffEq
+    using DiffEqBase: ODEProblem
+    using OrdinaryDiffEq: Tsit5
     # @reexport using LinearAlgebra
 
     abstract type AbstractGM end
@@ -24,10 +26,11 @@ module GenerativeModels
     import Random.rand
     import Statistics.mean
 
-    Zygote.@nograd similar, randn!, fill!
+    @nograd similar, randn!, fill!
 
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
+    include(joinpath("utils", "ode_decoder.jl"))
 
     # optional dependencies
     # function __init__()
