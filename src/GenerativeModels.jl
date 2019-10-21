@@ -14,7 +14,7 @@ module GenerativeModels
     using Zygote: @nograd, @adjoint
     using ForwardDiff
 
-    using DiffEqBase: ODEProblem
+    using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
     # @reexport using LinearAlgebra
 
@@ -30,7 +30,7 @@ module GenerativeModels
 
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
-    include(joinpath("utils", "ode_decoder.jl"))
+    include(joinpath("utils", "ode_decoder_1dobs.jl"))
 
     # optional dependencies
     # function __init__()

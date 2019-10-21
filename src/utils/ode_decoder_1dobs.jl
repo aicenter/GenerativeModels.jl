@@ -1,6 +1,11 @@
-using Flux, Zygote, DiffEqBase, OrdinaryDiffEq
-using Zygote: @adjoint
+export ODEDecoder
 
+"""
+    ODEDecoder
+
+exemplary implementation of ODE decoder that reconstructs only first element
+of the internal state (see function: (dec::ODEDecoder)(A,b,u0))
+"""
 struct ODEDecoder
     order::Int
     xlength::Int
@@ -30,6 +35,8 @@ function (dec::ODEDecoder)(A::AbstractMatrix, b::AbstractVector, u0::AbstractVec
     tspan = (dec.timesteps[1], dec.timesteps[end])
     prob = ODEProblem(ode, u0, tspan, p)
     sol = solve(prob, Tsit5(), saveat=dec.timesteps) #TODO: maybe use Vern9 ????
+
+    # return time series of only first element of the state
     res = hcat(sol.u...)[1,:]
 end
 
@@ -38,9 +45,11 @@ function (dec::ODEDecoder)(z::AbstractVector)
     dec(A,b,u0)
 end
 
+# Use loop to get batched reconstructions so that jacobian and @adjoint work...
 (dec::ODEDecoder)(Z::AbstractMatrix) = hcat([dec(Z[:,ii]) for ii in 1:size(Z,2)]...)
 
 ddec(dec::ODEDecoder, z::AbstractVector) = ForwardDiff.jacobian(dec, z)
+
 @adjoint function (dec::ODEDecoder)(z::AbstractVector)
     (dec(z), Δ -> (J=Δ'*ddec(dec, z); (nothing,J')))
     # TODO: why is the nothing needed???

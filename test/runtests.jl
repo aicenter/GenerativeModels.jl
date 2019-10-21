@@ -18,7 +18,7 @@ using Revise
 using GenerativeModels
 
 # set logging to debug to get more test output
-logger = ConsoleLogger(stdout, Logging.Info)
+logger = ConsoleLogger(stdout, Logging.Debug)
 global_logger(logger)
 
 # for testing of parameter change in training
@@ -49,8 +49,8 @@ end
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
-    # include(joinpath("models", "gan.jl"))
-    # include(joinpath("models", "rodent.jl"))
+    include(joinpath("models", "gan.jl"))
+    include(joinpath("models", "rodent.jl"))
 
     # include(joinpath("utils", "saveload.jl"))
 
