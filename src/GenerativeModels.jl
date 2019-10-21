@@ -5,15 +5,10 @@ module GenerativeModels
     # using Statistics
     using Random
 
-    using BSON
-    using DrWatson
-    using ValueHistories
-    using StaticArrays
-    using CuArrays
-    using Flux
+    using BSON, DrWatson, ValueHistories
+    using StaticArrays, CuArrays
+    using Flux, ForwardDiff
     using Zygote: @nograd, @adjoint
-    using ForwardDiff
-
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
     # @reexport using LinearAlgebra
@@ -22,6 +17,7 @@ module GenerativeModels
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
     abstract type AbstractGAN{T<:Real} <: AbstractGM end
 
+    # functions that are overloaded by this module
     import Base.length
     import Random.rand
     import Statistics.mean
