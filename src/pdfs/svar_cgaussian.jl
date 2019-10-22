@@ -34,16 +34,16 @@ struct SharedVarCGaussian{T} <: AbstractCGaussian{T}
     σ2::AbstractArray{T}
 end
 
-function SharedVarCGaussian(xlength::Int, zlength::Int, mapping::Function, σ2::AbstractArray{T}) where T
-    V = detect_mapping_variant(mapping, T, xlength, zlength)
-    SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
-end
-
-function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractArray{T}) where T
-    @assert eltype(first(params(mapping))) == T
-    V = detect_mapping_variant(mapping, xlength, zlength)
-    SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
-end
+# function SharedVarCGaussian(xlength::Int, zlength::Int, mapping::Function, σ2::AbstractArray{T}) where T
+#     V = detect_mapping_variant(mapping, T, xlength, zlength)
+#     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
+# end
+# 
+# function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractArray{T}) where T
+#     @assert eltype(first(params(mapping))) == T
+#     V = detect_mapping_variant(mapping, xlength, zlength)
+#     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
+# end
 
 Flux.@functor SharedVarCGaussian
 

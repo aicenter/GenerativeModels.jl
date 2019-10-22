@@ -6,8 +6,9 @@ module GenerativeModels
     using Random
 
     using BSON, DrWatson, ValueHistories
-    using StaticArrays, CuArrays
+    using StaticArrays
     using Flux, ForwardDiff
+
     using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5

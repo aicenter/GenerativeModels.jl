@@ -38,6 +38,7 @@ function (dec::ODEDecoder)(A::AbstractMatrix, b::AbstractVector, u0::AbstractVec
 
     # return time series of only first element of the state
     res = hcat(sol.u...)[1,:]
+    # TODO: extend this to full state by reshaping
 end
 
 function (dec::ODEDecoder)(z::AbstractVector)
@@ -54,5 +55,3 @@ ddec(dec::ODEDecoder, z::AbstractVector) = ForwardDiff.jacobian(dec, z)
     (dec(z), Δ -> (J=Δ'*ddec(dec, z); (nothing,J')))
     # TODO: why is the nothing needed???
 end
-
-#@adjoint decode(z::AbstractVector) = (decode(z),        Δ -> (J = Δ' * ddec(z); (J',)))

@@ -47,32 +47,32 @@ end
 
 
 
-function detect_mapping_variant(x::AbstractVector, xlength::Int) where T
-    if size(x) == (xlength,)
-        return UnitVar
-    elseif size(x) == (xlength+1,)
-        return ScalarVar
-    elseif size(x) == (xlength*2,)
-        return DiagVar
-    else
-        error("Mapping output could not be matched with any variance type.")
-    end
-end
-
-function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
-    detect_mapping_variant(x[:,1], xlength)
-end
-
-function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
-    p = first(params(mapping))
-    z = randn(zlength, 1)
-    z = isa(p, CuArray) ? gpu(z) : z
-    x = mapping(z)
-    detect_mapping_variant(x, xlength)
-end
-
-function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
-    z = randn(T, zlength, 1)
-    x = mapping(z)
-    detect_mapping_variant(x, xlength)
-end
+# function detect_mapping_variant(x::AbstractVector, xlength::Int) where T
+#     if size(x) == (xlength,)
+#         return UnitVar
+#     elseif size(x) == (xlength+1,)
+#         return ScalarVar
+#     elseif size(x) == (xlength*2,)
+#         return DiagVar
+#     else
+#         error("Mapping output could not be matched with any variance type.")
+#     end
+# end
+# 
+# function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
+#     detect_mapping_variant(x[:,1], xlength)
+# end
+# 
+# function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
+#     p = first(params(mapping))
+#     z = randn(zlength, 1)
+#     z = isa(p, CuArray) ? gpu(z) : z
+#     x = mapping(z)
+#     detect_mapping_variant(x, xlength)
+# end
+# 
+# function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
+#     z = randn(T, zlength, 1)
+#     x = mapping(z)
+#     detect_mapping_variant(x, xlength)
+# end
