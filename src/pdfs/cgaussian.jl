@@ -45,7 +45,11 @@ end
 #     CGaussian{T,V}(xlength, zlength, mapping)
 # end
 
-Flux.@functor CGaussian
+function Flux.functor(p::CGaussian{T,V}) where {T,V}
+    fs = fieldnames(typeof(p))
+    nt = (; (name=>getfield(p, name) for name in fs)...)
+    nt, y -> CGaussian{T,V}(y...)
+end
 
 function mean_var(p::CGaussian{T}, z::AbstractArray) where T
     ex = p.mapping(z)

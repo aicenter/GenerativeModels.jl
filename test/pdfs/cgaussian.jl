@@ -8,8 +8,7 @@
     T     = Float32
 
     # Test ScalarVar
-    p = CGaussian(xlen, zlen, f32(Dense(zlen, xlen+1))) |> gpu
-    @test isa(p, CGaussian{T,ScalarVar})
+    p = CGaussian{T,ScalarVar}(xlen, zlen, f32(Dense(zlen, xlen+1))) |> gpu
 
     z  = randn(T, zlen, batch) |> gpu
     μx = mean(p, z)
@@ -32,8 +31,8 @@
 
 
     # Test DiagVar
-    p = CGaussian(xlen, zlen, f32(Dense(zlen, xlen*2))) |> gpu
-    @test isa(p, CGaussian{T,DiagVar})
+    p = CGaussian{T,DiagVar}(xlen, zlen, f32(Dense(zlen, xlen*2))) |> gpu
+    # @test isa(p, CGaussian{T,DiagVar})
 
     z  = randn(T, zlen, batch) |> gpu
     x  = randn(T, xlen, batch) |> gpu
@@ -49,8 +48,8 @@
 
 
     # Test UnitVar
-    p = CGaussian(xlen, zlen, f32(Dense(zlen, xlen))) |> gpu
-    @test isa(p, CGaussian{T,UnitVar})
+    p = CGaussian{T,UnitVar}(xlen, zlen, f32(Dense(zlen, xlen))) |> gpu
+    # @test isa(p, CGaussian{T,UnitVar})
 
     z  = randn(T, zlen, batch) |> gpu
     x  = randn(T, xlen, batch) |> gpu
@@ -76,8 +75,8 @@
     @test occursin("CGaussian", msg)
 
     # Test simple function mapping constructor
-    p = CGaussian(xlen, xlen, x->tanh.(x))
-    @test isa(p, CGaussian{Float32,UnitVar})
+    p = CGaussian{Float32,UnitVar}(xlen, xlen, x->tanh.(x))
+    # @test isa(p, CGaussian{Float32,UnitVar})
 
     # Test show function
     msg = @capture_out show(p)
