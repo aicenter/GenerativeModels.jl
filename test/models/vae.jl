@@ -42,10 +42,10 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
         enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CGaussian(zlen, xlen, enc)
+        enc_dist = CGaussian{T,UnitVar}(zlen, xlen, enc)
     
         dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CGaussian(xlen, zlen, dec)
+        dec_dist = CGaussian{T,UnitVar}(xlen, zlen, dec)
     
         model = VAE(enc_dist, dec_dist) |> gpu
     
