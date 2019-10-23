@@ -26,22 +26,13 @@ struct VAE{T} <: AbstractVAE{T}
     prior::Gaussian
     encoder::AbstractCPDF
     decoder::AbstractCPDF
-
-    function VAE{T}(p::Gaussian{T}, e::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
-        if xlength(e) == zlength(d)
-            new(p, e, d)
-        else
-            error("Encoder and decoder dimensions do not fit.")
-        end
-    end
-
 end
 
 Flux.@functor VAE
 
 VAE(p::Gaussian{T}, e::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = VAE{T}(p, e, d)
 
-function VAE(zlenth::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
+function VAE(zlength::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
     μp = NoGradArray(zeros(T, zlength))
     σ2p = NoGradArray(ones(T, zlength))
     prior = Gaussian(μp, σ2p)

@@ -44,9 +44,8 @@ function rand(p::Gaussian, batchsize::Int=1)
     μ .+ sqrt.(σ2) .* r
 end
 
-function loglikelihood(p::Gaussian, x::AbstractArray)
-    k = length(p)
-    - (sum((x .- p.μ).^2 ./ p.σ2, dims=1) .+ sum(log.(p.σ2)) .+ k*log(2π)) ./ 2
+function loglikelihood(p::Gaussian{T}, x::AbstractArray{T}) where T
+    - (sum((x .- p.μ).^2 ./ p.σ2, dims=1) .+ sum(log.(p.σ2) .+ T(log(2π)))) ./ 2
 end
 
 function kld(p::Gaussian, q::Gaussian)

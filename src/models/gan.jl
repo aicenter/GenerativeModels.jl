@@ -26,25 +26,15 @@ struct GAN{T} <: AbstractGAN{T}
 	prior::AbstractPDF
 	generator::AbstractCPDF
 	discriminator::AbstractCPDF
-
-	function GAN{T}(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
-        (xlength(d) != 1) ? error("Discriminator output must be scalar.") : nothing
-        if xlength(g) == zlength(d) 
-            new(p, g, d)
-        else
-            error("Generator and discriminator dimensions do not fit.")
-        end
-    end
 end
 
 Flux.@functor GAN
 
 GAN(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = GAN{T}(p, g, d)
 
-function GAN(g::CGaussian{T}, d::CGaussian{T}) where T
-    zlen = zlength(g)
-    μ = @SVector zeros(T, zlen)
-    σ = @SVector ones(T, zlen)
+function GAN(zlength::Int, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
+    μ = NoGradArray(zeros(T, zlength))
+    σ = NoGradArray(ones(T, zlength))
     prior = Gaussian(μ, σ)
     GAN{T}(prior, g, d)
 end
@@ -83,5 +73,3 @@ function Base.show(io::IO, m::AbstractGAN{T}) where T
     """
     print(io, msg)
 end
-
-

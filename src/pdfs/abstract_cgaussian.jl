@@ -22,8 +22,8 @@ function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArr
     (μ, σ2) = mean_var(p, z)
     d = x - μ
     y = d .* d
-    y = (1 ./ σ2) .* y
-    -sum(y, dims=1)
+    y = (1 ./ σ2) .* y .+ log.(σ2) .+ T(log(2π))
+    -sum(y, dims=1) / 2
 end
 
 function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
@@ -37,35 +37,3 @@ function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
     m3 = mean(dd ./ σ2, dims=1)
     m1 .+ m2 .+ m3
 end
-
-
-
-# function detect_mapping_variant(x::AbstractVector, xlength::Int) where T
-#     if size(x) == (xlength,)
-#         return UnitVar
-#     elseif size(x) == (xlength+1,)
-#         return ScalarVar
-#     elseif size(x) == (xlength*2,)
-#         return DiagVar
-#     else
-#         error("Mapping output could not be matched with any variance type.")
-#     end
-# end
-# 
-# function detect_mapping_variant(x::AbstractMatrix, xlength::Int) where T
-#     detect_mapping_variant(x[:,1], xlength)
-# end
-# 
-# function detect_mapping_variant(mapping, xlength::Int, zlength::Int)
-#     p = first(params(mapping))
-#     z = randn(zlength, 1)
-#     z = isa(p, CuArray) ? gpu(z) : z
-#     x = mapping(z)
-#     detect_mapping_variant(x, xlength)
-# end
-# 
-# function detect_mapping_variant(mapping::Function, T::Type, xlength::Int, zlength::Int)
-#     z = randn(T, zlength, 1)
-#     x = mapping(z)
-#     detect_mapping_variant(x, xlength)
-# end

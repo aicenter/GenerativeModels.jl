@@ -42,12 +42,12 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
         enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CGaussian{T,UnitVar}(zlen, xlen, enc)
+        enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
     
         dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CGaussian{T,UnitVar}(xlen, zlen, dec)
+        dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
     
-        model = VAE(enc_dist, dec_dist) |> gpu
+        model = VAE(zlen, enc_dist, dec_dist) |> gpu
     
         loss = elbo(model, test_data)
         ps = params(model)
@@ -62,13 +62,14 @@
         # test training
         params_init = get_params(model)
         opt = ADAM()
-        data = [(test_data,) for i in 1:10000] |> gpu
+        data = [(test_data,) for i in 1:10000]
         lossf(x) = elbo(model, x, β=1e-3)
         Flux.train!(lossf, params(model), data, opt)
     
         @test all(param_change(params_init, model)) # did the params change?
         zs = rand(model.encoder, test_data)
         xs = mean(model.decoder, zs)
+        @debug maximum(test_data - xs)
         @test all(abs.(test_data - xs) .< 0.2) # is the reconstruction ok?
     end
 

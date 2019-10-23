@@ -1,5 +1,4 @@
 export mean, variance, mean_var, rand, loglikelihood, kld, mmd
-export length, xlength, zlength
 
 abstract type AbstractPDF{T<:Real} end
 abstract type AbstractCPDF{T<:Real} end
@@ -41,14 +40,6 @@ loglikelihood(p::AbstractPDF, x::AbstractArray) = error("Not implemented!")
 
 
 """
-    length(p::AbstractPDF)
-
-Returns the length of a sample.
-"""
-length(p::AbstractPDF) = error("Not implemented!")
-
-
-"""
     mean_var(p::AbstractCPDF, z::AbstractArray)
 
 Returns mean and variance of a conditional PDF.
@@ -84,21 +75,6 @@ Computes log p(x|z).
 """
 loglikelihood(p::AbstractCPDF, x::AbstractArray, z::AbstractArray) = error("Not implemented!")
 
-"""
-    xlength(p::AbstractCPDF)
-
-Returns the length of a sample in data space.
-"""
-xlength(p::AbstractCPDF) = error("Not implemented!")
-
-"""
-    zlength(p::AbstractCPDF)
-
-Returns the length of a sample in latent space.
-"""
-zlength(p::AbstractCPDF) = error("Not implemented!")
-
-
 
 """
     kld(p::AbstractPDF, q::AbstractPDF, z::AbstractArray)
@@ -122,13 +98,3 @@ Compute the maximum mean discrepancy between a conditional PDF `p` given `z`
 and a PDF `q`, given kernel `k`.
 """
 mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), rand(q, size(z,2)))
-
-function _trainable(m)
-    ps = Flux.functor(m)[1]
-    (; [k=>ps[k] for k in keys(ps) if !isa(ps[k], NoGradArray)]...)
-end
-
-"""Custom function that ignores `NoGradArray`s"""
-Flux.trainable(m::AbstractCPDF) = _trainable(m)
-"""Custom function that ignores `NoGradArray`s"""
-Flux.trainable(m::AbstractPDF) = _trainable(m)

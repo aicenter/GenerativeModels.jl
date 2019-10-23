@@ -45,12 +45,12 @@
         prior = Gaussian(zeros(dtype, zlen), λ2z)
 
         σ2z = -ones(dtype, zlen) ./ 100
-        enc_dist = SharedVarCGaussian{dtype}(zlen, xlen, encoder, σ2z)
+        enc_dist = CMeanGaussian{dtype,DiagVar}(encoder, σ2z)
 
         tspan = (dt, xlen*dt)
         μx = ODEDecoder(order, xlen, tspan)
         σ2x = ones(dtype, 1) ./ 10
-        dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
+        dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, xlen)
 
         Rodent(prior, enc_dist, dec_dist)
     end

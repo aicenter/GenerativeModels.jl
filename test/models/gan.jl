@@ -11,17 +11,15 @@
     test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) |> gpu
 
     gen = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
-    gen_dist = CGaussian{T,UnitVar}(xlen, zlen, gen)
+    gen_dist = CMeanGaussian{T,DiagVar}(gen, NoGradArray(ones(T,xlen)))
 
     disc = GenerativeModels.ae_layer_builder([xlen, 10, 10, 1], relu, Dense; last = Flux.σ)
-    disc_dist = CGaussian{T,UnitVar}(1, xlen, disc)
+    disc_dist = CMeanGaussian{T,DiagVar}(disc, NoGradArray(ones(T,1)))
 
-    model = GAN(gen_dist, disc_dist) |> gpu
+    model = GAN(zlen, gen_dist, disc_dist) |> gpu
 
     zs = rand(model.prior, batchsize)
     @test size(zs) == (zlen, batchsize)
-    display(zs)
-    error()
     xs = mean(model.generator, zs)
     @test size(xs) == (xlen, batchsize)
     dgs = mean(model.discriminator, xs)
@@ -31,7 +29,7 @@
 
     # test parameters
     ps = params(model)
-    @test Base.length(ps) == 12
+    @test length(ps) == 12
 
     # # test losses
     # lg = generator_loss(model, zs)
