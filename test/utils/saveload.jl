@@ -50,6 +50,8 @@
 
     display(loaded_model.prior)
     display(model.prior)
+    display(length(params(loaded_model)))
+    display(length(params(model)))
     for (t,l) in zip(params(model), params(loaded_model))
         @show size(t), size(l)
     end

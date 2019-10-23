@@ -45,10 +45,11 @@ end
     include(joinpath("pdfs", "cgaussian.jl"))
     include(joinpath("pdfs", "svar_cgaussian.jl"))
 
-    include(joinpath("models", "vae.jl"))
+    #include(joinpath("models", "vae.jl"))
     include(joinpath("models", "gan.jl"))
     include(joinpath("models", "rodent.jl"))
 
-    # include(joinpath("utils", "saveload.jl"))
+    include(joinpath("utils", "saveload.jl"))
+    include(joinpath("utils", "nogradarray.jl"))
 
 end

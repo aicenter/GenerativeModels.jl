@@ -8,7 +8,7 @@
     batchsize = 20
     T = Float32
 
-    test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) |> gpu
+    test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) #|> gpu
 
     gen = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
     gen_dist = CMeanGaussian{T,DiagVar}(gen, NoGradArray(ones(T,xlen)))
@@ -16,7 +16,7 @@
     disc = GenerativeModels.ae_layer_builder([xlen, 10, 10, 1], relu, Dense; last = Flux.σ)
     disc_dist = CMeanGaussian{T,DiagVar}(disc, NoGradArray(ones(T,1)))
 
-    model = GAN(zlen, gen_dist, disc_dist) |> gpu
+    model = GAN(zlen, gen_dist, disc_dist) #|> gpu
 
     zs = rand(model.prior, batchsize)
     @test size(zs) == (zlen, batchsize)

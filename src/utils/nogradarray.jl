@@ -1,7 +1,7 @@
 export NoGradArray
 
 struct NoGradArray{T,N} <: AbstractArray{T,N}
-    data::Array{T,N}
+    data::AbstractArray{T,N}
 end
 
 Base.size(A::NoGradArray) = size(A.data)

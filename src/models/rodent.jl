@@ -42,14 +42,14 @@ Rodent(p::Gaussian{T}, e::CMeanGaussian{T}, d::CMeanGaussian{T}) where T = Roden
 
 function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     λ2z = ones(T, zlen)
-    μpz = SVector{zlen}(zeros(T, zlen))
+    μpz = NoGradArray(zeros(T, zlen))
     prior = Gaussian(μpz, λ2z)
 
     σ2z = ones(T, zlen)
-    enc_dist = CMeanGaussian{T}(encoder, σ2z)
+    enc_dist = CMeanGaussian{T,DiagVar}(encoder, σ2z)
 
     σ2x = ones(T, 1)
-    dec_dist = CMeanGaussian{T}(ecoder, σ2x)
+    dec_dist = CMeanGaussian{T,ScalarVar}(decoder, σ2x, xlen)
 
     Rodent{T}(prior, enc_dist, dec_dist)
 end
