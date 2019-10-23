@@ -1,4 +1,4 @@
-export CGaussian
+export CMeanVarGaussian
 export mean_var
 
 """
@@ -28,46 +28,41 @@ Tracked 3×1 Array{Float64,2}:
  0.0767166501426535
 ```
 """
-struct CGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
-    xlength::Int
-    zlength::Int
+struct CMeanVarGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
 end
 
-# function CGaussian(xlength::Int, zlength::Int, mapping::Function, T=Float32)
-#     V = detect_mapping_variant(mapping, T, xlength, zlength)
-#     CGaussian{T,V}(xlength, zlength, mapping)
-# end
-# 
-# function CGaussian(xlength::Int, zlength::Int, mapping)
-#     T = eltype(first(params(mapping)))
-#     V = detect_mapping_variant(mapping, xlength, zlength)
-#     CGaussian{T,V}(xlength, zlength, mapping)
-# end
-
-function Flux.functor(p::CGaussian{T,V}) where {T,V}
-    fs = fieldnames(typeof(p))
-    nt = (; (name=>getfield(p, name) for name in fs)...)
-    nt, y -> CGaussian{T,V}(y...)
-end
-
-function mean_var(p::CGaussian{T}, z::AbstractArray) where T
+function mean_var(p::CMeanVarGaussian{T,DiagVar}, z::AbstractArray) where T
     ex = p.mapping(z)
-    μ = ex[1:p.xlength,:]
-    σ = ex[p.xlength+1:end,:]
+    @assert eltype(ex) == T
+
+    xlen = Int(size(ex, 1) / 2)
+    μ = ex[1:xlen,:]
+    σ = ex[xlen+1:end,:]
+
     return μ, σ .* σ
 end
 
-function mean_var(p::CGaussian{T,UnitVar}, z::AbstractArray) where T
-    μ = p.mapping(z)
-    #σ2 = SVector{xlength(p)}(fill!(similar(μ, xlength(p)), 1)) TODO: use StaticArray
-    σ2 = fill!(similar(μ, xlength(p)), 1)
-    return μ, σ2
+function mean_var(p::CMeanVarGaussian{T,ScalarVar}, z::AbstractArray) where T
+    ex = p.mapping(z)
+    @assert eltype(ex) == T
+
+    μ = ex[1:end-1,:]
+    σ = ex[end:end,:] .* fill!(similar(μ, 1, size(μ,2)), 1)
+
+    return μ, σ .* σ
 end
 
-function Base.show(io::IO, p::CGaussian{T,V}) where T where V
+# make sure that parameteric constructor is called...
+function Flux.functor(p::CMeanVarGaussian{T,V}) where {T,V}
+    fs = fieldnames(typeof(p))
+    nt = (; (name=>getfield(p, name) for name in fs)...)
+    nt, y -> CMeanVarGaussian{T,V}(y...)
+end
+
+function Base.show(io::IO, p::CMeanVarGaussian{T,V}) where T where V
     e = repr(p.mapping)
     e = sizeof(e)>50 ? "($(e[1:47])...)" : e
-    msg = "CGaussian{$T,$V}(xlength=$(p.xlength), zlength=$(p.zlength), mapping=$e)"
+    msg = "CMeanVarGaussian{$T,$V}(mapping=$e)"
     print(io, msg)
 end

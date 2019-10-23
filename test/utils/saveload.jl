@@ -5,9 +5,8 @@
     order = 2
     zlen  = 8
     keep  = 2
-    ode_decoder = make_ode_decoder(xlen, (0f0,1f0), order)
-    decoder(z) = ode_decoder(z)[1,:,:]
     encoder = Dense(xlen, zlen)
+    decoder = ODEDecoder(order, xlen, (0f0,1f0))
     model = Rodent(xlen, zlen, encoder, decoder)
 
     nowarn_logger = SimpleLogger(stdout, Logging.Error)
@@ -47,6 +46,12 @@
 
     loaded_model, history = with_logger(nowarn_logger) do 
         load_checkpoint(model_ckpt)
+    end
+
+    display(loaded_model.prior)
+    display(model.prior)
+    for (t,l) in zip(params(model), params(loaded_model))
+        @show size(t), size(l)
     end
 
     @test !any(param_change(params_trained, loaded_model)) # did the params change?

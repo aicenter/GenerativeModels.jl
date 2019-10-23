@@ -125,9 +125,10 @@ mmd(p::AbstractCPDF, q::AbstractPDF, z::AbstractArray, k) = mmd(k, rand(p,z), ra
 
 function _trainable(m)
     ps = Flux.functor(m)[1]
-    (; [k=>ps[k] for k in keys(ps) if !isa(ps[k], StaticArray)]...)
+    (; [k=>ps[k] for k in keys(ps) if !isa(ps[k], NoGradArray)]...)
 end
 
-"""Custom function that ignores `StaticArrays`"""
+"""Custom function that ignores `NoGradArray`s"""
 Flux.trainable(m::AbstractCPDF) = _trainable(m)
+"""Custom function that ignores `NoGradArray`s"""
 Flux.trainable(m::AbstractPDF) = _trainable(m)

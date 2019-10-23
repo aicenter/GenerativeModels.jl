@@ -20,6 +20,8 @@
 
     zs = rand(model.prior, batchsize)
     @test size(zs) == (zlen, batchsize)
+    display(zs)
+    error()
     xs = mean(model.generator, zs)
     @test size(xs) == (xlen, batchsize)
     dgs = mean(model.discriminator, xs)

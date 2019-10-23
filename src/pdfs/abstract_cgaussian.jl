@@ -12,13 +12,6 @@ struct DiagVar <: AbstractVar end
 """Scalar variance represented as a one-element vector"""
 struct ScalarVar <: AbstractVar end
 
-"""Unit variance represented by a vector of ones"""
-struct UnitVar <: AbstractVar end
-
-
-xlength(p::AbstractCGaussian) = p.xlength
-zlength(p::AbstractCGaussian) = p.zlength
-
 function rand(p::AbstractCGaussian{T}, z::AbstractArray) where T
     (μ, σ2) = mean_var(p, z)
     r = randn!(similar(μ))

@@ -17,7 +17,7 @@
     msg = @capture_out show(p)
     @test occursin("Gaussian", msg)
 
-    μ = @SVector zeros(2)
+    μ = NoGradArray(zeros(2))
     p = Gaussian(μ, ones(2))
     @test length(Flux.trainable(p)) == 1
 end

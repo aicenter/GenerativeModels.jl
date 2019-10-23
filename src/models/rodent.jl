@@ -48,6 +48,20 @@ Flux.@functor Rodent
 
 Rodent(p::Gaussian{T}, e::SharedVarCGaussian{T}, d::SharedVarCGaussian{T}) where T = Rodent{T}(p, e, d)
 
+function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
+    λ2z = ones(T, zlen)
+    μpz = SVector{zlen}(zeros(T, zlen))
+    prior = Gaussian(μpz, λ2z)
+
+    σ2z = ones(T, zlen)
+    enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
+
+    σ2x = ones(T, 1)
+    dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
+
+    Rodent{T}(prior, enc_dist, dec_dist)
+end
+
 ode_params_length(order) = order^2 + order*2
 
 # """
@@ -89,18 +103,4 @@ ode_params_length(order) = order^2 + order*2
 #     @adjoint decode(z::AbstractVector) = (decode(z), Δ -> (J = Δ' * ddec(z); (J',)))
 # 
 #     return decode
-# end
-# 
-# function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
-#     λ2z = ones(T, zlen)
-#     μpz = @SVector zeros(T, zlen)
-#     prior = Gaussian(μpz, λ2z)
-# 
-#     σ2z = ones(T, zlen)
-#     enc_dist = SharedVarCGaussian{T}(zlen, xlen, encoder, σ2z)
-# 
-#     σ2x = ones(T, 1)
-#     dec_dist = SharedVarCGaussian{T}(xlen, zlen, decoder, σ2x)
-# 
-#     Rodent{T}(prior, enc_dist, dec_dist)
 # end

@@ -1,8 +1,8 @@
-export SharedVarCGaussian
+export CMeanGaussian
 export mean_var, variance
 
 """
-    SharedVarCGaussian{T}
+    CMeanGaussian{T}
 
 Conditional Gaussian that maps an input of `zlength` to its mean of `xlength`.
 The mapping must output dimensions appropriate for the chosen variance type
@@ -17,8 +17,8 @@ an optimized `TrackedArray`.
 
 # Example
 ```julia-repl
-julia> p = SharedVarCGaussian(3, 2, Dense(2, 3), param(ones(Float32, 3)))
-SharedVarCGaussian{Float32}(xlength=3, zlength=2, mapping=Dense(2, 3), σ2=...)
+julia> p = CMeanGaussian(Dense(2, 3), param(ones(Float32, 3)))
+CMeanGaussian{Float32}(mapping=Dense(2, 3), σ2=...)
 
 julia> rand(p, ones(2))
 Tracked 3×1 Array{Float32,2}:
@@ -27,38 +27,32 @@ Tracked 3×1 Array{Float32,2}:
  0.0767166501426535
 ```
 """
-struct SharedVarCGaussian{T} <: AbstractCGaussian{T}
-    xlength::Int
-    zlength::Int
+struct CMeanGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
-    σ2::AbstractArray{T}
+    σ::AbstractArray{T}
+    xlength::Int
 end
 
-# function SharedVarCGaussian(xlength::Int, zlength::Int, mapping::Function, σ2::AbstractArray{T}) where T
-#     V = detect_mapping_variant(mapping, T, xlength, zlength)
-#     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
-# end
-# 
-# function SharedVarCGaussian(xlength::Int, zlength::Int, mapping, σ2::AbstractArray{T}) where T
-#     @assert eltype(first(params(mapping))) == T
-#     V = detect_mapping_variant(mapping, xlength, zlength)
-#     SharedVarCGaussian{T}(xlength, zlength, mapping, σ2)
-# end
+CMeanGaussian{T,DiagVar}(m, σ) where T = CMeanGaussian{T,DiagVar}(m, σ, size(σ,1))
 
-Flux.@functor SharedVarCGaussian
+mean(p::CMeanGaussian, z::AbstractArray) = p.mapping(z)
+# TODO: dispatch on variance type
+# TODO: use softplus_safe
+variance(p::CMeanGaussian{T,DiagVar}) where T = p.σ .* p.σ
+variance(p::CMeanGaussian{T,ScalarVar}) where T = p.σ .* p.σ .* fill!(similar(p.σ, p.xlength), 1)
+variance(p::CMeanGaussian, z::AbstractArray) = variance(p)
+mean_var(p::CMeanGaussian, z::AbstractArray) = (mean(p, z), variance(p))
 
-variance(p::SharedVarCGaussian) = p.σ2 .* p.σ2
-mean_var(p::SharedVarCGaussian, z::AbstractArray) = (p.mapping(z), variance(p))
-#function mean_var(p::SharedVarCGaussian{T}, z::AbstractArray{T}) where T
-#    (p.mapping(z), softplus_safe.(p.σ2, T))
-#end
-#variance(p::SharedVarCGaussian{T}) where T = softplus_safe.(p.σ2, T)
+# make sure that parameteric constructor is called...
+function Flux.functor(p::CMeanGaussian{T,V}) where {T,V}
+    fs = fieldnames(typeof(p))
+    nt = (; (name=>getfield(p, name) for name in fs)...)
+    nt, y -> CMeanGaussian{T,V}(y...)
+end
 
-function Base.show(io::IO, p::SharedVarCGaussian{T}) where T
+function Base.show(io::IO, p::CMeanGaussian{T}) where T
     e = repr(p.mapping)
     e = sizeof(e)>50 ? "($(e[1:47])...)" : e
-    xl = p.xlength
-    zl = p.zlength
-    m = "SharedVarCGaussian{$T}(xlength=$xl, zlength=$zl, mapping=$e, σ2=$(summary(p.σ2))"
+    m = "CMeanGaussian{$T}(mapping=$e, σ2=$(summary(variance(p)))"
     print(io, m)
 end

@@ -2,7 +2,7 @@ export VAE
 export elbo, mmd
 
 """
-    VAE{T}([prior::Gaussian,] encoder::CGaussian, decoder::CGaussian)
+    VAE{T}([prior::Gaussian,] encoder::AbstractCPDF, decoder::AbstractCPDF)
 
 Variational Auto-Encoder.
 
@@ -24,10 +24,10 @@ VAE{Float32}:
 """
 struct VAE{T} <: AbstractVAE{T}
     prior::Gaussian
-    encoder::CGaussian
-    decoder::CGaussian
+    encoder::AbstractCPDF
+    decoder::AbstractCPDF
 
-    function VAE{T}(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T
+    function VAE{T}(p::Gaussian{T}, e::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
         if xlength(e) == zlength(d)
             new(p, e, d)
         else
@@ -39,11 +39,12 @@ end
 
 Flux.@functor VAE
 
-VAE(p::Gaussian{T}, e::CGaussian{T}, d::CGaussian{T}) where T = VAE{T}(p, e, d)
+VAE(p::Gaussian{T}, e::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = VAE{T}(p, e, d)
 
-function VAE(enc::CGaussian{T}, dec::CGaussian{T}) where T
-    zlen = zlength(dec)
-    prior = Gaussian(zeros(T, zlen), ones(T, zlen))
+function VAE(zlenth::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
+    μp = NoGradArray(zeros(T, zlength))
+    σ2p = NoGradArray(ones(T, zlength))
+    prior = Gaussian(μp, σ2p)
     VAE{T}(prior, enc, dec)
 end
 
