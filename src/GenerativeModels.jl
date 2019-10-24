@@ -1,17 +1,11 @@
 module GenerativeModels
 
-    # using Reexport
-    # using Requires
-    # using Statistics
     using Random
-
     using BSON, DrWatson, ValueHistories
     using Flux, ForwardDiff
-
     using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
-    # @reexport using LinearAlgebra
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
@@ -22,6 +16,7 @@ module GenerativeModels
     import Random.rand
     import Statistics.mean
 
+    # needed to make e.g. sampling work
     @nograd similar, randn!, fill!
 
     include(joinpath("pdfs", "abstract_pdfs.jl"))
@@ -30,12 +25,6 @@ module GenerativeModels
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
     include(joinpath("utils", "ode_decoder_1dobs.jl"))
-
-    # optional dependencies
-    # function __init__()
-    #     @require DiffEqBase="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" using OrdinaryDiffEq
-    #     @require DiffEqBase="aae7a2af-3d4f-5e19-a356-7da93b79d9d0" include(joinpath("models", "rodent.jl"))
-    # end
 
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))

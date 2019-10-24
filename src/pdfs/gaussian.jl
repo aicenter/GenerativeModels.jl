@@ -14,11 +14,11 @@ Gaussian defined with mean μ and variance σ2 that can be any `AbstractArray`
 ```julia-repl
 julia> using Flux
 
-julia> p = Gaussian(param(zeros(3)), param(ones(3)))
-Gaussian{Float64}(μ=Tracked 3-element Array{Float64,1}, σ2=Tracked 3-element Array{Float64,1})
+julia> p = Gaussian(zeros(3), ones(3))
+Gaussian{Float64}(μ=3-element Array{Float64,1}, σ2=3-element Array{Float64,1})
 
 julia> mean_var(p)
-([0.0, 0.0, 0.0] (tracked), [1.0, 1.0, 1.0] (tracked))
+([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]))
 
 julia> rand(p)
 Tracked 3×1 Array{Float64,2}:
