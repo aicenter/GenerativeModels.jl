@@ -9,41 +9,32 @@ The Generative Adversarial Network.
 # Example
 Create a GAN with standard normal prior with:
 ```julia-repl
-julia> gen = CGaussian(4,2,Dense(2,4))
-CGaussian{Float32,UnitVar}(xlength=4, zlength=2, mapping=Dense(2, 4))
+julia> gen = CMeanGaussian{Float32,DiagVar}(Dense(2,4),NoGradArray(ones(Float32,4)))
+CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Float32,1}
 
-julia> disc = CGaussian(1,4,Chain(Dense(4,1), x->Flux.σ.(x)))
-CGaussian{Float32,UnitVar}(xlength=1, zlength=4, mapping=(Chain(Dense(4, 1), getfield(Main, Symbol("##3#4...))
+julia> disc = CMeanGaussian{Float32,DiagVar}(Dense(4,1,σ),NoGradArray(ones(Float32,1)))
+CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array{Float32,1}
 
-julia> gan = GAN(gen, disc)
-GAN{Float32}:
- prior   = (Gaussian{Float32}(μ=2-element Array{Float32,1}, σ2=2-element Arra...)
- generator = CGaussian{Float32,UnitVar}(xlength=4, zlength=2, mapping=Dense(2, 4))
- discriminator = (CGaussian{Float32,UnitVar}(xlength=1, zlength=4, mapping=(Chain(Den...)
+julia> gan = GAN(4, gen, disc)
+ prior   = (Gaussian{Float32}(μ=4-element NoGradArray{Float32,1}, σ2=4-elemen...)
+ generator = (CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Flo...)
+ discriminator = (CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
 struct GAN{T} <: AbstractGAN{T}
 	prior::AbstractPDF
 	generator::AbstractCPDF
 	discriminator::AbstractCPDF
-
-	function GAN{T}(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
-        (xlength(d) != 1) ? error("Discriminator output must be scalar.") : nothing
-        if xlength(g) == zlength(d) 
-            new(p, g, d)
-        else
-            error("Generator and discriminator dimensions do not fit.")
-        end
-    end
 end
 
-Flux.@treelike GAN
+Flux.@functor GAN
 
 GAN(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = GAN{T}(p, g, d)
 
-function GAN(g::CGaussian{T}, d::CGaussian{T}) where T
-    zlen = zlength(g)
-    prior = Gaussian(zeros(T, zlen), ones(T, zlen))
+function GAN(zlength::Int, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
+    μ = NoGradArray(zeros(T, zlength))
+    σ = NoGradArray(ones(T, zlength))
+    prior = Gaussian(μ, σ)
     GAN{T}(prior, g, d)
 end
 
@@ -81,5 +72,3 @@ function Base.show(io::IO, m::AbstractGAN{T}) where T
     """
     print(io, msg)
 end
-
-

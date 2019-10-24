@@ -5,9 +5,9 @@
     order = 2
     zlen  = 8
     keep  = 2
-    ode_decoder = make_ode_decoder(xlen, (0f0,1f0), order)
-    decoder(z) = ode_decoder(z)[1,:,:]
+
     encoder = Dense(xlen, zlen)
+    decoder = ODEDecoder(order, xlen, (0f0,1f0))
     model = Rodent(xlen, zlen, encoder, decoder)
 
     nowarn_logger = SimpleLogger(stdout, Logging.Error)
@@ -49,6 +49,7 @@
         load_checkpoint(model_ckpt)
     end
 
+    @test length(params(model)) == length(params(loaded_model))
     @test !any(param_change(params_trained, loaded_model)) # did the params change?
     @test size(mean(loaded_model.encoder, randn(Float32, xlen))) == (8,)
 end

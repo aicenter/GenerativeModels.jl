@@ -41,16 +41,16 @@
             Dense(xlen, 100, act, initW=init, initb=init),
             Dense(100, zlen, initW=init, initb=init))
 
-        λ2z = param(-ones(dtype, zlen))
+        λ2z = ones(dtype, zlen)
         prior = Gaussian(zeros(dtype, zlen), λ2z)
 
-        σ2z = param(-ones(dtype, zlen) ./ 100)
-        enc_dist = SharedVarCGaussian{dtype}(zlen, xlen, encoder, σ2z)
+        σ2z = -ones(dtype, zlen) ./ 100
+        enc_dist = CMeanGaussian{dtype,DiagVar}(encoder, σ2z)
 
-        dec = make_ode_decoder(xlen, tspan, order)
-        μx(z) = dec(z)[1,:,:]
-        σ2x = param(-ones(dtype, 1) ./ 10)
-        dec_dist = SharedVarCGaussian{dtype}(xlen, zlen, μx, σ2x)
+        tspan = (dt, xlen*dt)
+        μx = ODEDecoder(order, xlen, tspan)
+        σ2x = ones(dtype, 1) ./ 10
+        dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, xlen)
 
         Rodent(prior, enc_dist, dec_dist)
     end
@@ -59,35 +59,24 @@
 
     xlen = 20
     order = 2
-    batch = 20
+    batch = 10
     dt = 0.3
     dtype = Float32
     noise = 0.01f0
     setup = @dict xlen order batch dt dtype noise
 
-    rodent = construct_rodent(setup) |> gpu
-    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] |> gpu
+    rodent = construct_rodent(setup) # |> gpu
+    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] # |> gpu
 
     ls = elbo(rodent, test_data)
     ps = params(rodent)
     @test length(ps) > 0
-    @test isa(ls, Tracker.TrackedReal{Float32})
+    @test isa(ls, dtype)
 
-    function loss(x)
-        N = size(x, 2)
-        λz = variance(rodent.prior)
-        (μz, σz) = mean_var(rodent.encoder, x)
-        z = rand(rodent.encoder, x)
-
-        llh = -mean(loglikelihood(rodent.decoder, x, z))
-        KLz = (sum(log.(λz ./ σz)) + sum(σz ./ λz) + sum(μz.^2 ./ λz)) / N
-
-        σe = variance(rodent.decoder, z)[1]
-        llh + KLz + log(σe)*rodent.decoder.zlength
-    end
+    loss(x) = elbo(rodent, x)
 
     cb = Flux.throttle(()->(
-      @debug "$(loss(test_data)) noise: $(sqrt.(variance(rodent.decoder)))"), 1)
+      @debug "$(loss(test_data)) noise: $(sqrt.(variance(rodent.decoder)))"), 0.1)
 
     η = 0.001
     ω = 0.5
@@ -97,7 +86,11 @@
     reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
     rec_err = mean((test_data .- reconstruct(rodent, test_data)).^2)
     @debug "Rec. Error: $rec_err"
-    @assert rec_err < 0.05
+    @test rec_err < 0.05
+
+    # p = plot(test_data, color="gray")
+    # plot!(p, reconstruct(rodent, test_data), ls=:dash)
+    # display(p)
 
     Random.seed!()  # reset the seed
 end
