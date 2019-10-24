@@ -9,17 +9,16 @@ The Generative Adversarial Network.
 # Example
 Create a GAN with standard normal prior with:
 ```julia-repl
-julia> gen = CGaussian(4,2,Dense(2,4))
-CGaussian{Float32,UnitVar}(xlength=4, zlength=2, mapping=Dense(2, 4))
+julia> gen = CMeanGaussian{Float32,DiagVar}(Dense(2,4),NoGradArray(ones(Float32,4)))
+CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Float32,1}
 
-julia> disc = CGaussian(1,4,Chain(Dense(4,1), x->Flux.σ.(x)))
-CGaussian{Float32,UnitVar}(xlength=1, zlength=4, mapping=(Chain(Dense(4, 1), getfield(Main, Symbol("##3#4...))
+julia> disc = CMeanGaussian{Float32,DiagVar}(Dense(4,1,σ),NoGradArray(ones(Float32,1)))
+CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array{Float32,1}
 
-julia> gan = GAN(gen, disc)
-GAN{Float32}:
- prior   = (Gaussian{Float32}(μ=2-element Array{Float32,1}, σ2=2-element Arra...)
- generator = CGaussian{Float32,UnitVar}(xlength=4, zlength=2, mapping=Dense(2, 4))
- discriminator = (CGaussian{Float32,UnitVar}(xlength=1, zlength=4, mapping=(Chain(Den...)
+julia> gan = GAN(4, gen, disc)
+ prior   = (Gaussian{Float32}(μ=4-element NoGradArray{Float32,1}, σ2=4-elemen...)
+ generator = (CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Flo...)
+ discriminator = (CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
 struct GAN{T} <: AbstractGAN{T}

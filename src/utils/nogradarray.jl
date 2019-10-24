@@ -1,5 +1,11 @@
 export NoGradArray
 
+"""
+    NoGradArray(A::AbstractArray)
+
+Wraps an array. Only used to filter out arrays that should stay constant
+during training.
+"""
 struct NoGradArray{T,N} <: AbstractArray{T,N}
     data::AbstractArray{T,N}
 end

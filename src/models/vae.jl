@@ -2,24 +2,32 @@ export VAE
 export elbo, mmd
 
 """
-    VAE{T}([prior::Gaussian,] encoder::AbstractCPDF, decoder::AbstractCPDF)
+    VAE{T}([prior::Gaussian, zlen::Int] encoder::AbstractCPDF, decoder::AbstractCPDF)
 
 Variational Auto-Encoder.
 
 # Example
 Create a vanilla VAE with standard normal prior with:
 ```julia-repl
-julia> enc = CGaussian(2,5,Dense(5,4))
-CGaussian{Float32,DiagVar}(xlength=2, zlength=5, mapping=Dense(5, 4))
+julia> enc = CMeanVarGaussian{Float32,DiagVar}(Dense(5,4))
+CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
 
-julia> dec = CGaussian(5,2,Dense(2,6))
-CGaussian{Float32,ScalarVar}(xlength=5, zlength=2, mapping=Dense(2, 6))
+julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(2,6))
+CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
 
-julia> vae = VAE(enc, dec)
+julia> vae = VAE(2, enc, dec)
 VAE{Float32}:
-  prior   = Gaussian{Float32}(μ=2-element Array{Float32,1}, σ2=2-element Array{Float32,1})
-  encoder = CGaussian{Float32,DiagVar}(xlength=2, zlength=5, mapping=Dense(5, 4))
-  decoder = CGaussian{Float32,ScalarVar}(xlength=5, zlength=2, mapping=Dense(2, 6))
+ prior   = (Gaussian{Float32}(μ=2-element NoGradArray{Float32,1}, σ2=2-elemen...)
+ encoder = CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
+ decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+
+julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
+5×1 Array{Float32,2}:
+ -0.26742023
+ -0.7905855
+ -0.29494995
+  0.1694059
+  1.123661
 ```
 """
 struct VAE{T} <: AbstractVAE{T}

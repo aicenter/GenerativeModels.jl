@@ -3,8 +3,8 @@ export ODEDecoder
 """
     ODEDecoder
 
-exemplary implementation of ODE decoder that reconstructs only first element
-of the internal state (see function: (dec::ODEDecoder)(A,b,u0))
+ODE decoder that reconstructs only first element of the internal state (see
+function: (dec::ODEDecoder)(A,b,u0))
 """
 struct ODEDecoder
     order::Int
