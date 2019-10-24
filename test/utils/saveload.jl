@@ -5,6 +5,7 @@
     order = 2
     zlen  = 8
     keep  = 2
+
     encoder = Dense(xlen, zlen)
     decoder = ODEDecoder(order, xlen, (0f0,1f0))
     model = Rodent(xlen, zlen, encoder, decoder)
@@ -48,14 +49,7 @@
         load_checkpoint(model_ckpt)
     end
 
-    display(loaded_model.prior)
-    display(model.prior)
-    display(length(params(loaded_model)))
-    display(length(params(model)))
-    for (t,l) in zip(params(model), params(loaded_model))
-        @show size(t), size(l)
-    end
-
+    @test length(params(model)) == length(params(loaded_model))
     @test !any(param_change(params_trained, loaded_model)) # did the params change?
     @test size(mean(loaded_model.encoder, randn(Float32, xlen))) == (8,)
 end

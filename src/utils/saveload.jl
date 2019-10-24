@@ -11,7 +11,7 @@ If the checkpoint already exists it is moved to filename_#1.bson.
 """
 function save_checkpoint(filename::String, model::AbstractGM,
                          history::MVHistory; keep=100)
-    model = model |> cpu
+    # model = model |> cpu  # TODO: reenable this when issue #44 on NoGradArray is fixed
     d = @dict model history
 
     @info "Saving checkpoint at $filename"

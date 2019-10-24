@@ -1,4 +1,7 @@
 @testset "utils/nogradarray.jl" begin
+
+    @info "Testing NoGradArray"
+
     x = NoGradArray(ones(3))
     y = ones(3)
 
