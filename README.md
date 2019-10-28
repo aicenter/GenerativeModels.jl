@@ -5,7 +5,9 @@
 
 This library contains a collection of generative models for anomaly detection.
 It defines learnable (conditional) distributions that can be used in conjuction
-with `Flux.jl`, that aims to make experimenting with new models easy.
+with [`Flux.jl`](https://github.com/FluxML/Flux.jl) and
+[`Zygote.jl`](https://github.com/FluxML/Zygote.jl), that aims to make
+experimenting with new models easy.
 
 As an example, check out how to build a conventional variational autoencoder
 with a diagonal variance on the latent dimension and a scalar variance on the
@@ -19,30 +21,36 @@ xlen  = 5
 zlen  = 2
 dtype = Float32
 
-prior = Gaussian(zeros(dtype, zlen), ones(dtype, zlen))
+μ = NoGradArray(zeros(dtype, zlen))  # NoGradArray is filtered when calling `Flux.params`
+σ = NoGradArray(ones(dtype, zlen))
+prior = Gaussian(μ, σ)
 
 encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-encoder_dist = CGaussian(zlen, xlen, encoder)
+encoder_dist = CMeanVarGaussian{dtype,DiagVar}(encoder)
 
 decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-decoder_dist = decoder_dist = CGaussian(xlen, zlen, decoder)
+decoder_dist = CMeanVarGaussian{dtype,ScalarVar}(decoder)
 
 vae = VAE(prior, encoder_dist, decoder_dist)
+length(params(vae)) == 4  # we only get trainable params from the two Dense layers
 ```
 
 Now you have a model that you can call `params(vae)` on and use Flux as you are
 used to. You can also easily sample from it once you are done training:
 
 ```julia
-z = rand(vae.prior, 10)   # sample from the prior
+z = rand(vae.prior, 10)   # sample 10 times from the prior
 μ = mean(vae.decoder, z)  # get decoder means
 x = rand(vae.decoder, z)  # get decoder samples
 ```
 
 But say, you want to learn the variance of your prior during training... Easy!
-Just turn the prior variance into a `TrackedArray`:
+Just turn the prior variance into a normal `Array`:
 ```julia
-prior = Gaussian(zeros(zlen), param(ones(zlen)))
+trainable_prior = Gaussian(NoGradArray(zeros(zlen)), ones(zlen))
+
+vae = VAE(trainable_prior, encoder_dist, decoder_dist)
+length(params(vae)) == 5  # prior variance is now included in trainable params
 ```
 
 Done!
