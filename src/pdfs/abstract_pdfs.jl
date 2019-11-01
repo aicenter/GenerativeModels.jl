@@ -29,7 +29,7 @@ variance(p::AbstractPDF) = mean_var(p::AbstractPDF)[2]
 
 Produce `batch` number of samples from a PDF.
 """
-rand(p::AbstractPDF, batchsize::Int=1) = error("Not, implemented!")
+rand(p::AbstractPDF, batchsize::Int=1) = error("Not implemented!")
 
 """
     loglikelihood(p::AbstractPDF, x::AbstractArray)
@@ -66,7 +66,7 @@ variance(p::AbstractCPDF, z::AbstractArray) = mean_var(p, z)[2]
 
 Produce `batch` number of samples from a conditional PDF.
 """
-rand(p::AbstractCPDF, z::AbstractArray) = error("Not, implemented!")
+rand(p::AbstractCPDF, z::AbstractArray) = error("Not implemented!")
 
 """
     loglikelihood(p::AbstractCPDF, x::AbstractArray, z::AbstractArray)
