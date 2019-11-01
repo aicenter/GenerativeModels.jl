@@ -7,6 +7,8 @@ module GenerativeModels
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
 
+    using CuArrays
+
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
     abstract type AbstractGAN{T<:Real} <: AbstractGM end
