@@ -29,13 +29,32 @@ Tracked 3×1 Array{Float64,2}:
 """
 struct Gaussian{T} <: AbstractPDF{T}
     μ::AbstractArray{T}
-    σ2::AbstractArray{T}
+    σ::AbstractArray{T}
+    _nograd::Dict{Symbol,Bool}
+end
+
+function Gaussian(μ::AbstractArray{T}, σ::AbstractArray{T}) where T
+    _nograd = Dict(
+        :μ => μ isa NoGradArray,
+        :σ => σ isa NoGradArray)
+    μ = _nograd[:μ] ? μ.data : μ
+    σ = _nograd[:σ] ? σ.data : σ
+    Gaussian(μ, σ, _nograd)
 end
 
 Flux.@functor Gaussian
+
+function Flux.trainable(p::Gaussian)
+    ps = (;(k=>getfield(p,k) for k in keys(p._nograd) if !p._nograd[k])...)
+end
+# function Flux.functor(p::Gaussian)
+#     ps = ([getfield(p,k) for k in keys(p._nograd) if !p._nograd[k]]...)
+#     ps, Gaussian(p.μ, p.σ, p._nograd)
+# end
+
 length(p::Gaussian) = size(p.μ, 1)
 #mean_var(p::Gaussian{T}) where T = (p.μ, softplus_safe.(p.σ2, T))
-mean_var(p::Gaussian) = (p.μ, p.σ2 .* p.σ2)
+mean_var(p::Gaussian) = (p.μ, p.σ .* p.σ)
 
 function rand(p::Gaussian, batchsize::Int=1)
     (μ, σ2) = mean_var(p)
@@ -45,7 +64,8 @@ function rand(p::Gaussian, batchsize::Int=1)
 end
 
 function loglikelihood(p::Gaussian{T}, x::AbstractArray{T}) where T
-    - (sum((x .- p.μ).^2 ./ p.σ2, dims=1) .+ sum(log.(p.σ2) .+ T(log(2π)))) ./ 2
+    (μ, σ2) = mean_var(p)
+    - (sum((x .- μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2) .+ T(log(2π)))) ./ 2
 end
 
 function kld(p::Gaussian, q::Gaussian)
@@ -56,6 +76,6 @@ function kld(p::Gaussian, q::Gaussian)
 end
 
 function Base.show(io::IO, p::Gaussian{T}) where T
-    msg = "Gaussian{$T}(μ=$(summary(p.μ)), σ2=$(summary(p.σ2)))"
+    msg = "Gaussian{$T}(μ=$(summary(mean(p))), σ2=$(summary(variance(p))))"
     print(io, msg)
 end

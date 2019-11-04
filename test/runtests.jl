@@ -7,8 +7,8 @@ using Random
 using DrWatson
 using ValueHistories
 using Flux
-using DiffEqBase
-using OrdinaryDiffEq
+# using DiffEqBase
+# using OrdinaryDiffEq
 using BSON
 
 using Revise
@@ -29,14 +29,14 @@ param_change(frozen_params, model) =
 
     include(joinpath("pdfs", "abstract_pdf.jl"))
     include(joinpath("pdfs", "gaussian.jl"))
-    include(joinpath("pdfs", "cgaussian.jl"))
-    include(joinpath("pdfs", "svar_cgaussian.jl"))
+    include(joinpath("pdfs", "cmean_gaussian.jl"))
+    # include(joinpath("pdfs", "cmeanvar_cgaussian.jl"))
 
-    include(joinpath("models", "vae.jl"))
-    include(joinpath("models", "gan.jl"))
-    include(joinpath("models", "rodent.jl"))
+    # include(joinpath("models", "vae.jl"))
+    # include(joinpath("models", "gan.jl"))
+    # include(joinpath("models", "rodent.jl"))
 
-    include(joinpath("utils", "saveload.jl"))
-    include(joinpath("utils", "nogradarray.jl"))
+    # include(joinpath("utils", "saveload.jl"))
+    # include(joinpath("utils", "nogradarray.jl"))
 
 end

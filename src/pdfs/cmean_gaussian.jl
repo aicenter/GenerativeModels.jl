@@ -36,6 +36,13 @@ struct CMeanGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
     σ::AbstractArray{T}
     xlength::Int
+    _nograd::Dict{Symbol,Bool}
+end
+
+function CMeanGaussian{T,V}(m, σ::AbstractArray, xlength::Int) where {T,V}
+    _nograd = Dict(:σ => σ isa NoGradArray)
+    σ = _nograd[:σ] ? σ.data : σ
+    CMeanGaussian{T,V}(m, σ, xlength, _nograd)
 end
 
 CMeanGaussian{T,DiagVar}(m, σ) where T = CMeanGaussian{T,DiagVar}(m, σ, size(σ,1))
@@ -52,6 +59,11 @@ function Flux.functor(p::CMeanGaussian{T,V}) where {T,V}
     fs = fieldnames(typeof(p))
     nt = (; (name=>getfield(p, name) for name in fs)...)
     nt, y -> CMeanGaussian{T,V}(y...)
+end
+
+function Flux.trainable(p::CMeanGaussian)
+    ps = [getfield(p,k) for k in keys(p._nograd) if !p._nograd[k]]
+    (p.mapping, ps...)
 end
 
 function Base.show(io::IO, p::CMeanGaussian{T}) where T
