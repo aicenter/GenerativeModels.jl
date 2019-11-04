@@ -27,16 +27,17 @@ param_change(frozen_params, model) =
 
 @testset "GenerativeModels.jl" begin
 
-    include(joinpath("pdfs", "abstract_pdf.jl"))
-    include(joinpath("pdfs", "gaussian.jl"))
-    include(joinpath("pdfs", "cgaussian.jl"))
-    include(joinpath("pdfs", "svar_cgaussian.jl"))
+    #include(joinpath("pdfs", "abstract_pdf.jl"))
+    #include(joinpath("pdfs", "gaussian.jl"))
+    #include(joinpath("pdfs", "cgaussian.jl"))
+    #include(joinpath("pdfs", "svar_cgaussian.jl"))
 
-    include(joinpath("models", "vae.jl"))
-    include(joinpath("models", "gan.jl"))
-    include(joinpath("models", "rodent.jl"))
+    #include(joinpath("models", "vae.jl"))
+    #include(joinpath("models", "gan.jl"))
+    #include(joinpath("models", "rodent.jl"))
 
-    include(joinpath("utils", "saveload.jl"))
-    include(joinpath("utils", "nogradarray.jl"))
+    #include(joinpath("utils", "saveload.jl"))
+    #include(joinpath("utils", "nogradarray.jl"))
+    include(joinpath("utils", "nalu_ode_decoder.jl"))
 
 end

@@ -22,7 +22,7 @@ function ode(u, p, t)
     du = A*u + b
 end
 
-function split_latent(z::AbstractVector, order::Int)
+function ode_latent_split(z::AbstractVector, order::Int)
     A = reshape(z[1:order^2], order, order)
     b = z[order^2+1:order^2+order]
     u = z[end-order+1:end]
@@ -42,7 +42,7 @@ function (dec::ODEDecoder)(A::AbstractMatrix, b::AbstractVector, u0::AbstractVec
 end
 
 function (dec::ODEDecoder)(z::AbstractVector)
-    (A,b,u0) = split_latent(z, dec.order)
+    (A,b,u0) = ode_latent_split(z, dec.order)
     dec(A,b,u0)
 end
 
