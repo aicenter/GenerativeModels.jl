@@ -1,5 +1,6 @@
 module GenerativeModels
 
+    using Requires
     using Random
     using BSON, DrWatson, ValueHistories
     using Flux, ForwardDiff
@@ -7,7 +8,11 @@ module GenerativeModels
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
 
-    using CuArrays
+    if Flux.use_cuda using CuArrays end
+
+    function __init__()
+        @require CuArrays="3a865a2d-5b23-5a0f-bc46-62713ec82fae" include(joinpath("utils", "nogradcuarray.jl"))
+    end
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
