@@ -7,8 +7,6 @@ module GenerativeModels
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
 
-    using CuArrays
-
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
     abstract type AbstractGAN{T<:Real} <: AbstractGM end
@@ -31,8 +29,8 @@ module GenerativeModels
 
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))
-    include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
     include(joinpath("pdfs", "cmean_gaussian.jl"))
+    include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
