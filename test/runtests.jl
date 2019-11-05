@@ -1,15 +1,7 @@
-using Test
-using Suppressor
-using Logging
-using Parameters
-using Random
-
-using DrWatson
-using ValueHistories
-using Flux
-using DiffEqBase
-using OrdinaryDiffEq
-using BSON
+using Test, Suppressor, Logging, Parameters, Random
+using BSON, DrWatson, ValueHistories
+using Flux, Zygote
+using DiffEqBase, OrdinaryDiffEq
 
 using Revise
 using GenerativeModels
