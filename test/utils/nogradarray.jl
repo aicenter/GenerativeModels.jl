@@ -9,13 +9,15 @@
         p = Gaussian(x, y)
         @test length(params(p)) == 1
 
-        g = gpu(p)
-        @test length(params(g)) == 1
-        @test rand(g) isa CuArray
+        if Flux.use_cuda
+            g = gpu(p)
+            @test length(params(g)) == 1
+            @test rand(g) isa CuArray
 
-        c = cpu(g)
-        @test length(params(c)) == 1
-        @test rand(c) isa Array
+            c = cpu(g)
+            @test length(params(c)) == 1
+            @test rand(c) isa Array
+        end
     end
 
     @testset "Gradients" begin
