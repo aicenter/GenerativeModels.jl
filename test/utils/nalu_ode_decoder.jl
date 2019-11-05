@@ -1,6 +1,6 @@
 @testset "utils/nalu_ode_decoder.jl" begin
 
-    order = 2
+    slength = 2
     xlength = 10
     tspan = (0f0, 1f0)
 
@@ -17,17 +17,17 @@
     end
 
     @testset "NaluODEDecoder" begin
-        ndec = NaluODEDecoder(order, xlength, tspan)
+        ndec = NaluODEDecoder(slength, xlength, tspan)
 
-        z = ones(order^2*3 + order*2)
+        z = ones(slength^2*3 + slength)
         x = ndec(z)
-        @test length(x) == xlength*order
+        @test length(x) == xlength*slength
 
         loss(z) = sum(ndec(z))
         gs = Zygote.gradient(loss, z)
 
         @test length(gs) == 1
-        @test length(gs[1]) == (order^2*3 + order*2)
+        @test length(gs[1]) == (slength^2*3 + slength)
     end
 
 end
