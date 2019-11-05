@@ -167,3 +167,35 @@ Discriminator loss for true data score `st` and generated data score `sg`.
 """
 discriminator_loss(T,st,sg) = - T(0.5)*(mean(log.(st .+ eps(T))) + mean(log.(1 .- sg) .+ eps(T)))
 discriminator_loss(st,sg) = discriminator_loss(Float32,st,sg)
+
+
+"""
+    destructure(m)
+
+Returns all parameters of a Flux model in one long vector. Parameters that were
+marked as untrainable included! (Adapted from DiffEqFlux.jl)
+"""
+function destructure(m)
+    xs = []
+    Flux.fmap(m) do x
+        x isa AbstractArray && push!(xs, x)
+        return x
+    end
+    return vcat(vec.(xs)...)
+end
+
+"""
+    restructure(m, xs::AbstractVector)
+
+Populate a Flux model with parameters as given in a long vector of xs.
+xs must include untrainable parameters. (Adapted from DiffEqFlux.jl)
+"""
+function restructure(m, xs::AbstractVector)
+    i = 0
+    Flux.fmap(m) do x
+        x isa AbstractArray || return x
+        x = reshape(xs[i.+(1:length(x))], size(x))
+        i += length(x)
+        return x
+    end
+end

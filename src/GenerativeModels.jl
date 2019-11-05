@@ -26,6 +26,7 @@ module GenerativeModels
     include(joinpath("utils", "utils.jl"))
     include(joinpath("utils", "ode_decoder.jl"))
     include(joinpath("utils", "nalu_ode_decoder.jl"))
+    include(joinpath("utils", "flux_ode_decoder.jl"))
 
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))
