@@ -43,13 +43,12 @@
     end
 
     @testset "Wasserstein VAE" begin
-        # TODO: do this test ont he GPU once NoGradArray issue is resolved
 
         T = Float32
         xlen = 4
         zlen = 2
         batch = 20
-        test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) #|> gpu
+        test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
 
         enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen], relu, Dense)
         enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
@@ -57,7 +56,7 @@
         dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
         dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
 
-        model = VAE(zlen, enc_dist, dec_dist) #|> gpu
+        model = VAE(zlen, enc_dist, dec_dist) |> gpu
 
         # test training
         params_init = get_params(model)

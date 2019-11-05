@@ -47,10 +47,6 @@ Flux.@functor Gaussian
 function Flux.trainable(p::Gaussian)
     ps = (;(k=>getfield(p,k) for k in keys(p._nograd) if !p._nograd[k])...)
 end
-# function Flux.functor(p::Gaussian)
-#     ps = ([getfield(p,k) for k in keys(p._nograd) if !p._nograd[k]]...)
-#     ps, Gaussian(p.μ, p.σ, p._nograd)
-# end
 
 length(p::Gaussian) = size(p.μ, 1)
 #mean_var(p::Gaussian{T}) where T = (p.μ, softplus_safe.(p.σ2, T))
