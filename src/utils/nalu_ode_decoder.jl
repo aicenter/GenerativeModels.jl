@@ -1,4 +1,4 @@
-export NALU, NAC
+export NALU, NAC, FauxNALU
 export NaluODEDecoder
 
 using Flux: glorot_uniform
@@ -78,6 +78,42 @@ end
 
 Flux.@functor NALU
 
+#################### NEURAL ARITHMETIC LOGIC UNIT WITH BIAS ####################
+
+struct FauxNALU
+    nac::NAC
+    G::AbstractMatrix
+    b::AbstractVector
+    ϵ::Real
+end
+
+FauxNALU(nac::NAC, G::AbstractMatrix, b::AbstractVector) = FauxNALU(nac, G, b, 1e-10)
+
+function FauxNALU(in::Int, out::Int; initNAC=glorot_uniform, initG=glorot_uniform)
+    nac = NAC(in, out, initW=initNAC, initM=initNAC)
+    G = initG(out, in)
+    b = initG(out)
+    FauxNALU(nac, G, b)
+end
+
+function (nalu::FauxNALU)(x)
+    nac, G, ϵ = nalu.nac, nalu.G, nalu.ϵ
+    a = nac(x) + nalu.b
+    log_inp = log.(abs.(x) .+ ϵ)
+    m = exp.(nac(log_inp))
+    g = σ.(G*x)
+    g .* a .+ (1.0 .- g) .* m
+end
+
+function Base.show(io::IO, l::FauxNALU)
+    in = size(l.G, 2)
+    out = size(l.G, 1)
+    print(io, "FauxNALU(in=$in, out=$out)")
+end
+
+Flux.@functor FauxNALU
+
+
 
 ####################  NALU ODE Decoder  ########################################
 
@@ -107,8 +143,10 @@ function NaluODEDecoder(slength::Int, tlength::Int, tspan::Tuple)
     NaluODEDecoder(slength, tlength, timesteps, nalu)
 end
 
+nalu_ode_params_length(slength::Int) = (slength^2)*3 + slength
+
 function nalu_latent_split(z::AbstractVector, slength::Int)
-    @assert length(z) == ((slength^2)*3+slength)
+    @assert length(z) == nalu_ode_params_length(slength)
     o2 = slength^2
     W = reshape(z[1:o2], slength, slength)
     M = reshape(z[o2+1:2o2], slength, slength)

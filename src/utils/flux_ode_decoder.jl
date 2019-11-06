@@ -1,6 +1,6 @@
 export FluxODEDecoder
 
-struct FluxODEDecoder
+mutable struct FluxODEDecoder
     slength::Int
     tlength::Int
     timesteps::Vector
@@ -12,11 +12,12 @@ function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model)
     FluxODEDecoder(slength, tlength, timesteps, model)
 end
 
-function (dec::FluxODEDecoder)(ps::AbstractVector, u0::AbstractVector)
-    # ps = z[1:end-dec.slength]
-    # u0 = z[end-dec.slength+1:end]
+function (dec::FluxODEDecoder)(z::AbstractVector)
+    ps = z[1:end-dec.slength]
+    u0 = z[end-dec.slength+1:end]
+    dec.model = restructure(dec.model, ps)
+    z = vcat(destructure(dec.model), u0)
     tspan = (dec.timesteps[1], dec.timesteps[end])
-    restructure(dec.model, ps)
     dudt_(u::AbstractVector, ps, t) = dec.model(u)
     prob = ODEProblem(dudt_, u0, tspan, ps)
     sol = solve(prob, Tsit5(), saveat=dec.timesteps)
@@ -29,5 +30,5 @@ end
 ddec(dec::FluxODEDecoder, z::AbstractVector) = ForwardDiff.jacobian(dec, z)
 
 @adjoint function (dec::FluxODEDecoder)(z::AbstractVector)
-    (dec(z), Δ -> (J=Δ'*ddec(dec, z); (nothing,J')))
+    (dec(z), Δ -> (J=(Δ'*ddec(dec, z))'; (nothing,J)))
 end

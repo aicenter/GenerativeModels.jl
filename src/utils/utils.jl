@@ -172,8 +172,9 @@ discriminator_loss(st,sg) = discriminator_loss(Float32,st,sg)
 """
     destructure(m)
 
-Returns all parameters of a Flux model in one long vector. Parameters that were
-marked as untrainable included! (Adapted from DiffEqFlux.jl)
+Returns all parameters of a Flux model in one long vector.
+This includes **all** `AbstractArray` fields
+(Adapted from DiffEqFlux.jl)
 """
 function destructure(m)
     xs = []
@@ -188,7 +189,8 @@ end
     restructure(m, xs::AbstractVector)
 
 Populate a Flux model with parameters as given in a long vector of xs.
-xs must include untrainable parameters. (Adapted from DiffEqFlux.jl)
+xs must include **all** `AbstractArray` fields.
+(Adapted from DiffEqFlux.jl)
 """
 function restructure(m, xs::AbstractVector)
     i = 0

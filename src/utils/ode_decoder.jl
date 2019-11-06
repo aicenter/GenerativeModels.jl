@@ -1,7 +1,7 @@
 export ODEDecoder
 
 """
-    ODEDecoder
+    ODEDecoder(slength::Int, tlength::Int, tspan::Tuple)
 
 ODE decoder that reconstructs only first element of the internal state (see
 function: (dec::ODEDecoder)(A,b,u0))
@@ -22,7 +22,10 @@ function ode(u, p, t)
     du = A*u + b
 end
 
+ode_params_length(slength::Int) = slength^2 + slength*2
+
 function ode_latent_split(z::AbstractVector, slength::Int)
+    @assert length(z) == ode_params_length(slength)
     A = reshape(z[1:slength^2], slength, slength)
     b = z[slength^2+1:slength^2+slength]
     u = z[end-slength+1:end]
