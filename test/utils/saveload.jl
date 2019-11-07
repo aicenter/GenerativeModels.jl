@@ -6,7 +6,7 @@
     keep = 2
 
     encoder = Dense(tlen, zlen)
-    decoder = ODEDecoder(slen, tlen, (0f0,1f0))
+    decoder = FluxODEDecoder(slen, tlen, (0f0,1f0), Dense(slen,slen))
     μx(z) = reshape(decoder(z), slen, tlen, size(z,2))[1,:,:]
     model = Rodent(tlen, zlen, encoder, μx)
 

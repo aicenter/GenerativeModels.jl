@@ -1,12 +1,16 @@
 using Test, Suppressor, Logging, Parameters, Random
 using BSON, DrWatson, ValueHistories
-using Flux, Zygote
+using Flux, Zygote, ForwardDiff
 using DiffEqBase, OrdinaryDiffEq
 
 using Revise
 using GenerativeModels
 
 if Flux.use_cuda[] using CuArrays end
+
+@warn """Remove `Flux.gpu(x) = identity(x)` from runtests.jl
+         once CUDAdrv does not try to load CUDA anymore even though it
+         is not installed."""
 Flux.gpu(x) = identity(x)
 
 # set logging to debug to get more test output
@@ -27,6 +31,7 @@ include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
 include(joinpath("models", "rodent.jl"))
 
+include(joinpath("utils", "utils.jl"))
 include(joinpath("utils", "saveload.jl"))
 include(joinpath("utils", "nogradarray.jl"))
-include(joinpath("utils", "nalu_ode_decoder.jl"))
+include(joinpath("utils", "flux_ode_decoder.jl"))

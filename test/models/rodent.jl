@@ -48,7 +48,8 @@
         enc_dist = CMeanGaussian{dtype,DiagVar}(encoder, σ2z)
 
         tspan = (dt, tlen*dt)
-        dec = ODEDecoder(slen, tlen, tspan)
+        ode = Dense(slen, slen)
+        dec = FluxODEDecoder(slen, tlen, tspan, ode)
         μx(z) = reshape(dec(z), slen, tlen, size(z,2))[1,:,:]
         σ2x = ones(dtype, 1) ./ 10
         dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, tlen)
