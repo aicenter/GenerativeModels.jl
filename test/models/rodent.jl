@@ -56,8 +56,6 @@
         Rodent(prior, enc_dist, dec_dist)
     end
 
-    @info "Testing Rodent"
-
     tlen = 20
     slen = 2
     batch = 10

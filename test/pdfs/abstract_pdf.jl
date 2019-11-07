@@ -1,5 +1,4 @@
 @testset "pdfs/abstract_pdf.jl" begin
-    @info "Testing abstract PDFs"
     struct PDF{T<:Real} <: GenerativeModels.AbstractPDF{T} end
     struct CPDF{T<:Real} <: GenerativeModels.AbstractCPDF{T} end
 

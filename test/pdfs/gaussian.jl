@@ -1,7 +1,5 @@
 @testset "src/gaussian.jl" begin
 
-    @info "Testing Gaussian"
-
     p  = Gaussian(zeros(2), ones(2)) |> gpu
     μ  = mean(p)
     σ2 = variance(p)

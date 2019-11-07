@@ -1,7 +1,5 @@
 @testset "src/cgaussian.jl" begin
 
-    @info "Testing CMeanVarGaussian"
-
     xlen = 3
     zlen = 2
     batch = 10

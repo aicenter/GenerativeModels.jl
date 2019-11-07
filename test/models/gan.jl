@@ -2,7 +2,6 @@
 
     Random.seed!(1)
 
-    @info "Testing GAN"
     xlen = 4
     zlen = 2
     batchsize = 20
@@ -60,6 +59,6 @@
     # GenerativeModels.loss_back_update!(model, test_data, dloss, opt)
     # @test all(param_change(params_disc, model.discriminator))
     # @test !any(param_change(params_gen, model.generator))
-    # 
-    # Random.seed!()
+
+    Random.seed!()
 end

@@ -1,5 +1,4 @@
 @testset "utils/saveload.jl" begin
-    @info "Testing save/load of model checkpoints"
 
     tlen = 10
     slen = 2
