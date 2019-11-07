@@ -9,7 +9,7 @@
 
     @testset "DiagVar" begin
         mapping = Dense(zlen, xlen)
-        var = ones(T, xlen)
+        var = NoGradArray(ones(T, xlen))
         p  = CMeanGaussian{T,DiagVar}(mapping, var) |> gpu
         z  = randn(T, zlen, batch) |> gpu
         μx = mean(p, z)
@@ -19,6 +19,7 @@
         @test size(μx) == (xlen, batch)
         @test size(σ2) == size(var)
         @test size(x) == (xlen, batch)
+        @test length(params(p)) == 2
         @test size(loglikelihood(p, x, z)) == (1, batch)
 
         q  = Gaussian(zeros(T, xlen), ones(T, xlen)) |> gpu
@@ -43,6 +44,7 @@
         @test size(μx) == (xlen, batch)
         @test size(σ2) == (xlen,)
         @test size(x) == (xlen, batch)
+        @test length(params(p)) == 3
         @test size(loglikelihood(p, x, z)) == (1, batch)
     end
 
