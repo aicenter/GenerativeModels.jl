@@ -56,3 +56,14 @@ function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
 
     Rodent{T}(prior, enc_dist, dec_dist)
 end
+
+# function elbo(m::Rodent, x::AbstractArray)
+#     @show "asdf"
+#     λz = variance(m.prior)
+#     (μz, σz) = mean_var(m.encoder, x)
+#     z = rand(m.encoder, x)
+# 
+#     llh = -mean(loglikelihood(m.decoder, x, z))
+#     kl  = mean(kld(m.encoder, m.prior, x))
+#     llh + kl
+# end
