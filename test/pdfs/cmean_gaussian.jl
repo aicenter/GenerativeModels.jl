@@ -1,7 +1,5 @@
 @testset "pdfs/svar_gaussian.jl" begin
 
-    @info "Testing CMeanGaussian"
-
     xlen  = 3
     zlen  = 2
     batch = 10

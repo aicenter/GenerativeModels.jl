@@ -24,7 +24,7 @@ module GenerativeModels
     include(joinpath("utils", "nogradarray.jl"))
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
-    include(joinpath("utils", "ode_decoder_1dobs.jl"))
+    include(joinpath("utils", "flux_ode_decoder.jl"))
 
     include(joinpath("pdfs", "gaussian.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))

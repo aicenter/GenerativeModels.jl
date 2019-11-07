@@ -1,7 +1,5 @@
 @testset "utils/nogradarray.jl" begin
 
-    @info "Testing NoGradArray"
-
     @testset "Params on CPU/GPU" begin
         x = NoGradArray(ones(3))
         y = ones(3)
@@ -9,7 +7,7 @@
         p = Gaussian(x, y)
         @test length(params(p)) == 1
 
-        if Flux.use_cuda
+        if Flux.use_cuda[]
             g = gpu(p)
             @test length(params(g)) == 1
             @test rand(g) isa CuArray

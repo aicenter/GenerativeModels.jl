@@ -31,14 +31,14 @@
     end
 
     function construct_rodent(setup)
-        @unpack batch, xlen, order, dt, noise, dtype = setup
-        zlen = order^2 + order*2
-        tspan = (0f0, dtype.(xlen*dt))
+        @unpack batch, tlen, slen, dt, noise, dtype = setup
+        zlen = slen^2 + slen*2
+        tspan = (0f0, dtype.(tlen*dt))
 
         init(s...) = randn(dtype, s...)/10000
         act = σ
         encoder  = Chain(
-            Dense(xlen, 100, act, initW=init, initb=init),
+            Dense(tlen, 100, act, initW=init, initb=init),
             Dense(100, zlen, initW=init, initb=init))
 
         λ2z = ones(dtype, zlen)
@@ -47,26 +47,26 @@
         σ2z = -ones(dtype, zlen) ./ 100
         enc_dist = CMeanGaussian{dtype,DiagVar}(encoder, σ2z)
 
-        tspan = (dt, xlen*dt)
-        μx = ODEDecoder(order, xlen, tspan)
+        tspan = (dt, tlen*dt)
+        ode = Dense(slen, slen)
+        dec = FluxODEDecoder(slen, tlen, tspan, ode)
+        μx(z) = reshape(dec(z), slen, tlen, size(z,2))[1,:,:]
         σ2x = ones(dtype, 1) ./ 10
-        dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, xlen)
+        dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, tlen)
 
         Rodent(prior, enc_dist, dec_dist)
     end
 
-    @info "Testing Rodent"
-
-    xlen = 20
-    order = 2
+    tlen = 20
+    slen = 2
     batch = 10
     dt = 0.3
     dtype = Float32
     noise = 0.01f0
-    setup = @dict xlen order batch dt dtype noise
+    setup = @dict tlen slen batch dt dtype noise
 
     rodent = construct_rodent(setup) # |> gpu
-    test_data = generate(0.5, batch, dt=dt, steps=xlen)[1] # |> gpu
+    test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
 
     ls = elbo(rodent, test_data)
     ps = params(rodent)
