@@ -27,6 +27,7 @@ include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
 include(joinpath("models", "rodent.jl"))
 
+include(joinpath("utils", "utils.jl"))
 include(joinpath("utils", "saveload.jl"))
 include(joinpath("utils", "nogradarray.jl"))
 include(joinpath("utils", "nalu_ode_decoder.jl"))

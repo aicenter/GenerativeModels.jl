@@ -1,5 +1,19 @@
 export FluxODEDecoder
 
+"""
+    FluxODEDecoder(slength::Int, tlength::Int, timesteps::Vector, model)
+
+Can use any Flux model as neural ODE. The adjoint is computed via ForwardDiff.
+(dec::FluxODEDecoder)(z) assumes that all parameters to the model
+and the initial conditions to the neural ODE are passed in as one long vector
+z = vcat(destructure(dec.model), u0).
+
+# Arguments
+* `slength::Int`: length of the ODE state
+* `tlength::Int`: number of timesteps
+* `timesteps::Vector`: timesteps at which ODE solution is checkpointed
+* `model`: Flux model
+"""
 mutable struct FluxODEDecoder
     slength::Int
     tlength::Int

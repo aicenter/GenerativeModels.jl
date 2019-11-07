@@ -4,30 +4,20 @@
     xlength = 10
     tspan = (0f0, 1f0)
 
-    @testset "NAC" begin
-        nac = NAC(xlength, xlength-1)
-        z = rand(xlength)
-        @test length(nac(z)) == xlength-1
-    end
+    model = Dense(slength, slength)
+    dec = FluxODEDecoder(slength, xlength, tspan, model)
+    ps = GenerativeModels.destructure(model)
+    u0 = rand(slength)
+    z  = vcat(ps, u0)
 
-    @testset "NALU" begin
-        nalu = NALU(xlength, xlength-1)
-        z = rand(xlength)
-        @test length(nalu(z)) == xlength-1
-    end
+    x = dec(z)
+    @test length(z) == 8
+    @test length(x) == xlength*slength
 
-    @testset "NaluODEDecoder" begin
-        ndec = NaluODEDecoder(slength, xlength, tspan)
+    loss(z) = sum(dec(z))
+    gs = Zygote.gradient(loss, z)
 
-        z = ones(slength^2*3 + slength)
-        x = ndec(z)
-        @test length(x) == xlength*slength
-
-        loss(z) = sum(ndec(z))
-        gs = Zygote.gradient(loss, z)
-
-        @test length(gs) == 1
-        @test length(gs[1]) == (slength^2*3 + slength)
-    end
+    @test length(gs) == 1
+    @test length(gs[1]) == 8
 
 end
