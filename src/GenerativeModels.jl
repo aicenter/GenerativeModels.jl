@@ -6,7 +6,7 @@ module GenerativeModels
     using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
-    using SpecialFunctions
+    using SpecialFunctions: besselix, besseli, lgamma
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end

@@ -202,4 +202,49 @@ function restructure(m, xs::AbstractVector)
     end
 end
 
+# Tools for Von Mises-Fisher distribution
+
+"""
+	vmfentropy(d, κ)
+
+Entropy of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
+"""
+vmfentropy(d, κ) = .-κ .* besselix(d / 2, κ) ./ besselix(d / 2 - 1, κ) .- ((d ./ 2 .- 1) .* log.(κ) .- (d ./ 2) .* log(2π) .- (κ .+ log.(besselix(d / 2 - 1, κ))))
+
+"""
+	huentropy(d)
+
+Entropy of a Hyperspherical Uniform distribution with dimensinality `d`
+"""
+huentropy(d) = d / 2 * log(π) + log(2) - lgamma(d / 2)
+
+# Likelihood estimation of a sample x under VMF with given parameters taken from https://pdfs.semanticscholar.org/2b5b/724fb175f592c1ff919cc61499adb26996b1.pdf
+
+"""
+    vmf_norm_const(d, κ)
+
+Likelihood normalizing constant of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
+"""
+vmf_norm_const(d, κ) = κ ^ (d / 2 - 1) / ((2π) ^ (d / 2) * besseli(d / 2 - 1, κ))
+
+# log likelihood of one sample under the VMF dist with given parameters
+"""
+    log_vmf(x, μ, κ)
+
+Loglikelihood of `x` under the Von Mises-Fisher distribution with mean `μ` and concentration `κ`
+"""
+log_vmf(x, μ, κ) = κ * μ' * x .+ log(vmf_norm_const(length(μ), κ))
+
+#? Will we need these as well? Can we actually make this without the for cycle? They can probably be optimised by computing the norm constant just once etc.
+log_vmf(x::AbstractMatrix, μ::AbstractMatrix, κ::T) where {T <: Number} = [log_vmf(x[:, i], μ[:, i], κ) for i in size(x, 2)] 
+log_vmf(x::AbstractMatrix, μ::AbstractMatrix, κ::AbstractVector) = [log_vmf(x[:, i], μ[:, i], κ[i]) for i in size(x, 2)] 
+
+"""
+    log_vmf_wo_c(x, μ, κ)
+
+Loglikelihood of `x` under the Von Mises-Fisher distribution with mean `μ` and concentration `κ` **without** the normalizing constant.
+It can be very useful when it is used just for comparison of likelihoods etc. because it is very expensive to compute and in many applications
+it has no effect on the outcome.
+"""
+log_vmf_wo_c(x, μ, κ) = κ * μ' * x
 
