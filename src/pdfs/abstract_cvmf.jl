@@ -1,31 +1,29 @@
+export loglikelihood, kld, rand
+
 abstract type AbstractCVMF{T} <: AbstractCPDF{T} end
 
-
-
-function rand(p::AbstractCVMF{T}, z::AbstractArray) where T
-    (μ, σ2) = mean_var(p, z)
-    r = randn!(similar(μ))
-    μ .+ sqrt.(σ2) .* r 
+function rand(p::AbstractCVMF{T}, z::AbstractArray{T}) where {T}
+    (μ, κ) = mean_conc(p, z)
+    #! Finish the sampling method for VMF
 end
 
-function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArray) where T
-    (μ, σ2) = mean_var(p, z)
-    d = x - μ
-    y = d .* d
-    y = (1 ./ σ2) .* y .+ log.(σ2) .+ T(log(2π))
-    -sum(y, dims=1) / 2
+function loglikelihood(p::AbstractCVMF{T}, x::AbstractArray{T}, z::AbstractArray{T}) where {T}
+    (μ, κ) = mean_conc(p, z)
+    log_vmf(x, μ, κ)
 end
 
-function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
-    N = size(z, 2)
-    (μ1, σ1) = mean_var(p, z)
-    (μ2, σ2) = mean_var(q)
-    m1 = mean(log.(σ2 ./ σ1), dims=1)
-    m2 = mean(σ1 ./ σ2, dims=1)
-    d  = μ2 .- μ1
-    dd = d .* d
-    m3 = mean(dd ./ σ2, dims=1)
-    m1 .+ m2 .+ m3
+# This is here because we always compute KLD with VMF and hyperspherical uniform - nothing else
+"""
+    kld(p::AbstractCVMF{T}, z::AbstractArray{T})
+
+Compute Kullback-Leibler divergence between a conditional Von Mises-Fisher distribution `p` given `z`
+and a hyperspherical uniform distribution with the same dimensionality
+"""
+function kld(p::AbstractCVMF{T}, z::AbstractArray{T}) where {T}
+    dims = size(z, 1)
+    .- vmfentropy(dims, conc(p)) .+ huentropy(dims)
 end
+
+
 
 

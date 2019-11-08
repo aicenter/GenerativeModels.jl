@@ -7,6 +7,8 @@ module GenerativeModels
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
     using SpecialFunctions: besselix, besseli, lgamma
+    using Distributions
+    using Adapt
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
@@ -25,6 +27,7 @@ module GenerativeModels
     include(joinpath("utils", "nogradarray.jl"))
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
+    include(joinpath("utils", "vmf.jl"))
     include(joinpath("utils", "flux_ode_decoder.jl"))
 
     include(joinpath("pdfs", "gaussian.jl"))
