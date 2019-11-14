@@ -32,8 +32,9 @@ Loglikelihood of `x` under the Von Mises-Fisher distribution with mean `μ` and 
 log_vmf(x::AbstractVector{T}, μ::AbstractVector{T}, κ::T) where {T} = κ * μ' * x .+ log(vmf_norm_const(length(μ), κ))
 
 #? Will we need these as well? Can we actually make this without the for cycle? They can probably be optimised by computing the norm constant just once etc.
-log_vmf(x::AbstractMatrix{T}, μ::AbstractMatrix{T}, κ::T) where {T} = [log_vmf(x[:, i], μ[:, i], κ) for i in size(x, 2)] 
-log_vmf(x::AbstractMatrix{T}, μ::AbstractMatrix{T}, κ::AbstractVector{T}) where {T} = [log_vmf(x[:, i], μ[:, i], κ[i]) for i in size(x, 2)] 
+#! Not vectorized - will be slow!
+log_vmf(x::AbstractMatrix{T}, μ::AbstractMatrix{T}, κ::T) where {T} = [log_vmf(x[:, i], μ[:, i], κ) for i in 1:size(x, 2)]'
+log_vmf(x::AbstractMatrix{T}, μ::AbstractMatrix{T}, κ::AbstractVector{T}) where {T} = [log_vmf(x[:, i], μ[:, i], κ[i]) for i in 1:size(x, 2)]'
 
 """
     log_vmf_wo_c(x, μ, κ)

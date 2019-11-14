@@ -2,6 +2,7 @@ using Test, Suppressor, Logging, Parameters, Random
 using BSON, DrWatson, ValueHistories
 using Flux, Zygote, ForwardDiff
 using DiffEqBase, OrdinaryDiffEq
+using LinearAlgebra
 
 using Revise
 using GenerativeModels
@@ -27,6 +28,8 @@ include(joinpath("pdfs", "gaussian.jl"))
 include(joinpath("pdfs", "cmean_gaussian.jl"))
 include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
 include(joinpath("pdfs", "abstract_cvmf.jl"))
+include(joinpath("pdfs", "vonmisesfisher.jl"))
+include(joinpath("pdfs", "hs_uniform.jl"))
 
 
 include(joinpath("models", "vae.jl"))

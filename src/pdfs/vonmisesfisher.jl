@@ -6,24 +6,24 @@ VonMisesFisher{T}
 Von Mises-Fisher distribution defined with mean μ and concentration κ that can be any `AbstractArray` and `Real` number respectively
 
 # Arguments
-- `μ::AbstractArray`: mean of Gaussian
-- `σ2::AbstractArray`: variance of Gaussian
+- `μ::AbstractArray`: mean of VMF
+- `κ::AbstractArray`: concentration of VMF
 
 # Example
 ```julia-repl
 julia> using Flux
 
-julia> p = Gaussian(zeros(3), ones(3))
-Gaussian{Float64}(μ=3-element Array{Float64,1}, σ2=3-element Array{Float64,1})
+julia> p = VonMisesFisher(zeros(3), 1.0)
+VonMisesFisher{Float64}(μ=3-element Array{Float64,1}, κ=[1.0])
 
-julia> mean_var(p)
-([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]))
+julia> mean_conc(p)
+([0.0, 0.0, 0.0], [1.0])
 
 julia> rand(p)
-Tracked 3×1 Array{Float64,2}:
- -1.8102550562952886
-  0.6218903591706907
- -0.8067583329396676
+3×1 Array{Float64,2}:
+ -0.534718473601494 
+  0.4131946025140243
+  0.7371203256202924
 ```
 """
 struct VonMisesFisher{T} <: AbstractPDF{T}
@@ -32,8 +32,10 @@ struct VonMisesFisher{T} <: AbstractPDF{T}
     _nograd::Dict{Symbol,Bool}
 end
 
-VonMisesFisher(μ::AbstractArray{T}, κ::T) where {T} = VonMisesFisher(μ, NoGradArray[κ])
-function VonMisesFisher(μ::AbstractArray{T}, κ::AbstractArray{T}) where {T}
+#! Watch out, there is no check for μ actually being on a sphere, even though all the methods count with that!
+VonMisesFisher(μ::AbstractMatrix{T}, κ::Union{T, AbstractArray{T}}) where {T} = VonMisesFisher(vec(μ), κ)
+VonMisesFisher(μ::AbstractVector{T}, κ::T) where {T} = VonMisesFisher(μ, NoGradArray([κ]))
+function VonMisesFisher(μ::AbstractVector{T}, κ::AbstractArray{T}) where {T}
     _nograd = Dict(
         :μ => μ isa NoGradArray,
         :κ => κ isa NoGradArray)
@@ -60,9 +62,11 @@ function rand(p::VonMisesFisher, batchsize::Int=1)
     sample_vmf(μ, κ)
 end
 
-function loglikelihood(p::VonMisesFisher{T}, x::AbstractArray{T}) where T
+loglikelihood(p::VonMisesFisher{T}, x::AbstractVector{T}) where T = loglikelihood(p, x * ones(1, 1))
+function loglikelihood(p::VonMisesFisher{T}, x::AbstractMatrix{T}) where T
     (μ, κ) = mean_conc(p)
-    log_vmf(μ, κ)
+    μ = μ * ones(1, size(x, 2))
+    log_vmf(x, μ, κ[1])
 end
 
 """
@@ -75,7 +79,7 @@ function kld(p::VonMisesFisher{T}, q::HypersphericalUniform{T}) where {T}
     if length(p.μ) != q.dims
         error("Cannot compute KLD between VMF and HSU with different dimensionality")
     end
-    .- vmfentropy(q.dims, concentration(p)) .+ huentropy(q.dims)
+    .- vmfentropy(q.dims, concentration(p)[1]) .+ huentropy(q.dims)
 end
 
 function Base.show(io::IO, p::VonMisesFisher{T}) where T
