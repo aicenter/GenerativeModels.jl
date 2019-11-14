@@ -201,3 +201,13 @@ function restructure(m, xs::AbstractVector)
         return x
     end
 end
+
+"""
+    short_repr(x)
+
+Shortens `repr(x)` to 50 chars...
+"""
+function short_repr(x)
+    e = repr(x)
+    e = sizeof(e)>50 ? "($(e[1:47])...)" : e
+end

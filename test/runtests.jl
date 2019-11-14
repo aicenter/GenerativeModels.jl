@@ -26,6 +26,8 @@ include(joinpath("pdfs", "abstract_pdf.jl"))
 include(joinpath("pdfs", "gaussian.jl"))
 include(joinpath("pdfs", "cmean_gaussian.jl"))
 include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
+include(joinpath("pdfs", "abstract_cvmf.jl"))
+
 
 include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
@@ -35,3 +37,4 @@ include(joinpath("utils", "utils.jl"))
 include(joinpath("utils", "saveload.jl"))
 include(joinpath("utils", "nogradarray.jl"))
 include(joinpath("utils", "flux_ode_decoder.jl"))
+include(joinpath("utils", "vmf.jl"))
