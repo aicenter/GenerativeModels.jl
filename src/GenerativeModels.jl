@@ -6,7 +6,7 @@ module GenerativeModels
     using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
-    using SpecialFunctions: besselix, besseli, lgamma
+    using SpecialFunctions: besselix, besseli, logabsgamma
     using Distributions
     using Adapt
 
@@ -32,15 +32,17 @@ module GenerativeModels
     include(joinpath("utils", "flux_ode_decoder.jl"))
 
     include(joinpath("pdfs", "gaussian.jl"))
+    include(joinpath("pdfs", "hs_uniform.jl"))
+    include(joinpath("pdfs", "vonmisesfisher.jl"))
     include(joinpath("pdfs", "abstract_cgaussian.jl"))
     include(joinpath("pdfs", "cmean_gaussian.jl"))
     include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
-    include(joinpath("pdfs", "vonmisesfisher.jl"))
     include(joinpath("pdfs", "abstract_cvmf.jl"))
     include(joinpath("pdfs", "cmeanvar_vmf.jl"))
 
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
     include(joinpath("models", "gan.jl"))
+    include(joinpath("models", "svae.jl"))
 
 end # module

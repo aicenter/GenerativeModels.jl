@@ -44,9 +44,9 @@ end
 
 Flux.@functor VonMisesFisher
 
-# function Flux.trainable(p::VonMisesFisher)
-#     ps = (;(k=>getfield(p,k) for k in keys(p._nograd) if !p._nograd[k])...)
-# end
+function Flux.trainable(p::VonMisesFisher)
+    ps = (;(k=>getfield(p,k) for k in keys(p._nograd) if !p._nograd[k])...)
+end
 
 length(p::VonMisesFisher) = size(p.μ, 1)
 mean_conc(p::VonMisesFisher) = (p.μ, p.κ)
@@ -63,6 +63,19 @@ end
 function loglikelihood(p::VonMisesFisher{T}, x::AbstractArray{T}) where T
     (μ, κ) = mean_conc(p)
     log_vmf(μ, κ)
+end
+
+"""
+kld(p::AbstractCVMF, q::HypersphericalUniform, z::AbstractArray)
+
+Compute Kullback-Leibler divergence between a conditional Von Mises-Fisher distribution `p` given `z`
+and a hyperspherical uniform distribution `q` with the same dimensionality.
+"""
+function kld(p::VonMisesFisher{T}, q::HypersphericalUniform{T}) where {T}
+    if length(p.μ) != q.dims
+        error("Cannot compute KLD between VMF and HSU with different dimensionality")
+    end
+    .- vmfentropy(q.dims, concentration(p)) .+ huentropy(q.dims)
 end
 
 function Base.show(io::IO, p::VonMisesFisher{T}) where T

@@ -1,49 +1,58 @@
-export SVAE
+export SVAE, SVAE_vmf_prior, SVAE_hsu_prior
 
 """
-    SVAE{T}([prior::Gaussian, zlen::Int] encoder::AbstractCVMF, decoder::AbstractCPDF)
+    SVAE{T}([prior::Union{HypersphericalUniform{T}, VonMisesFisher{T}}, zlen::Int] encoder::AbstractCVMF, decoder::AbstractCPDF)
 
-Variational Auto-Encoder.
+HyperSpherical Variational Auto-Encoder.
 
 # Example
-Create a vanilla VAE with standard normal prior with:
+Create an S-VAE with either HSU prior or VMF prior with μ = [1, 0, ..., 0] and κ = 1 with:
 ```julia-repl
-julia> enc = CMeanVarGaussian{Float32,DiagVar}(Dense(5,4))
-CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
+julia> enc = CMeanVarVMF{Float32}(Dense(5,4), 3)
+CMeanVarVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dense(4, 3), #51), κ_from_hidden=Dense(4, 1, #52))
 
-julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(2,6))
-CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(3, 6))
+CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(3, 6))
 
-julia> vae = VAE(2, enc, dec)
-VAE{Float32}:
- prior   = (Gaussian{Float32}(μ=2-element NoGradArray{Float32,1}, σ2=2-elemen...)
- encoder = CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
- decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+julia> svae = SVAE(HypersphericalUniform{Float32}(3), enc, dec)
+SVAE{Float32}:
+ prior   = HypersphericalUniform{Float32}(3)
+ encoder = (CMeanVarVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dens...)
+ decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(3, 6))
 
-julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
+julia> mean(svae.decoder, mean(svae.encoder, rand(5, 1)))
 5×1 Array{Float32,2}:
- -0.26742023
- -0.7905855
- -0.29494995
-  0.1694059
-  1.123661
+ -0.7267006  
+  0.6847478  
+ -0.032789093
+  0.13542232 
+ -0.270345421
+
+julia> elbo(svae, rand(Float32, 5, 1))
+15.011719478567946
 ```
 """
 struct SVAE{T} <: AbstractSVAE{T}
-    prior # add Union of VMF and nothing as that makes sense and makes it nicer
-    encoder::AbstractCVMF
-    decoder::AbstractCPDF
+    prior::Union{HypersphericalUniform{T}, VonMisesFisher{T}}
+    encoder::AbstractCVMF{T}
+    decoder::AbstractCPDF{T}
 end
 
 Flux.@functor SVAE
 
-SVAE(p, e::AbstractCVMF{T}, d::AbstractCPDF{T}) where T = VAE{T}(p, e, d)
+# SVAE(p::Union{HypersphericalUniform{T}, VonMisesFisher{T}}, e::AbstractCVMF{T}, d::AbstractCPDF{T}) where T = SVAE{T}(p, e, d)
 
-function SVAE(zlength::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
+function SVAE_vmf_prior(zlength::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
     μp = NoGradArray(zeros(T, zlength))
-    σ2p = NoGradArray(ones(T, zlength))
-    prior = Gaussian(μp, σ2p)
-    VAE{T}(prior, enc, dec)
+    μp[1] = T(1)
+    κp = NoGradArray(ones(T, 1))
+    prior = VonMisesFisher(μp, κp)
+    SVAE{T}(prior, enc, dec)
+end
+
+function SVAE_hsu_prior(zlength::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
+    prior = HypersphericalUniform{T}(zlength)
+    SVAE{T}(prior, enc, dec)
 end
 
 """
@@ -51,27 +60,24 @@ end
 
 Evidence lower boundary of the SVAE model. `β` scales the KLD term. (Assumes hyperspherical uniform prior)
 """
-function elbo(m::SVAE, x::AbstractArray; β=1)
+function elbo(m::SVAE{T}, x::AbstractArray{T}; β=1) where {T}
     z = rand(m.encoder, x)
     llh = mean(-loglikelihood(m.decoder, x, z))
-    kl  = mean(kld(m.encoder, x))
+    kl  = mean(kld(m.encoder, m.prior, x))
     llh + β*kl
 end
 
 """
-    mmd(m::AbstractVAE, x::AbstractArray, k)
+    mmd(m::SVAE, x::AbstractArray, k)
 
-Maximum mean discrepancy of a VAE model given data `x` and kernel function `k(x,y)`.
+Maximum mean discrepancy of a SVAE model given data `x` and kernel function `k(x,y)`.
 """
-mmd(m::AbstractVAE, x::AbstractArray, k) = error("Not implemented!")
+mmd(m::SVAE{T}, x::AbstractArray{T}, k) where {T} = mmd(m.encoder, m.prior, x, k) 
 
-function Base.show(io::IO, m::AbstractVAE{T}) where T
-    p = repr(m.prior)
-    p = sizeof(p)>70 ? "($(p[1:70-3])...)" : p
-    e = repr(m.encoder)
-    e = sizeof(e)>70 ? "($(e[1:70-3])...)" : e
-    d = repr(m.decoder)
-    d = sizeof(d)>70 ? "($(d[1:70-3])...)" : d
+function Base.show(io::IO, m::SVAE{T}) where T
+    p = short_repr(m.prior, 70)
+    e = short_repr(m.encoder, 70)
+    d = short_repr(m.decoder, 70)
     msg = """$(typeof(m)):
      prior   = $(p)
      encoder = $(e)

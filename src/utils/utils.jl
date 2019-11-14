@@ -207,7 +207,7 @@ end
 
 Shortens `repr(x)` to 50 chars...
 """
-function short_repr(x)
+function short_repr(x, maxchars = 50)
     e = repr(x)
-    e = sizeof(e)>50 ? "($(e[1:47])...)" : e
+    e = sizeof(e)>maxchars ? "($(e[1:maxchars - 3])...)" : e
 end

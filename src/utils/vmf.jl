@@ -5,14 +5,14 @@
 
 Entropy of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
 """
-vmfentropy(d, κ) = .-κ .* besselix(d / 2, κ) ./ besselix(d / 2 - 1, κ) .- ((d ./ 2 .- 1) .* log.(κ) .- (d ./ 2) .* log(2π) .- (κ .+ log.(besselix(d / 2 - 1, κ))))
+vmfentropy(d, κ) = .-κ .* besselix(d / 2, κ) ./ besselix(d / 2 - 1, κ) .- ((d ./ 2 .- 1) .* log.(κ) .- (d ./ 2) .* log(2f0π) .- (κ .+ log.(besselix(d / 2 - 1, κ))))
 
 """
 	huentropy(d)
 
 Entropy of a Hyperspherical Uniform distribution with dimensinality `d`
 """
-huentropy(d) = d / 2 * log(π) + log(2) - lgamma(d / 2)
+huentropy(d) = d / 2 * log(1f0π) + log(2f0) - (logabsgamma(d / 2))[1]
 
 # Likelihood estimation of a sample x under VMF with given parameters taken from https://pdfs.semanticscholar.org/2b5b/724fb175f592c1ff919cc61499adb26996b1.pdf
 
@@ -21,7 +21,7 @@ huentropy(d) = d / 2 * log(π) + log(2) - lgamma(d / 2)
 
 Likelihood normalizing constant of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
 """
-vmf_norm_const(d, κ) = κ ^ (d / 2 - 1) / ((2π) ^ (d / 2) * besseli(d / 2 - 1, κ))
+vmf_norm_const(d, κ) = κ ^ (d / 2 - 1) / ((2f0π) ^ (d / 2) * besseli(d / 2 - 1, κ))
 
 # log likelihood of one sample under the VMF dist with given parameters
 """

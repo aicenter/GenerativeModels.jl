@@ -2,26 +2,29 @@ export loglikelihood, kld, rand, mean_conc, concentration
 
 abstract type AbstractCVMF{T} <: AbstractCPDF{T} end
 
-function rand(p::AbstractCVMF, z::AbstractArray)
+function rand(p::AbstractCVMF{T}, z::AbstractArray{T}) where {T}
     (μ, κ) = mean_conc(p, z)
     sample_vmf(μ, κ)
 end
 
-function loglikelihood(p::AbstractCVMF, x::AbstractArray, z::AbstractArray)
+function loglikelihood(p::AbstractCVMF{T}, x::AbstractArray{T}, z::AbstractArray{T}) where {T}
     (μ, κ) = mean_conc(p, z)
     log_vmf(x, μ, κ)
 end
 
 # This is here because we always compute KLD with VMF and hyperspherical uniform - nothing else as KLD between two VMFs is rather complicated to compute
 """
-    kld(p::AbstractCVMF{T}, z::AbstractArray{T})
+kld(p::AbstractCVMF, q::HypersphericalUniform, z::AbstractArray)
 
 Compute Kullback-Leibler divergence between a conditional Von Mises-Fisher distribution `p` given `z`
-and a hyperspherical uniform distribution with the same dimensionality
+and a hyperspherical uniform distribution `q` with the same dimensionality.
 """
-function kld(p::AbstractCVMF, z::AbstractArray)
-    dims = size(z, 1)
-    .- vmfentropy(dims, concentration(p)) .+ huentropy(dims)
+function kld(p::AbstractCVMF{T}, q::HypersphericalUniform{T}, z::AbstractArray{T}) where {T}
+    (μ, κ) = mean_conc(p, z)
+    if size(μ, 1) != q.dims
+        error("Cannot compute KLD between VMF and HSU with different dimensionality")
+    end
+    .- vmfentropy.(q.dims, κ) .+ huentropy(q.dims)
 end
 
 """
