@@ -50,7 +50,8 @@ CMeanGaussian{T,DiagVar}(m, σ) where T = CMeanGaussian{T,DiagVar}(m, σ, size(�
 mean(p::CMeanGaussian, z::AbstractArray) = p.mapping(z)
 # TODO: use softplus_safe
 variance(p::CMeanGaussian{T,DiagVar}) where T = p.σ .* p.σ
-variance(p::CMeanGaussian{T,ScalarVar}) where T = p.σ .* p.σ .* fill!(similar(p.σ, p.xlength), 1)
+variance(p::CMeanGaussian{T,ScalarVar}) where T =
+    p.σ .* p.σ .* fill!(similar(p.σ, p.xlength), 1)
 variance(p::CMeanGaussian, z::AbstractArray) = variance(p)
 mean_var(p::CMeanGaussian, z::AbstractArray) = (mean(p, z), variance(p))
 
