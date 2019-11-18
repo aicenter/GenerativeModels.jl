@@ -41,7 +41,7 @@ function VonMisesFisher(μ::AbstractVector{T}, κ::AbstractArray{T}) where {T}
         :κ => κ isa NoGradArray)
     μ = _nograd[:μ] ? μ.data : μ
     κ = _nograd[:κ] ? κ.data : κ
-    VonMisesFisher(μ, κ, _nograd)
+    VonMisesFisher{T}(μ, κ, _nograd)
 end
 
 Flux.@functor VonMisesFisher
@@ -55,17 +55,17 @@ mean_conc(p::VonMisesFisher) = (p.μ, p.κ)
 mean(p::VonMisesFisher) = p.μ
 concentration(p::VonMisesFisher) = p.κ
 
-function rand(p::VonMisesFisher, batchsize::Int=1)
+function rand(p::VonMisesFisher{T}, batchsize::Int=1) where {T}
     (μ, κ) = mean_conc(p)
-    μ = μ .* ones(size(μ, 1), batchsize)
-    κ = κ .* ones(1, batchsize)
+    μ = μ .* ones(T, size(μ, 1), batchsize)
+    κ = κ .* ones(T, 1, batchsize)
     sample_vmf(μ, κ)
 end
 
-loglikelihood(p::VonMisesFisher{T}, x::AbstractVector{T}) where T = loglikelihood(p, x * ones(1, 1))
+loglikelihood(p::VonMisesFisher{T}, x::AbstractVector{T}) where T = loglikelihood(p, x * ones(T, 1, 1))
 function loglikelihood(p::VonMisesFisher{T}, x::AbstractMatrix{T}) where T
     (μ, κ) = mean_conc(p)
-    μ = μ * ones(1, size(x, 2))
+    μ = μ * ones(T, 1, size(x, 2))
     log_vmf(x, μ, κ[1])
 end
 
@@ -79,7 +79,7 @@ function kld(p::VonMisesFisher{T}, q::HypersphericalUniform{T}) where {T}
     if length(p.μ) != q.dims
         error("Cannot compute KLD between VMF and HSU with different dimensionality")
     end
-    .- vmfentropy(q.dims, concentration(p)[1]) .+ huentropy(q.dims)
+    .- vmfentropy(q.dims, concentration(p)[1]) .+ huentropy(q.dims, T)
 end
 
 function Base.show(io::IO, p::VonMisesFisher{T}) where T

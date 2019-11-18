@@ -7,7 +7,8 @@ using LinearAlgebra
 using Revise
 using GenerativeModels
 
-if Flux.use_cuda[] using CuArrays end
+# if Flux.use_cuda[] using CuArrays end
+using CuArrays
 
 @warn """Remove `Flux.gpu(x) = identity(x)` from runtests.jl
          once CUDAdrv does not try to load CUDA anymore even though it
@@ -33,6 +34,7 @@ include(joinpath("pdfs", "hs_uniform.jl"))
 
 
 include(joinpath("models", "vae.jl"))
+include(joinpath("models", "svae.jl"))
 include(joinpath("models", "gan.jl"))
 include(joinpath("models", "rodent.jl"))
 

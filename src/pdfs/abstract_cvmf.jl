@@ -24,7 +24,7 @@ function kld(p::AbstractCVMF{T}, q::HypersphericalUniform{T}, z::AbstractArray{T
     if size(μ, 1) != q.dims
         error("Cannot compute KLD between VMF and HSU with different dimensionality")
     end
-    .- vmfentropy.(q.dims, κ) .+ huentropy(q.dims)
+    .- vmfentropy.(q.dims, κ) .+ huentropy(q.dims, T)
 end
 
 """

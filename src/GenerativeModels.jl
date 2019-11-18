@@ -6,7 +6,7 @@ module GenerativeModels
     using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
-    using SpecialFunctions: besselix, besseli, logabsgamma
+    using SpecialFunctions
     using Distributions
     using Adapt
 
@@ -19,6 +19,7 @@ module GenerativeModels
     import Base.length
     import Random.rand
     import Statistics.mean
+    import SpecialFunctions: besselix, logabsgamma
 
     # needed to make e.g. sampling work
     @nograd similar, randn!, fill!

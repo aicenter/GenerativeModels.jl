@@ -60,7 +60,7 @@ end
 
 Evidence lower boundary of the SVAE model. `β` scales the KLD term. (Assumes hyperspherical uniform prior)
 """
-function elbo(m::SVAE{T}, x::AbstractArray{T}; β=1) where {T}
+function elbo(m::SVAE{T}, x::AbstractArray{T}; β=T(1)) where {T}
     z = rand(m.encoder, x)
     llh = mean(-loglikelihood(m.decoder, x, z))
     kl  = mean(kld(m.encoder, m.prior, x))

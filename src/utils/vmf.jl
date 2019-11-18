@@ -1,18 +1,24 @@
 # Utils for Von Mises-Fisher distribution
 
+∇besselix(ν, x) = @. besselix(ν - 1, x) - besselix(ν, x) * (ν + x) / x
+@adjoint SpecialFunctions.besselix(ν, x) = besselix(ν, x), Δ -> (nothing, ∇besselix(ν, x) * Δ)
+@adjoint SpecialFunctions.loggamma(x) = loggamma(x), Δ -> (digamma(x) * Δ,)
+
 """
 	vmfentropy(d, κ)
 
 Entropy of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
 """
-vmfentropy(d, κ) = .-κ .* besselix(d / 2, κ) ./ besselix(d / 2 - 1, κ) .- ((d ./ 2 .- 1) .* log.(κ) .- (d ./ 2) .* log(2f0π) .- (κ .+ log.(besselix(d / 2 - 1, κ))))
+vmfentropy(d, κ::T) where {T} = vmfentropy(T(d), κ)
+vmfentropy(d::T, κ::T) where {T} = .-κ .* besselix(d / 2, κ) ./ besselix(d / 2 - 1, κ) .- ((d ./ 2 .- 1) .* log.(κ) .- (d ./ 2) .* log(T(2) * π) .- (κ .+ log.(besselix(d / 2 - 1, κ))))
 
 """
 	huentropy(d)
 
 Entropy of a Hyperspherical Uniform distribution with dimensinality `d`
 """
-huentropy(d) = d / 2 * log(1f0π) + log(2f0) - (logabsgamma(d / 2))[1]
+huentropy(d, T) = huentropy(T(d))
+huentropy(d::T) where {T <: AbstractFloat} = d / 2 * log(T(1) * π) + log(T(2)) - (loggamma(d / 2))[1]
 
 # Likelihood estimation of a sample x under VMF with given parameters taken from https://pdfs.semanticscholar.org/2b5b/724fb175f592c1ff919cc61499adb26996b1.pdf
 
@@ -21,7 +27,8 @@ huentropy(d) = d / 2 * log(1f0π) + log(2f0) - (logabsgamma(d / 2))[1]
 
 Likelihood normalizing constant of a Von Mises-Fisher distribution with dimensinality `d` and concentration `κ`
 """
-vmf_norm_const(d, κ) = κ ^ (d / 2 - 1) / ((2f0π) ^ (d / 2) * besseli(d / 2 - 1, κ))
+vmf_norm_const(d, κ::T) where {T} = vmf_norm_const(T(d), κ)
+vmf_norm_const(d::T, κ::T) where {T} = κ ^ (d / 2 - 1) / ((T(2) * π) ^ (d / 2) * besseli(d / 2 - 1, κ))
 
 # log likelihood of one sample under the VMF dist with given parameters
 """
@@ -58,7 +65,7 @@ function sample_vmf(μ::AbstractArray{T}, κ::Union{T, AbstractArray{T}}, dims) 
 	householderrotation(vcat(ω, sqrt.(1 .- ω .^ 2) .* v), μ)
 end
 
-function sampleω(κ::Union{T, AbstractArray{T}}, dims) where {T}
+@nograd function sampleω(κ::Union{T, AbstractArray{T}}, dims) where {T}
 	c = @. sqrt(4κ ^ 2 + (dims - 1) ^ 2)
 	b = @. (-2κ + c) / (dims - 1)
 	a = @. (dims - 1 + 2κ + c) / 4
@@ -67,11 +74,11 @@ function sampleω(κ::Union{T, AbstractArray{T}}, dims) where {T}
 end
 
 function householderrotation(zprime::AbstractArray{T}, μ::AbstractArray{T}) where {T}
-	e1 = similar(μ) .= 0
-	e1[1, :] .= 1
+	# e1 = similar(μ) .= 0
+	e1 = vcat(ones(T, 1, size(μ, 2)), zeros(T, size(μ, 1) - 1, size(μ, 2)))
 	u = e1 .- μ
 	normalizedu = normalizecolumns(u)
-	zprime .- 2 .* sum(zprime .* normalizedu, dims = 1) .* normalizedu
+	zprime .- T(2) .* sum(zprime .* normalizedu, dims = 1) .* normalizedu
 end
 
 function rejectionsampling(dims, a, b, d, κ::Union{T, AbstractArray{T}}) where {T}
