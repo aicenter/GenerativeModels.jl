@@ -57,18 +57,6 @@ function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     Rodent{T}(prior, enc_dist, dec_dist)
 end
 
-# function elbo(m::Rodent, x::AbstractArray)
-#     @show "asdf"
-#     λz = variance(m.prior)
-#     (μz, σz) = mean_var(m.encoder, x)
-#     z = rand(m.encoder, x)
-# 
-#     llh = -mean(loglikelihood(m.decoder, x, z))
-#     kl  = mean(kld(m.encoder, m.prior, x))
-#     llh + kl
-# end
-
-
 struct ConstSpecRodent{T} <: AbstractVAE{T}
     const_prior::Gaussian
     spec_prior::Gaussian
@@ -78,14 +66,14 @@ end
 
 Flux.@functor ConstSpecRodent
 
-function elbo(m::ConstSpecRodent, x::AbstractArray)
+function elbo(m::ConstSpecRodent, x::AbstractArray; β=10)
     cz = rand(m.encoder.cnst) 
     sz = rand(m.encoder.spec, x)
     z  = cz .+ sz
 
     llh = mean(-loglikelihood(m.decoder, x, z))
 
-    ckl = mean(kld(m.encoder.cnst, m.const_prior))
+    ckl = mean(kld(m.encoder.cnst, m.const_prior)) / β
     skl = mean(kld(m.encoder.spec, m.spec_prior, sz))
 
     llh + ckl + skl
