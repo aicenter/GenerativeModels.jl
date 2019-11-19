@@ -8,10 +8,10 @@ using GenerativeModels
 
 if Flux.use_cuda[] using CuArrays end
 
-@warn """Remove `Flux.gpu(x) = identity(x)` from runtests.jl
-         once CUDAdrv does not try to load CUDA anymore even though it
-         is not installed."""
-Flux.gpu(x) = identity(x)
+# @warn """Remove `Flux.gpu(x) = identity(x)` from runtests.jl
+#          once CUDAdrv does not try to load CUDA anymore even though it
+#          is not installed."""
+# Flux.gpu(x) = identity(x)
 
 # set logging to debug to get more test output
 logger = ConsoleLogger(stdout, Logging.Info)

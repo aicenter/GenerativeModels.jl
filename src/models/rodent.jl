@@ -64,17 +64,19 @@ struct ConstSpecRodent{T} <: AbstractVAE{T}
     decoder::CMeanGaussian
 end
 
+ConstSpecRodent(cp::Gaussian{T}, sp::Gaussian{T}, e::ConstSpecGaussian{T}, d::CMeanGaussian{T}) where T =
+    ConstSpecRodent{T}(cp,sp,e,d)
+
 Flux.@functor ConstSpecRodent
 
-function elbo(m::ConstSpecRodent, x::AbstractArray; β=10)
+function elbo(m::ConstSpecRodent, x::AbstractArray)
     cz = rand(m.encoder.cnst) 
     sz = rand(m.encoder.spec, x)
     z  = cz .+ sz
 
-    llh = mean(-loglikelihood(m.decoder, x, z))
-
-    ckl = mean(kld(m.encoder.cnst, m.const_prior)) / β
-    skl = mean(kld(m.encoder.spec, m.spec_prior, sz))
+    llh = sum(-loglikelihood(m.decoder, x, z))
+    ckl = sum(kld(m.encoder.cnst, m.const_prior))
+    skl = sum(kld(m.encoder.spec, m.spec_prior, sz))
 
     llh + ckl + skl
 end

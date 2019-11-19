@@ -5,10 +5,12 @@ export ConstSpecGaussian
 
 # TODO: maybe rename const parts, as it is not really constant during training?
 
-struct ConstSpecGaussian
+struct ConstSpecGaussian{T} <: AbstractCPDF{T}
     cnst::AbstractPDF
     spec::AbstractCPDF
 end
+
+ConstSpecGaussian(c::AbstractPDF{T}, s::AbstractCPDF{T}) where T = ConstSpecGaussian{T}(c,s)
 
 Flux.@functor ConstSpecGaussian
 
