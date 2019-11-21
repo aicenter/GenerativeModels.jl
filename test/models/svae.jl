@@ -10,7 +10,7 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) 
 
         enc = GenerativeModels.ae_layer_builder([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CMeanVarVMF{T}(enc, zlen)
+        enc_dist = CMeanConcVMF{T}(enc, zlen)
 
         dec = GenerativeModels.ae_layer_builder([zlen, 10, 10, xlen], relu, Dense)
         dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))

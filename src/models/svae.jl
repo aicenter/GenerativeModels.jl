@@ -8,8 +8,8 @@ HyperSpherical Variational Auto-Encoder.
 # Example
 Create an S-VAE with either HSU prior or VMF prior with μ = [1, 0, ..., 0] and κ = 1 with:
 ```julia-repl
-julia> enc = CMeanVarVMF{Float32}(Dense(5,4), 3)
-CMeanVarVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dense(4, 3), #51), κ_from_hidden=Dense(4, 1, #52))
+julia> enc = CMeanConcVMF{Float32}(Dense(5,4), 3)
+CMeanConcVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dense(4, 3), #51), κ_from_hidden=Dense(4, 1, #52))
 
 julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(3, 6))
 CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(3, 6))
@@ -17,7 +17,7 @@ CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(3, 6))
 julia> svae = SVAE(HypersphericalUniform{Float32}(3), enc, dec)
 SVAE{Float32}:
  prior   = HypersphericalUniform{Float32}(3)
- encoder = (CMeanVarVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dens...)
+ encoder = (CMeanConcVMF{Float32}(mapping=Dense(5, 4), μ_from_hidden=Chain(Dens...)
  decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(3, 6))
 
 julia> mean(svae.decoder, mean(svae.encoder, rand(5, 1)))
