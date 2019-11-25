@@ -39,7 +39,7 @@ module GenerativeModels
     include(joinpath("pdfs", "cmean_gaussian.jl"))
     include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
     include(joinpath("pdfs", "abstract_cvmf.jl"))
-    include(joinpath("pdfs", "cmeanvar_vmf.jl"))
+    include(joinpath("pdfs", "cmeanconc_vmf.jl"))
 
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
