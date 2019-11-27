@@ -16,14 +16,19 @@ z = vcat(destructure(dec.model), u0).
 """
 mutable struct FluxODEDecoder
     slength::Int
-    tlength::Int
     timesteps::Vector
     model
+    output_fn::Function
+end
+
+function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model, output_fn::Function)
+    timesteps = range(tspan[1], stop=tspan[2], length=tlength)
+    FluxODEDecoder(slength, timesteps, model, output_fn)
 end
 
 function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model)
-    timesteps = range(tspan[1], stop=tspan[2], length=tlength)
-    FluxODEDecoder(slength, tlength, timesteps, model)
+    output_fn(sol) = reshape(hcat(sol.u...), :)
+    FluxODEDecoder(slength, tlength, tspan, model, output_fn)
 end
 
 function (dec::FluxODEDecoder)(z::AbstractVector)
@@ -35,7 +40,7 @@ function (dec::FluxODEDecoder)(z::AbstractVector)
     dudt_(u::AbstractVector, ps, t) = dec.model(u)
     prob = ODEProblem(dudt_, u0, tspan, ps)
     sol = solve(prob, Tsit5(), saveat=dec.timesteps)
-    reshape(hcat(sol.u...), :)
+    dec.output_fn(sol)
 end
 
 # Use loop to get batched reconstructions so that jacobian and @adjoint work...

@@ -32,7 +32,7 @@ julia> rand(p, ones(2))
  0.0767166501426535
 ```
 """
-struct CMeanGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
+mutable struct CMeanGaussian{T,V<:AbstractVar} <: AbstractCGaussian{T}
     mapping
     σ::AbstractArray{T}
     xlength::Int
