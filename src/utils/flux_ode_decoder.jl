@@ -10,28 +10,32 @@ z = vcat(destructure(dec.model), u0).
 
 # Arguments
 * `slength::Int`: length of the ODE state
-* `tlength::Int`: number of timesteps
 * `timesteps::Vector`: timesteps at which ODE solution is checkpointed
 * `model`: Flux model
+* `observe`: Observations operator. Function that receives ODESolution and
+  outputs the observation. Default: observe(sol) = reshape(hcat(sol.u...),:)
 """
 mutable struct FluxODEDecoder
     slength::Int
     timesteps::Vector
     model
-    output_fn::Function
+    observe::Function
+    _zlength::Int
 end
 
-function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model, output_fn::Function)
+function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model, observe::Function)
     timesteps = range(tspan[1], stop=tspan[2], length=tlength)
-    FluxODEDecoder(slength, timesteps, model, output_fn)
+    _zlength = length(destructure(model)) + slength
+    FluxODEDecoder(slength, timesteps, model, observe, _zlength)
 end
 
 function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model)
-    output_fn(sol) = reshape(hcat(sol.u...), :)
-    FluxODEDecoder(slength, tlength, tspan, model, output_fn)
+    observe(sol) = reshape(hcat(sol.u...), :)
+    FluxODEDecoder(slength, tlength, tspan, model, observe)
 end
 
-function (dec::FluxODEDecoder)(z::AbstractVector)
+function (dec::FluxODEDecoder)(z::AbstractVector, observe::Function)
+    @assert length(z) == dec._zlength
     ps = z[1:end-dec.slength]
     u0 = z[end-dec.slength+1:end]
     dec.model = restructure(dec.model, ps)
@@ -40,8 +44,11 @@ function (dec::FluxODEDecoder)(z::AbstractVector)
     dudt_(u::AbstractVector, ps, t) = dec.model(u)
     prob = ODEProblem(dudt_, u0, tspan, ps)
     sol = solve(prob, Tsit5(), saveat=dec.timesteps)
-    dec.output_fn(sol)
+    observe(sol)
 end
+
+# by default call with stored observe function
+(dec::FluxODEDecoder)(z::AbstractVector) = dec(z, dec.observe)
 
 # Use loop to get batched reconstructions so that jacobian and @adjoint work...
 (dec::FluxODEDecoder)(Z::AbstractMatrix) = hcat([dec(Z[:,ii]) for ii in 1:size(Z,2)]...)
