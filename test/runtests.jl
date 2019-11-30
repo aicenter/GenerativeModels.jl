@@ -3,7 +3,9 @@ using Suppressor
 using Logging
 using Parameters
 using Random
+using BSON
 using DrWatson
+using ValueHistories
 
 using Flux
 using ForwardDiff
@@ -12,11 +14,6 @@ using Revise
 using GenerativeModels
 
 if Flux.use_cuda[] using CuArrays end
-
-# @warn """Remove `Flux.gpu(x) = identity(x)` from runtests.jl
-#          once CUDAdrv does not try to load CUDA anymore even though it
-#          is not installed."""
-# Flux.gpu(x) = identity(x)
 
 # set logging to debug to get more test output
 logger = ConsoleLogger(stdout, Logging.Info)
@@ -39,4 +36,5 @@ include(joinpath("models", "rodent.jl"))
 
 include(joinpath("utils", "nogradarray.jl"))
 include(joinpath("utils", "flux_ode_decoder.jl"))
+include(joinpath("utils", "saveload.jl"))
 include(joinpath("utils", "utils.jl"))

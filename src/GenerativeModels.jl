@@ -1,10 +1,13 @@
 module GenerativeModels
 
     using Random
+    using BSON
+    using DrWatson
+    using ValueHistories
     using Flux
-    using Zygote: @nograd, @adjoint
-
     using ForwardDiff
+
+    using Zygote: @nograd, @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
 
@@ -22,6 +25,7 @@ module GenerativeModels
 
     include(joinpath("utils", "nogradarray.jl"))
     include(joinpath("utils", "flux_ode_decoder.jl"))
+    include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
 
     include(joinpath("pdfs", "abstract_pdfs.jl"))
