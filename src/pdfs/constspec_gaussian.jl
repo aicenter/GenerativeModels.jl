@@ -22,14 +22,14 @@ spec_mean(p::ConstSpecGaussian, z::AbstractArray) = mean(p.spec, z)
 spec_variance(p::ConstSpecGaussian, z::AbstractArray) = variance(p.spec, z)
 spec_mean_var(p::ConstSpecGaussian, z::AbstractArray) = mean_var(p.spec, z)
 
-mean(p::ConstSpecGaussian, z::AbstractArray) = const_mean(p) .+ spec_mean(p,z)
-variance(p::ConstSpecGaussian, z::AbstractArray) = error("Not defined.")
-mean_var(p::ConstSpecGaussian, z::AbstractArray) = error("Not defined.")
+mean(p::ConstSpecGaussian, z::AbstractArray) = vcat(repeat(const_mean(p), batch), spec_mean(p,z))
+variance(p::ConstSpecGaussian, z::AbstractArray) = vcat(...)
+mean_var(p::ConstSpecGaussian, z::AbstractArray) = vcat(...)
 
 function rand(p::ConstSpecGaussian, z::AbstractArray)
     cr = rand(p.cnst)
     sr = rand(p.spec, z)
-    sr .+ cr
+    vcat(repeat(cr, batch), sr)
 end
 
 function loglikelihood(p::ConstSpecGaussian, x::AbstractArray, z::AbstractArray)
