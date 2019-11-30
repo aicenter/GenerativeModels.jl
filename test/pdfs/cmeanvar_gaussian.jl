@@ -1,4 +1,4 @@
-@testset "src/cgaussian.jl" begin
+@testset "src/cmeanvar_gaussian.jl" begin
 
     xlen = 3
     zlen = 2

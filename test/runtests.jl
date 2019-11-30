@@ -1,7 +1,12 @@
-using Test, Suppressor, Logging, Parameters, Random
-using BSON, DrWatson, ValueHistories
-using Flux, Zygote, ForwardDiff
-using DiffEqBase, OrdinaryDiffEq
+using Test
+using Suppressor
+using Logging
+using Parameters
+using Random
+using DrWatson
+
+using Flux
+using ForwardDiff
 
 using Revise
 using GenerativeModels
@@ -22,6 +27,7 @@ get_params(model) =  map(copy, collect(params(model)))
 param_change(frozen_params, model) = 
 	map(x-> x[1] != x[2], zip(frozen_params, collect(params(model))))
 
+
 include(joinpath("pdfs", "abstract_pdf.jl"))
 include(joinpath("pdfs", "gaussian.jl"))
 include(joinpath("pdfs", "cmean_gaussian.jl"))
@@ -31,7 +37,6 @@ include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
 include(joinpath("models", "rodent.jl"))
 
-include(joinpath("utils", "utils.jl"))
-include(joinpath("utils", "saveload.jl"))
 include(joinpath("utils", "nogradarray.jl"))
 include(joinpath("utils", "flux_ode_decoder.jl"))
+include(joinpath("utils", "utils.jl"))

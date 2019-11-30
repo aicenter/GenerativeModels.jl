@@ -1,4 +1,4 @@
-@testset "pdfs/svar_gaussian.jl" begin
+@testset "pdfs/cmean_gaussian.jl" begin
 
     xlen  = 3
     zlen  = 2

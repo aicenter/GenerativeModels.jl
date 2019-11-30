@@ -1,5 +1,5 @@
 export Gaussian
-export mean_var, rand, loglikelihood, kld, length
+export mean_var, loglikelihood, kld
 
 """
     Gaussian{T}
