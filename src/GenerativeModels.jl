@@ -6,10 +6,13 @@ module GenerativeModels
     using ValueHistories
     using Flux
     using ForwardDiff
+    using ConditionalDists
+    using IPMeasures
 
-    using Zygote: @nograd, @adjoint
+    using Flux: @adjoint
     using DiffEqBase: ODEProblem, solve
     using OrdinaryDiffEq: Tsit5
+    using ConditionalDists: AbstractPDF, AbstractCPDF
 
     abstract type AbstractGM end
     abstract type AbstractVAE{T<:Real} <: AbstractGM end
@@ -20,20 +23,9 @@ module GenerativeModels
     import Random.rand
     import Statistics.mean
 
-    # needed to make e.g. sampling work
-    @nograd similar, randn!, fill!
-
-    include(joinpath("utils", "nogradarray.jl"))
     include(joinpath("utils", "flux_ode_decoder.jl"))
     include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
-
-    include(joinpath("pdfs", "abstract_pdfs.jl"))
-    include(joinpath("pdfs", "gaussian.jl"))
-    include(joinpath("pdfs", "abstract_cgaussian.jl"))
-    include(joinpath("pdfs", "cmean_gaussian.jl"))
-    include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
-    include(joinpath("pdfs", "constspec_gaussian.jl"))
 
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "rodent.jl"))
