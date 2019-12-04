@@ -11,11 +11,11 @@
         p  = CMeanGaussian{T,DiagVar}(mapping, var) |> gpu
         z  = randn(T, zlen, batch) |> gpu
         μx = mean(p, z)
-        σ2 = variance(p)
+        σ2 = variance(p, z)
         x  = rand(p, z)
 
         @test size(μx) == (xlen, batch)
-        @test size(σ2) == size(var)
+        @test size(σ2) == (xlen, batch)
         @test size(x) == (xlen, batch)
         @test length(params(p)) == 2
         @test size(loglikelihood(p, x, z)) == (1, batch)
@@ -27,6 +27,13 @@
         msg = @capture_out show(p)
         @test occursin("CMeanGaussian", msg)
 
+        # test gradient
+        loss() = sum(mean(p,z) .+ variance(p,z))
+        ps = params(p)
+        gs = Flux.gradient(loss, ps)
+        for _p in ps
+            @test all(abs.(gs[_p]) .> 0)
+        end
     end
 
     @testset "ScalarVar" begin
@@ -36,11 +43,11 @@
         p  = CMeanGaussian{T,ScalarVar}(mapping, var, xlen) |> gpu
         z  = randn(T, zlen, batch) |> gpu
         μx = mean(p, z)
-        σ2 = variance(p)
+        σ2 = variance(p, z)
         x  = rand(p, z)
 
         @test size(μx) == (xlen, batch)
-        @test size(σ2) == (xlen,)
+        @test size(σ2) == (xlen, batch)
         @test size(x) == (xlen, batch)
         @test length(params(p)) == 3
         @test size(loglikelihood(p, x, z)) == (1, batch)

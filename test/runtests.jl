@@ -29,6 +29,7 @@ include(joinpath("pdfs", "abstract_pdf.jl"))
 include(joinpath("pdfs", "gaussian.jl"))
 include(joinpath("pdfs", "cmean_gaussian.jl"))
 include(joinpath("pdfs", "cmeanvar_gaussian.jl"))
+include(joinpath("pdfs", "constspec_gaussian.jl"))
 
 include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
