@@ -1,5 +1,4 @@
-export Rodent
-export make_ode_decoder
+export Rodent, ConstSpecRodent
 
 """
     Rodent{T}(p::Gaussian{T}, e::CMeanGaussian{T}, d::CMeanGaussian{T})
@@ -41,7 +40,8 @@ end
 
 Flux.@functor Rodent
 
-Rodent(p::Gaussian{T}, e::CMeanGaussian{T}, d::CMeanGaussian{T}) where T = Rodent{T}(p, e, d)
+Rodent(p::Gaussian{T}, e::CMeanGaussian{T}, d::CMeanGaussian{T}) where T =
+    Rodent{T}(p, e, d)
 
 function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     λ2z = ones(T, zlen)
@@ -57,13 +57,36 @@ function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     Rodent{T}(prior, enc_dist, dec_dist)
 end
 
-# function elbo(m::Rodent, x::AbstractArray)
-#     @show "asdf"
-#     λz = variance(m.prior)
-#     (μz, σz) = mean_var(m.encoder, x)
-#     z = rand(m.encoder, x)
-# 
-#     llh = -mean(loglikelihood(m.decoder, x, z))
-#     kl  = mean(kld(m.encoder, m.prior, x))
-#     llh + kl
-# end
+struct ConstSpecRodent{T} <: AbstractVAE{T}
+    const_prior::Gaussian
+    spec_prior::Gaussian
+    encoder::ConstSpecGaussian
+    decoder::CMeanGaussian
+end
+
+ConstSpecRodent(cp::Gaussian{T}, sp::Gaussian{T}, e::ConstSpecGaussian{T}, d::CMeanGaussian{T}) where T =
+    ConstSpecRodent{T}(cp,sp,e,d)
+
+Flux.@functor ConstSpecRodent
+
+function elbo(m::ConstSpecRodent, x::AbstractArray)
+    cz = rand(m.encoder.cnst) 
+    sz = rand(m.encoder.spec, x)
+    z  = cz .+ sz
+
+    llh = sum(-loglikelihood(m.decoder, x, z))
+    ckl = sum(kld(m.encoder.cnst, m.const_prior))
+    skl = sum(kld(m.encoder.spec, m.spec_prior, sz))
+
+    llh + ckl + skl
+end
+
+function Base.show(io::IO, m::ConstSpecRodent)
+    msg = """$(typeof(m)):
+     const_prior = $(summary(m.const_prior)))
+     spec_prior = $(summary(m.spec_prior))
+     encoder = $(summary(m.encoder))
+     decoder = $(summary(m.decoder))
+    """
+    print(io, msg)
+end

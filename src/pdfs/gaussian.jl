@@ -1,5 +1,5 @@
 export Gaussian
-export mean_var, rand, loglikelihood, kld, length
+export mean_var, loglikelihood, kld
 
 """
     Gaussian{T}
@@ -64,11 +64,20 @@ function loglikelihood(p::Gaussian{T}, x::AbstractArray{T}) where T
     - (sum((x .- μ).^2 ./ σ2, dims=1) .+ sum(log.(σ2) .+ T(log(2π)))) ./ 2
 end
 
+function _kld_gaussian(μ1::AbstractArray, σ1::AbstractArray,
+                       μ2::AbstractArray, σ2::AbstractArray)
+    @assert size(μ1, 1) == size(μ2, 1)
+    k  = size(μ1, 1)
+    m1 = sum(σ1 ./ σ2, dims=1)
+    m2 = sum((μ2 .- μ1).^2 ./ σ2, dims=1)
+    m3 = sum(log.(σ2 ./ σ1), dims=1)
+    (m1 .+ m2 .+ m3 .- k) ./ 2
+end
+
 function kld(p::Gaussian, q::Gaussian)
     (μ1, σ1) = mean_var(p)
     (μ2, σ2) = mean_var(q)
-    k = length(p)
-    (-k + sum(log.(σ2 ./ σ1)) + sum(σ1 ./ σ2) .+ sum((μ2 - μ1).^2 ./ σ1, dims=1)) ./ 2
+    _kld_gaussian(μ1, σ1, μ2, σ2)
 end
 
 function Base.show(io::IO, p::Gaussian{T}) where T

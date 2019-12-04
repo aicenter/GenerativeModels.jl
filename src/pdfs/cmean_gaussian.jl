@@ -48,11 +48,18 @@ end
 CMeanGaussian{T,DiagVar}(m, σ) where T = CMeanGaussian{T,DiagVar}(m, σ, size(σ,1))
 
 mean(p::CMeanGaussian, z::AbstractArray) = p.mapping(z)
-# TODO: use softplus_safe
-variance(p::CMeanGaussian{T,DiagVar}) where T = p.σ .* p.σ
-variance(p::CMeanGaussian{T,ScalarVar}) where T = p.σ .* p.σ .* fill!(similar(p.σ, p.xlength), 1)
-variance(p::CMeanGaussian, z::AbstractArray) = variance(p)
-mean_var(p::CMeanGaussian, z::AbstractArray) = (mean(p, z), variance(p))
+
+function variance(p::CMeanGaussian{T,DiagVar}, z::AbstractArray) where T
+    σ2 = p.σ .* p.σ
+    repeat(σ2, outer=(1,size(z,2)))
+end
+
+function variance(p::CMeanGaussian{T,ScalarVar}, z::AbstractArray) where T
+    σ2 = p.σ .* p.σ .* fill!(similar(p.σ, p.xlength), 1)
+    repeat(σ2, outer=(1,size(z,2)))
+end
+
+mean_var(p::CMeanGaussian, z::AbstractArray) = (mean(p, z), variance(p, z))
 
 # make sure that parameteric constructor is called...
 function Flux.functor(p::CMeanGaussian{T,V}) where {T,V}
@@ -69,6 +76,6 @@ end
 function Base.show(io::IO, p::CMeanGaussian{T}) where T
     e = repr(p.mapping)
     e = sizeof(e)>50 ? "($(e[1:47])...)" : e
-    m = "CMeanGaussian{$T}(mapping=$e, σ2=$(summary(variance(p)))"
+    m = "CMeanGaussian{$T}(mapping=$e, σ2=$(summary(p.σ))"
     print(io, m)
 end

@@ -1,4 +1,4 @@
-export loglikelihood, kld, rand, xlength, zlength
+export loglikelihood, kld, rand
 export AbstractVar, DiagVar, ScalarVar, UnitVar
 
 abstract type AbstractCGaussian{T} <: AbstractCPDF{T} end
@@ -26,13 +26,8 @@ function loglikelihood(p::AbstractCGaussian{T}, x::AbstractArray, z::AbstractArr
     -sum(y, dims=1) / 2
 end
 
-function kld(p::AbstractCGaussian{T}, q::Gaussian{T}, z::AbstractArray) where T
+function kld(p::AbstractCGaussian, q::Gaussian, z::AbstractArray)
     (μ1, σ1) = mean_var(p, z)
     (μ2, σ2) = mean_var(q)
-    m1 = mean(log.(σ2 ./ σ1), dims=1)
-    m2 = mean(σ1 ./ σ2, dims=1)
-    d  = μ2 .- μ1
-    dd = d .* d
-    m3 = mean(dd ./ σ2, dims=1)
-    m1 .+ m2 .+ m3
+    _kld_gaussian(μ1, σ1, μ2, σ2)
 end

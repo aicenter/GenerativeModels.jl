@@ -1,4 +1,4 @@
-@testset "utils/nalu_ode_decoder.jl" begin
+@testset "utils/flux_ode_decoder.jl" begin
 
     slength = 2
     xlength = 10
@@ -15,7 +15,7 @@
     @test length(x) == xlength*slength
 
     loss(z) = sum(dec(z))
-    gs = Zygote.gradient(loss, z)
+    gs = Flux.gradient(loss, z)
 
     @test length(gs) == 1
     @test length(gs[1]) == 8

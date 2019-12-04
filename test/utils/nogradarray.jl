@@ -33,7 +33,7 @@
         ps = params(vae)
         @test length(ps) == 5
         
-        gs = Zygote.gradient(loss, ps)
+        gs = Flux.gradient(loss, ps)
         for p in ps
             @test haskey(gs, p)
         end
