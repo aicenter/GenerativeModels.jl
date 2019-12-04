@@ -1,4 +1,4 @@
-export loglikelihood, kld, rand
+export loglikelihood
 export const_mean, const_variance, const_mean_var
 export spec_mean, spec_variance, spec_mean_var
 export ConstSpecGaussian
@@ -17,20 +17,28 @@ Flux.@functor ConstSpecGaussian
 const_mean(p::ConstSpecGaussian) = mean(p.cnst)
 const_variance(p::ConstSpecGaussian) = variance(p.cnst)
 const_mean_var(p::ConstSpecGaussian) = mean_var(p.cnst)
+const_rand(p::ConstSpecGaussian) = rand(p.cnst)
 
 spec_mean(p::ConstSpecGaussian, z::AbstractArray) = mean(p.spec, z)
 spec_variance(p::ConstSpecGaussian, z::AbstractArray) = variance(p.spec, z)
 spec_mean_var(p::ConstSpecGaussian, z::AbstractArray) = mean_var(p.spec, z)
+spec_rand(p::ConstSpecGaussian, z::AbstractArray) = rand(p.spec, z)
 
-mean(p::ConstSpecGaussian, z::AbstractArray) = const_mean(p) .+ spec_mean(p,z)
-variance(p::ConstSpecGaussian, z::AbstractArray) = error("Not defined.")
-mean_var(p::ConstSpecGaussian, z::AbstractArray) = error("Not defined.")
-
-function rand(p::ConstSpecGaussian, z::AbstractArray)
-    cr = rand(p.cnst)
-    sr = rand(p.spec, z)
-    sr .+ cr
+function mean(p::ConstSpecGaussian, z::AbstractArray)
+    μc = repeat(const_mean(p), 1, size(z,2))
+    μs = spec_mean(p, z)
+    (μc, μs)
 end
+
+function variance(p::ConstSpecGaussian, z::AbstractArray)
+    σc = repeat(const_variance(p), 1, size(z,2))
+    σs = spec_variance(p, z)
+    (σc, σs)
+end
+
+mean_var(p::ConstSpecGaussian, z::AbstractArray) = (mean(p,z), variance(p,z))
+
+rand(p::ConstSpecGaussian, z::AbstractArray) = (const_rand(p), spec_rand(p,z))
 
 function loglikelihood(p::ConstSpecGaussian, x::AbstractArray, z::AbstractArray)
     cllh = loglikelihood(p.cnst, x)
