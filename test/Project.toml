@@ -1,7 +1,6 @@
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 CuArrays = "3a865a2d-5b23-5a0f-bc46-62713ec82fae"
-Debugger = "31a5f54b-26ea-5ae9-a837-f05ce5417438"
 DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
 DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
