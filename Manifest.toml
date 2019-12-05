@@ -112,6 +112,7 @@ version = "1.3.0"
 [[ConditionalDists]]
 deps = ["Flux", "Random", "Statistics"]
 git-tree-sha1 = "988b7acc38d2001829758762c539837f259054ee"
+
 repo-rev = "master"
 repo-url = "https://github.com/aicenter/ConditionalDists.jl"
 uuid = "c648c4dd-c1e0-49a6-84b9-144ae7fd2468"
