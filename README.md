@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.com/aicenter/GenerativeModels.jl.svg?branch=master)](https://travis-ci.com/aicenter/GenerativeModels.jl)
-[![codecov](https://codecov.io/gh/aicenter/GenerativeModels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/nmheim/GenerativeModels.jl)
+[![codecov](https://codecov.io/gh/aicenter/GenerativeModels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/aicenter/GenerativeModels.jl)
 
 # GenerativeModels.jl
 
