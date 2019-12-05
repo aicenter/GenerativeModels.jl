@@ -1,13 +1,15 @@
 module GenerativeModels
 
+    using Reexport
     using Random
     using BSON
     using DrWatson
     using ValueHistories
     using Flux
     using ForwardDiff
-    using ConditionalDists
-    using IPMeasures
+    @reexport using ConditionalDists
+    @reexport using IPMeasures
+
 
     using Flux: @adjoint
     using DiffEqBase: ODEProblem, solve
