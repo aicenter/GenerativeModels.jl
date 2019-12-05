@@ -75,8 +75,8 @@ function elbo(m::ConstSpecRodent, x::AbstractArray)
     z  = cz .+ sz
 
     llh = sum(-loglikelihood(m.decoder, x, z))
-    ckl = sum(kld(m.encoder.cnst, m.const_prior))
-    skl = sum(kld(m.encoder.spec, m.spec_prior, sz))
+    ckl = sum(kl_divergence(m.encoder.cnst, m.const_prior))
+    skl = sum(kl_divergence(m.encoder.spec, m.spec_prior, sz))
 
     llh + ckl + skl
 end

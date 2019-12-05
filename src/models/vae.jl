@@ -55,8 +55,8 @@ Evidence lower boundary of the VAE model. `β` scales the KLD term.
 function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     z = rand(m.encoder, x)
     llh = mean(-loglikelihood(m.decoder, x, z))
-    kl  = mean(kld(m.encoder, m.prior, x))
-    llh + β*kl
+    kld = mean(kl_divergence(m.encoder, m.prior, x))
+    llh + β*kld
 end
 
 """
