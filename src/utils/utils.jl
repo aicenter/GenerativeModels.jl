@@ -9,13 +9,6 @@ A softplus with small additive constant for safe operations.
 """
 softplus_safe(x,T=Float32) = softplus(x) .+ T(1e-6)
 
-"""
-    freeze(m)
-
-Creates a non-trainable copy of a Flux object.
-"""
-freeze(m) = Flux.mapleaves(Flux.Tracker.data,m)
-
 ### Flux chain builders ###
 """
     function layer_builder(d,k,o,n,ftype,lastlayer = "",ltype = "Dense")
@@ -44,41 +37,30 @@ function layer_builder(ks::Vector{Int},ftype::String,lastlayer::String = "",ltyp
 end
 
 """
-    ae_layer_builder(lsize, activation, layer[; last=identity])
+    stack_layers(lsize, activation, [layer=Dense; last=identity])
 
-Construct encoder/decoder consisting of `length(lsize)-1` layers of type `layer` with 
-`activation` in between. Default last activation is `identity`. Width of layers is defined
-by the vector `lsize`.
+Construct a Flux chain (e.g. encoder/decoder) consisting of `length(lsize)-1` layers of 
+type `layer` with  `activation` in between. Default last activation is `identity`. 
+Width of layers is defined by the vector `lsize`.
 """
-ae_layer_builder(lsize::Vector, activation, layer; last=identity) =  
+stack_layers(lsize::Vector, activation, layer=Dense; last=identity) =  
     layer_builder(lsize, 
         Array{Any}(fill(layer, size(lsize,1)-1)), 
         Array{Any}([fill(activation, size(lsize,1)-2); last]))
 
 ### training ###
 """
-    update(model, optimiser)
-
-Update model parameters using optimiser.
-"""
-function update!(model, optimiser)
-    for p in params(model)
-        Δ = Flux.Optimise.apply!(optimiser, p.data, p.grad)
-        p.data .-= Δ
-        p.grad .= 0
-    end
-end
-
-"""
-    loss_back_update!(model, data, loss, opt)
+    update_params!(model, data, loss, opt)
 
 Basic training step - computation of the loss, backpropagation of gradients and optimisation 
 of weights. The loss and opt arguments can be arrays/lists/tuples.
 """
-function loss_back_update!(model, data, loss, opt)
-    l = loss(data)
-    Flux.Tracker.back!(l)
-    update!(model, opt)
+function update_params!(model, data, loss, opt)
+    ps = Flux.params(model)
+    gs = gradient(ps) do
+        loss(data...)
+    end
+    Flux.Optimise.update!(opt, ps, gs)
 end 
 
 """
