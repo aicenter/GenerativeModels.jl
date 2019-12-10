@@ -45,9 +45,9 @@ end
 Loss of the GAN generator. The input is either the random code `z` or `batchsize` 
 of samples to generate from the model prior and compute the loss from.
 """
-generator_loss(m::GAN{T}, z::AbstractArray) where T = generator_loss(T,freeze(m.discriminator.mapping)(mean(m.generator,z)))
+generator_loss(m::GAN{T}, z::AbstractArray) where T = 
+    generator_loss(T, m.discriminator.mapping(mean(m.generator,z)))
 generator_loss(m::GAN{T}, batchsize::Int) where T = generator_loss(m, rand(m.prior, batchsize))
-
 
 """
 	discriminator_loss(m::GAN, x::AbstractArray[, z::AbstractArray])
@@ -55,7 +55,8 @@ generator_loss(m::GAN{T}, batchsize::Int) where T = generator_loss(m, rand(m.pri
 Loss of the GAN discriminator given a batch of training samples `x` and latent prior samples `z`.
 If z is not given, it is automatically generated from the model prior.
 """
-discriminator_loss(m::GAN{T}, x::AbstractArray, z::AbstractArray) where T = discriminator_loss(T, mean(m.discriminator,x), mean(m.discriminator, freeze(m.generator.mapping)(z)))
+discriminator_loss(m::GAN{T}, x::AbstractArray, z::AbstractArray) where T = 
+    discriminator_loss(T, mean(m.discriminator,x), mean(m.discriminator, m.generator.mapping(z)))
 discriminator_loss(m::GAN{T}, x::AbstractArray) where T = discriminator_loss(m, x, rand(m.prior, size(x,2)))
 
 function Base.show(io::IO, m::AbstractGAN{T}) where T
