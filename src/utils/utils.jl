@@ -43,8 +43,8 @@ Construct a Flux chain (e.g. encoder/decoder) consisting of `length(lsize)-1` la
 type `layer` with  `activation` in between. Default last activation is `identity`. 
 Width of layers is defined by the vector `lsize`.
 """
-stack_layers(lsize::Vector, activation, layer=Dense; last=identity) =  
-    layer_builder(lsize, 
+stack_layers(lsize::Union{Vector, Tuple}, activation, layer=Dense; last=identity) =  
+    layer_builder([x for x in lsize], 
         Array{Any}(fill(layer, size(lsize,1)-1)), 
         Array{Any}([fill(activation, size(lsize,1)-2); last]))
 
@@ -64,7 +64,7 @@ Constructs a convolutional encoder.
 
 # Example
 ```julia-repl
-julia> encoder = conv_encoder((64, 48, 1), 2, (3, 5, 5), (2, 4, 8), (2, 2, 2))
+julia> encoder = conv_encoder((64, 48, 1), 2, (3, 5, 5), (2, 4, 8), (2, 2, 2), densedims = (256))
 Chain(Conv((3, 3), 1=>2, relu), MaxPool((2, 2), pad = (0, 0, 0, 0), stride = (2, 2)), Conv((5, 5), 2=>4, relu), MaxPool((2, 2), pad = (0, 0, 0, 0), stride = (2, 2)), Conv((5, 5), 4=>8, relu), MaxPool((2, 2), pad = (0, 0, 0, 0), stride = (2, 2)), #44, Dense(384, 2))
 
 julia> encoder(randn(Float32, 64, 48, 1, 2))
@@ -132,8 +132,8 @@ Constructs a convolutional encoder.
 
 # Example
 ```julia-repl
-julia> decoder = conv_decoder((64, 48, 1), 2, (3, 5, 5), (2, 4, 8), (2, 2, 2))
-Chain(Dense(2, 96, relu), #77, ConvTranspose((2, 2), 2=>2, relu), Conv((3, 3), 2=>4, relu), ConvTranspose((2, 2), 4=>4, relu), Conv((5, 5), 4=>8, relu), ConvTranspose((2, 2), 8=>8, relu), Conv((5, 5), 8=>1))
+julia> decoder = conv_decoder((64, 48, 1), 2, (5, 5, 3), (8, 4, 2), (2, 2, 2); densedims = (256))
+Chain(Dense(2, 256, relu), Dense(256, 384, relu), #19, ConvTranspose((2, 2), 8=>8, relu), Conv((5, 5), 8=>4, relu), ConvTranspose((2, 2), 4=>4, relu), Conv((5, 5), 4=>2, relu), ConvTranspose((2, 2), 2=>2, relu), Conv((3, 3), 2=>1))
 
 julia> y = decoder(randn(Float32, 2, 2));
 
