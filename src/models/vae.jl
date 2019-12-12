@@ -1,5 +1,5 @@
 export VAE
-export elbo, mmd
+export elbo, mmd_mean, mmd_rand
 
 """
     VAE{T}([prior::Gaussian, zlen::Int] encoder::AbstractCPDF, decoder::AbstractCPDF)
@@ -59,12 +59,22 @@ function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     llh + β*kld
 end
 
+# mmd via IPMeasures
 """
-    mmd(m::AbstractVAE, x::AbstractArray, k)
+    mmd_mean(m::AbstractVAE, x::AbstractArray, k[; distance])
 
-Maximum mean discrepancy of a VAE model given data `x` and kernel function `k(x,y)`.
+Maximum mean discrepancy of a VAE given data `x` and kernel function `k(x,y)`. Uses mean of encoded data.
 """
-mmd(m::AbstractVAE, x::AbstractArray, k) = mmd(m.encoder, m.prior, x, k)
+mmd_mean(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) = 
+    mmd(k, mean(m.encoder, x), rand(m.prior, size(x, 2)))
+
+"""
+    mmd_rand(m::AbstractVAE, x::AbstractArray, k[; distance])
+
+Maximum mean discrepancy of a VAE given data `x` and kernel function `k(x,y)`. Samples from the encoder.
+"""
+mmd_rand(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) = 
+    mmd(k, rand(m.encoder, x), rand(m.prior, size(x, 2)))
 
 function Base.show(io::IO, m::AbstractVAE{T}) where T
     p = repr(m.prior)

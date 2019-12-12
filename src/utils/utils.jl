@@ -229,47 +229,6 @@ function train!(model, data, loss, optimiser, callback;
     end
 end
 
-
-### MMD ###
-"""
-    rbf(x,y,σ)
-
-Gaussian kernel of x and y.
-"""
-function rbf(x,y,σ)
-    d = x-y
-    exp.(-(sum(d .* d,dims=1)/(2*σ)))
-end
-#rbf(x,y,σ) = exp.(-(sum((x-y).^2,dims=1)/(2*σ)))
-
-
-"""
-    imq(x,y,σ)
-
-Inverse multiquadratics kernel of x and y.    
-"""
-function imq(x,y,σ)
-    d = x-y
-    σ./(σ.+sum((d .* d),dims=1))
-end
-#imq(x,y,σ) = σ./(σ.+sum(((x-y).^2),dims=1))
-
-"""
-    ekxy(k,X,Y[,σ])
-
-E_{x in X,y in Y}[k(x,y[,σ])] - mean value of kernel k.
-"""
-ekxy(k,X,Y,σ) = mean(k(X,Y,σ))
-ekxy(k,X,Y) = mean(k(X,Y))
-
-"""
-    MMD(k,X,Y[,σ])
-
-Maximum mean discrepancy for samples X and Y given kernel k and parameter σ.    
-"""
-mmd(k,X,Y,σ) = ekxy(k,X,X,σ) - 2*ekxy(k,X,Y,σ) + ekxy(k,Y,Y,σ)
-mmd(k,X,Y) = ekxy(k,X,X) - 2*ekxy(k,X,Y) + ekxy(k,Y,Y)
-
 ### GAN ###
 """
     gen_loss([T=Float32], sg)
