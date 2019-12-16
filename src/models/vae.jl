@@ -66,7 +66,7 @@ end
 Maximum mean discrepancy of a VAE given data `x` and kernel function `k(x,y)`. Uses mean of encoded data.
 """
 mmd_mean(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) = 
-    mmd(k, mean(m.encoder, x), rand(m.prior, size(x, 2)))
+    mmd(k, mean(m.encoder, x), rand(m.prior, size(x, 2)), distance)
 
 """
     mmd_rand(m::AbstractVAE, x::AbstractArray, k[; distance])
@@ -74,7 +74,7 @@ mmd_mean(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) 
 Maximum mean discrepancy of a VAE given data `x` and kernel function `k(x,y)`. Samples from the encoder.
 """
 mmd_rand(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) = 
-    mmd(k, rand(m.encoder, x), rand(m.prior, size(x, 2)))
+    mmd(k, rand(m.encoder, x), rand(m.prior, size(x, 2)), distance)
 
 function Base.show(io::IO, m::AbstractVAE{T}) where T
     p = repr(m.prior)
