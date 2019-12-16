@@ -42,44 +42,43 @@
     end
 
     @testset "Wasserstein VAE" begin
-        @warn "Fails due to: https://github.com/JuliaLang/julia/issues/31427. Re-enable when that issue is fixed!"
-        
-        # T = Float32
-        # xlen = 4
-        # zlen = 2
-        # batch = 20
-        # test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) # |> gpu
-          
-        # enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
-        # enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
-        
-        # dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
-        # dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
-          
-        # model = VAE(zlen, enc_dist, dec_dist) # |> gpu
 
-        # # test training
-        # params_init = get_params(model)
-        # opt = ADAM()
-        # k = IMQKernel(1.0f0)
-        # mmd(x) = mmd_mean(model, x, k)
-        # data = (test_data,)
-        # lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(x)
-        # GenerativeModels.update_params!(model, data, lossf, opt)
-        # @test all(param_change(params_init, model)) 
-          
-        # # this works well but has quite a large variance
-        # data = [(test_data,) for _ in 1:10000]
-        # lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(x)
-        # Flux.train!(lossf, params(model), data, opt)
-        # zs = mean(model.encoder, test_data)
-        # xs = mean(model.decoder, zs)
-        # @debug maximum(abs.(test_data - xs))
-        # @test all(abs.(test_data - xs) .< 0.2) 
-          
-        # msg = @capture_out show(model)
-        # @test occursin("VAE", msg)
-        # Random.seed!()  # reset the seed
+        T = Float32
+        xlen = 4
+        zlen = 2
+        batch = 20
+        test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) # |> gpu
+
+        enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
+        enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
+
+        dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
+        dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
+
+        model = VAE(zlen, enc_dist, dec_dist) # |> gpu
+
+        # test training
+        params_init = get_params(model)
+        opt = ADAM()
+        k = IMQKernel(1.0f0)
+        mmd(x) = GenerativeModels.mmd_mean(model, x, k)
+        data = (test_data,)
+        lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(x)
+        GenerativeModels.update_params!(model, data, lossf, opt)
+        ps = params(model)
+        @test all(param_change(params_init, model)) 
+
+        # this works well but has quite a large variance
+        data = [(test_data,) for _ in 1:10000]
+        Flux.train!(lossf, params(model), data, opt)
+        zs = mean(model.encoder, test_data)
+        xs = mean(model.decoder, zs)
+        @debug maximum(abs.(test_data - xs))
+        @test all(abs.(test_data - xs) .< 0.2) 
+
+        msg = @capture_out show(model)
+        @test occursin("VAE", msg)
+        Random.seed!()  # reset the seed
     end
 
 end
