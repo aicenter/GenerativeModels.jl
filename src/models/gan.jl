@@ -21,45 +21,58 @@ julia> gan = GAN(4, gen, disc)
  discriminator = (CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
-struct GAN{T} <: AbstractGAN{T}
-	prior::AbstractPDF
-	generator::AbstractCPDF
-	discriminator::AbstractCPDF
+struct GAN{P<:AbstractPDF,G<:AbstractCPDF,D<:AbstractCPDF} <: AbstractGAN
+	prior::P
+	generator::G
+	discriminator::D
 end
 
 Flux.@functor GAN
 
-GAN(p::AbstractPDF{T}, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = GAN{T}(p, g, d)
+GAN(p::P, g::G, d::D) where {P,G,D} = GAN{P,G,D}(p,g,d)
 
-function GAN(zlength::Int, g::AbstractCPDF{T}, d::AbstractCPDF{T}) where T
+function GAN(zlength::Int, g::AbstractCPDF, d::AbstractCPDF)
+    T = eltype(first(params(g)))
     μ = NoGradArray(zeros(T, zlength))
     σ = NoGradArray(ones(T, zlength))
     prior = Gaussian(μ, σ)
-    GAN{T}(prior, g, d)
+    GAN(prior, g, d)
 end
 
 """
 	generator_loss(m::GAN, z::AbstractArray)
 	generator_loss(m::GAN, batchsize::Int)
 
-Loss of the GAN generator. The input is either the random code `z` or `batchsize` 
-of samples to generate from the model prior and compute the loss from.
+Loss of the GAN generator. The input is either the random code `z` or
+`batchsize` of samples to generate from the model prior and compute the loss
+from.
 """
-generator_loss(m::GAN{T}, z::AbstractArray) where T = 
+function generator_loss(m::GAN, z::AbstractArray)
+    T = eltype(m.prior.μ)
     generator_loss(T, m.discriminator.mapping(mean(m.generator,z)))
-generator_loss(m::GAN{T}, batchsize::Int) where T = generator_loss(m, rand(m.prior, batchsize))
+end
+
+generator_loss(m::GAN, batchsize::Int) =
+    generator_loss(m, rand(m.prior, batchsize))
 
 """
 	discriminator_loss(m::GAN, x::AbstractArray[, z::AbstractArray])
 
-Loss of the GAN discriminator given a batch of training samples `x` and latent prior samples `z`.
-If z is not given, it is automatically generated from the model prior.
+Loss of the GAN discriminator given a batch of training samples `x` and latent
+prior samples `z`.  If z is not given, it is automatically generated from the
+model prior.
 """
-discriminator_loss(m::GAN{T}, x::AbstractArray, z::AbstractArray) where T = 
-    discriminator_loss(T, mean(m.discriminator,x), mean(m.discriminator, m.generator.mapping(z)))
-discriminator_loss(m::GAN{T}, x::AbstractArray) where T = discriminator_loss(m, x, rand(m.prior, size(x,2)))
+function discriminator_loss(m::GAN, x::AbstractArray, z::AbstractArray)
+    T = eltype(m.prior.μ)
+    st = mean(m.discriminator,x)
+    sg = mean(m.discriminator, m.generator.mapping(z))
+    discriminator_loss(T, st, sg)
+end
 
-function Base.show(io::IO, m::AbstractGAN{T}) where T
+discriminator_loss(m::GAN, x::AbstractArray) =
+    discriminator_loss(m, x, rand(m.prior, size(x,2)))
+
+function Base.show(io::IO, m::AbstractGAN)
     p = repr(m.prior)
     p = sizeof(p)>70 ? "($(p[1:70-3])...)" : p
     g = repr(m.generator)
