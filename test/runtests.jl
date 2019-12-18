@@ -25,7 +25,7 @@ get_params(model) =  map(copy, collect(params(model)))
 param_change(frozen_params, model) = 
 	map(x-> x[1] != x[2], zip(frozen_params, collect(params(model))))
 
-# include(joinpath("models", "vae.jl"))
+include(joinpath("models", "vae.jl"))
 include(joinpath("models", "gan.jl"))
 include(joinpath("models", "rodent.jl"))
 
