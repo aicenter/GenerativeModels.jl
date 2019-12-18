@@ -10,10 +10,10 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
         enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
+        enc_dist = CMeanGaussian{DiagVar}(enc, NoGradArray(ones(T,zlen)))
     
         dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
+        dec_dist = CMeanGaussian{DiagVar}(dec, NoGradArray(ones(T,xlen)))
     
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
     
@@ -50,10 +50,10 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) # |> gpu
 
         enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CMeanGaussian{T,DiagVar}(enc, NoGradArray(ones(T,zlen)))
+        enc_dist = CMeanGaussian{DiagVar}(enc, NoGradArray(ones(T,zlen)))
 
         dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CMeanGaussian{T,DiagVar}(dec, NoGradArray(ones(T,xlen)))
+        dec_dist = CMeanGaussian{DiagVar}(dec, NoGradArray(ones(T,xlen)))
 
         model = VAE(zlen, enc_dist, dec_dist) # |> gpu
 

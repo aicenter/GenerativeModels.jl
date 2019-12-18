@@ -30,21 +30,22 @@ julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
   1.123661
 ```
 """
-struct VAE{T} <: AbstractVAE{T}
-    prior::Gaussian
-    encoder::AbstractCPDF
-    decoder::AbstractCPDF
+struct VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractVAE
+    prior::P
+    encoder::E
+    decoder::D
 end
 
 Flux.@functor VAE
 
-VAE(p::Gaussian{T}, e::AbstractCPDF{T}, d::AbstractCPDF{T}) where T = VAE{T}(p, e, d)
+VAE(p::P, e::E, d::D) where {P,E,D} = VAE{P,E,D}(p,e,d)
 
-function VAE(zlength::Int, enc::AbstractCPDF{T}, dec::AbstractCPDF{T}) where T
+function VAE(zlength::Int, enc::AbstractCPDF, dec::AbstractCPDF)
+    T = eltype(first(params(enc)))
     μp = NoGradArray(zeros(T, zlength))
     σ2p = NoGradArray(ones(T, zlength))
     prior = Gaussian(μp, σ2p)
-    VAE{T}(prior, enc, dec)
+    VAE(prior, enc, dec)
 end
 
 """
@@ -76,7 +77,7 @@ Maximum mean discrepancy of a VAE given data `x` and kernel function `k(x,y)`. S
 mmd_rand(m::AbstractVAE, x::AbstractArray, k; distance = IPMeasures.pairwisel2) = 
     mmd(k, rand(m.encoder, x), rand(m.prior, size(x, 2)), distance)
 
-function Base.show(io::IO, m::AbstractVAE{T}) where T
+function Base.show(io::IO, m::AbstractVAE)
     p = repr(m.prior)
     p = sizeof(p)>70 ? "($(p[1:70-3])...)" : p
     e = repr(m.encoder)
