@@ -45,14 +45,14 @@
         prior = Gaussian(zeros(dtype, zlen), λ2z)
 
         σ2z = -ones(dtype, zlen) ./ 100
-        enc_dist = CMeanGaussian{dtype,DiagVar}(encoder, σ2z)
+        enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
         tspan = (dt, tlen*dt)
         ode = Dense(slen, slen)
         dec = FluxODEDecoder(slen, tlen, tspan, ode)
         μx(z) = reshape(dec(z), slen, tlen, size(z,2))[1,:,:]
         σ2x = ones(dtype, 1) ./ 10
-        dec_dist = CMeanGaussian{dtype,ScalarVar}(μx, σ2x, tlen)
+        dec_dist = CMeanGaussian{ScalarVar}(μx, σ2x, tlen)
 
         Rodent(prior, enc_dist, dec_dist)
     end

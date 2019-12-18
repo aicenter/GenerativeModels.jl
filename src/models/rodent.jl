@@ -32,7 +32,7 @@ julia> mean(rodent.decoder, z)
  -8.059293e-5
 ```
 """
-struct Rodent{T} <: AbstractVAE{T}
+struct Rodent{P<:Gaussian,E<:CMeanGaussian,D<:CMeanGaussian} <: AbstractVAE
     prior::Gaussian
     encoder::CMeanGaussian
     decoder::CMeanGaussian
@@ -40,8 +40,7 @@ end
 
 Flux.@functor Rodent
 
-Rodent(p::Gaussian{T}, e::CMeanGaussian{T}, d::CMeanGaussian{T}) where T =
-    Rodent{T}(p, e, d)
+Rodent(p::P, e::E, d::D) where {P,E,D} = Rodent{P,E,D}(p,e,d)
 
 function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     λ2z = ones(T, zlen)
@@ -49,23 +48,23 @@ function Rodent(xlen::Int, zlen::Int, encoder, decoder, T=Float32)
     prior = Gaussian(μpz, λ2z)
 
     σ2z = ones(T, zlen)
-    enc_dist = CMeanGaussian{T,DiagVar}(encoder, σ2z)
+    enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
     σ2x = ones(T, 1)
-    dec_dist = CMeanGaussian{T,ScalarVar}(decoder, σ2x, xlen)
+    dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, xlen)
 
-    Rodent{T}(prior, enc_dist, dec_dist)
+    Rodent(prior, enc_dist, dec_dist)
 end
 
-struct ConstSpecRodent{T} <: AbstractVAE{T}
-    const_prior::Gaussian
-    spec_prior::Gaussian
-    encoder::ConstSpecGaussian
-    decoder::CMeanGaussian
+struct ConstSpecRodent{CP<:Gaussian,SP<:Gaussian,E<:ConstSpecGaussian,D<:CMeanGaussian} <: AbstractVAE
+    const_prior::CP
+    spec_prior::SP
+    encoder::E
+    decoder::D
 end
 
-ConstSpecRodent(cp::Gaussian{T}, sp::Gaussian{T}, e::ConstSpecGaussian{T}, d::CMeanGaussian{T}) where T =
-    ConstSpecRodent{T}(cp,sp,e,d)
+ConstSpecRodent(cp::CP, sp::SP, e::E, d::D) where {CP,SP,E,D} =
+    ConstSpecRodent{CP,SP,E,D}(cp,sp,e,d)
 
 Flux.@functor ConstSpecRodent
 

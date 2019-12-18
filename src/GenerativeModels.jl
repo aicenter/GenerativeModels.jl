@@ -17,8 +17,8 @@ module GenerativeModels
     using ConditionalDists: AbstractPDF, AbstractCPDF
 
     abstract type AbstractGM end
-    abstract type AbstractVAE{T<:Real} <: AbstractGM end
-    abstract type AbstractGAN{T<:Real} <: AbstractGM end
+    abstract type AbstractVAE <: AbstractGM end
+    abstract type AbstractGAN <: AbstractGM end
 
     # functions that are overloaded by this module
     import Base.length
