@@ -1,18 +1,21 @@
 export FluxODEDecoder
 
 """
-    FluxODEDecoder(slength::Int, tlength::Int, timesteps::Vector, model)
+    FluxODEDecoder{M}(slength::Int, tlength::Int, tspan::Tuple,
+                      model::M, observe::Function)
 
+Uses a Flux `model` as ODE and solves it for the given time span.
+The solver can be conveniently called by (dec::FluxODEDecoder)(z), which
+assumes that all parameters of the neural ODE and its initial conditions are
+passed in as one long vector i.e.: z = vcat(destructure(dec.model), u0).
 Can use any Flux model as neural ODE. The adjoint is computed via ForwardDiff.
-(dec::FluxODEDecoder)(z) assumes that all parameters to the model
-and the initial conditions to the neural ODE are passed in as one long vector
-z = vcat(destructure(dec.model), u0).
 
 # Arguments
-* `slength::Int`: length of the ODE state
-* `timesteps::Vector`: timesteps at which ODE solution is checkpointed
+* `slength`: length of the ODE state
+* `tlength`: number of ODE solution samples
+* `tspan`: time span for which ODE is solved
 * `model`: Flux model
-* `observe`: Observations operator. Function that receives ODESolution and
+* `observe`: Observation operator. Function that receives ODESolution and
   outputs the observation. Default: observe(sol) = reshape(hcat(sol.u...),:)
 """
 mutable struct FluxODEDecoder
@@ -23,7 +26,10 @@ mutable struct FluxODEDecoder
     _zlength::Int
 end
 
-function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model, observe::Function)
+# TODO: FluxODEDecoder{M} fails during training because forward diff wants to
+#       stick dual number in there...
+function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple,
+                        model, observe::Function)
     timesteps = range(tspan[1], stop=tspan[2], length=tlength)
     _zlength = length(destructure(model)) + slength
     FluxODEDecoder(slength, timesteps, model, observe, _zlength)
