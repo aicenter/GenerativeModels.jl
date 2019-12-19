@@ -2,23 +2,30 @@ export GAN
 export generator_loss, discriminator_loss
 
 """
-	GAN{T}([prior::AbstractPDF,] generator::AbstractCPDF, discriminator::AbstractCPDF)
+    GAN{P<:AbstractPDF,G<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P], g::G, d::D)
 
 The Generative Adversarial Network.
+
+# Arguments
+* `zlength`: Length of latent vector
+* `p`: Prior
+* `g`: Generator
+* `d`: Discriminator
 
 # Example
 Create a GAN with standard normal prior with:
 ```julia-repl
-julia> gen = CMeanGaussian{Float32,DiagVar}(Dense(2,4),NoGradArray(ones(Float32,4)))
-CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Float32,1}
+julia> gen = CMeanGaussian{DiagVar}(Dense(2,4),NoGradArray(ones(Float32,4)))
+CMeanGaussian{DiagVar}(mapping=Dense(2, 4), σ2=4-element Array{Float32,1}
 
-julia> disc = CMeanGaussian{Float32,DiagVar}(Dense(4,1,σ),NoGradArray(ones(Float32,1)))
-CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array{Float32,1}
+julia> disc = CMeanGaussian{DiagVar}(Dense(4,1,σ),NoGradArray(ones(Float32,1)))
+CMeanGaussian{DiagVar}(mapping=Dense(4, 1, σ), σ2=1-element Array{Float32,1}
 
 julia> gan = GAN(4, gen, disc)
- prior   = (Gaussian{Float32}(μ=4-element NoGradArray{Float32,1}, σ2=4-elemen...)
- generator = (CMeanGaussian{Float32}(mapping=Dense(2, 4), σ2=4-element Array{Flo...)
- discriminator = (CMeanGaussian{Float32}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
+GAN:
+ prior   = (Gaussian(μ=4-element Array{Float32,1}, σ2=4-element Array{Float32...)
+ generator = (CMeanGaussian{DiagVar}(mapping=Dense(2, 4), σ2=4-element Array{Flo...)
+ discriminator = (CMeanGaussian{DiagVar}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
 struct GAN{P<:AbstractPDF,G<:AbstractCPDF,D<:AbstractCPDF} <: AbstractGAN
@@ -79,7 +86,7 @@ function Base.show(io::IO, m::AbstractGAN)
     g = sizeof(g)>70 ? "($(g[1:70-3])...)" : g
     d = repr(m.discriminator)
     d = sizeof(d)>70 ? "($(d[1:70-3])...)" : d
-    msg = """$(typeof(m)):
+    msg = """$(nameof(typeof(m))):
      prior   = $(p)
      generator = $(g)
      discriminator = $(d)
