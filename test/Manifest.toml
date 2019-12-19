@@ -144,9 +144,9 @@ uuid = "8bb1440f-4735-579b-a4ab-409b98df4dab"
 
 [[DiffEqBase]]
 deps = ["ArrayInterface", "Compat", "DataStructures", "DiffEqDiffTools", "Distributed", "DocStringExtensions", "FunctionWrappers", "IterativeSolvers", "IteratorInterfaceExtensions", "LinearAlgebra", "MuladdMacro", "Parameters", "Printf", "RecipesBase", "RecursiveArrayTools", "RecursiveFactorization", "Requires", "Roots", "SparseArrays", "StaticArrays", "Statistics", "SuiteSparse", "TableTraits", "TreeViews", "ZygoteRules"]
-git-tree-sha1 = "523bf6a01ea1fc4e2e14e840ce37fc2fdf76e6a7"
+git-tree-sha1 = "23f53d60db9b12e36cd6752e4bc91b6382c2f559"
 uuid = "2b5f629d-d688-5b77-993f-72d75c75574e"
-version = "6.9.3"
+version = "6.9.4"
 
 [[DiffEqDiffTools]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
@@ -222,9 +222,9 @@ uuid = "1a297f60-69ca-5386-bcde-b61e274b549b"
 version = "0.8.2"
 
 [[FixedPointNumbers]]
-git-tree-sha1 = "bd1386f890e172ef38e1c735cda58cbf004a7c9a"
+git-tree-sha1 = "d14a6fa5890ea3a7e5dcab6811114f132fec2b4b"
 uuid = "53c48c17-4a7d-5ca2-90c5-79b7896eea93"
-version = "0.7.0"
+version = "0.6.1"
 
 [[Flux]]
 deps = ["AbstractTrees", "Adapt", "CodecZlib", "Colors", "CuArrays", "DelimitedFiles", "Juno", "MacroTools", "NNlib", "Pkg", "Printf", "Random", "Reexport", "SHA", "Statistics", "StatsBase", "Test", "ZipFile", "Zygote"]
