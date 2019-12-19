@@ -9,11 +9,11 @@
         batch = 20
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
-        enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CMeanGaussian{DiagVar}(enc, NoGradArray(ones(T,zlen)))
+        enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen*2], relu, Dense)
+        enc_dist = CMeanVarGaussian{DiagVar}(enc)
     
-        dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CMeanGaussian{DiagVar}(dec, NoGradArray(ones(T,xlen)))
+        dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen+1], relu, Dense)
+        dec_dist = CMeanVarGaussian{ScalarVar}(dec)
     
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
     
