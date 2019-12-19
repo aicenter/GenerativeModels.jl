@@ -26,10 +26,10 @@ dtype = Float32
 prior = Gaussian(μ, σ)
 
 encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-encoder_dist = CMeanVarGaussian{dtype,DiagVar}(encoder)
+encoder_dist = CMeanVarGaussian{DiagVar}(encoder)
 
 decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-decoder_dist = CMeanVarGaussian{dtype,ScalarVar}(decoder)
+decoder_dist = CMeanVarGaussian{ScalarVar}(decoder)
 
 vae = VAE(prior, encoder_dist, decoder_dist)
 length(params(vae)) == 4  # we only get trainable params from the two Dense layers

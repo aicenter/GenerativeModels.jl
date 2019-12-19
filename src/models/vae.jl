@@ -9,17 +9,17 @@ Variational Auto-Encoder.
 # Example
 Create a vanilla VAE with standard normal prior with:
 ```julia-repl
-julia> enc = CMeanVarGaussian{Float32,DiagVar}(Dense(5,4))
-CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
+julia> enc = CMeanVarGaussian{DiagVar}(Dense(5,4))
+CMeanVarGaussian{DiagVar}(mapping=Dense(5, 4))
 
-julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(2,6))
-CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+julia> dec = CMeanVarGaussian{ScalarVar}(Dense(2,6))
+CMeanVarGaussian{ScalarVar}(mapping=Dense(2, 6))
 
 julia> vae = VAE(2, enc, dec)
 VAE{Float32}:
  prior   = (Gaussian{Float32}(μ=2-element NoGradArray{Float32,1}, σ2=2-elemen...)
- encoder = CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
- decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+ encoder = CMeanVarGaussian{DiagVar}(mapping=Dense(5, 4))
+ decoder = CMeanVarGaussian{ScalarVar}(mapping=Dense(2, 6))
 
 julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
 5×1 Array{Float32,2}:
