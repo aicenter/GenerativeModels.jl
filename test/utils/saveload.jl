@@ -36,7 +36,7 @@
     @test model.encoder.mapping.W == loaded_model.encoder.mapping.W
 
     opt = ADAM()
-    lossf(x) = elbo(model, x, β=1e-3)
+    lossf(x) = -elbo(model, x, β=1e-3)
     data = [(randn(Float32, tlen),)]
     Flux.train!(lossf, params(model), data, opt)
     params_trained = get_params(model)

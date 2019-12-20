@@ -67,12 +67,12 @@
     rodent = construct_rodent(setup) # |> gpu
     test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
 
-    ls = elbo(rodent, test_data)
+    ls = -elbo(rodent, test_data)
     ps = params(rodent)
     @test length(ps) > 0
     @test isa(ls, dtype)
 
-    loss(x) = elbo(rodent, x)
+    loss(x) = -elbo(rodent, x)
 
     cb = Flux.throttle(()->(
       @debug "$(loss(test_data)) noise: $(sqrt.(variance(rodent.decoder)))"), 0.1)
