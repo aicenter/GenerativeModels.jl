@@ -3,12 +3,12 @@
     tlen = 10
     slen = 2
     zlen = 8
+    dt   = 0.1f0
     keep = 2
 
     encoder = Dense(tlen, zlen)
-    decoder = FluxODEDecoder(slen, tlen, (0f0,1f0), Dense(slen,slen))
-    μx(z) = reshape(decoder(z), slen, tlen, size(z,2))[1,:,:]
-    model = Rodent(tlen, zlen, encoder, μx)
+    observe(sol) = hcat(sol.u...)[1,:]
+    model = Rodent(slen, tlen, dt, encoder, observe)
 
     nowarn_logger = SimpleLogger(stdout, Logging.Error)
     model_dir   = mktempdir()

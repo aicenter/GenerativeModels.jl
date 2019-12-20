@@ -2,11 +2,11 @@
 
     slength = 2
     xlength = 10
-    tspan = (0f0, 1f0)
+    dt = 0.1f0
 
-    model = Dense(slength, slength)
-    dec = FluxODEDecoder(slength, xlength, tspan, model)
-    ps = GenerativeModels.destructure(model)
+    ode = Dense(slength, slength)
+    dec = FluxODEDecoder(slength, xlength, dt, ode)
+    ps = GenerativeModels.destructure(ode)
     u0 = rand(slength)
     z  = vcat(ps, u0)
 

@@ -28,16 +28,16 @@ end
 
 # TODO: FluxODEDecoder{M} fails during training because forward diff wants to
 #       stick dual number in there...
-function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple,
-                        model, observe::Function)
-    timesteps = range(tspan[1], stop=tspan[2], length=tlength)
+function FluxODEDecoder(slength::Int, tlength::Int, dt::T,
+                        model, observe::Function) where T
+    timesteps = range(T(0), step=dt, length=tlength)
     _zlength = length(destructure(model)) + slength
     FluxODEDecoder(slength, timesteps, model, observe, _zlength)
 end
 
-function FluxODEDecoder(slength::Int, tlength::Int, tspan::Tuple, model)
+function FluxODEDecoder(slength::Int, tlength::Int, dt::Real, model)
     observe(sol) = reshape(hcat(sol.u...), :)
-    FluxODEDecoder(slength, tlength, tspan, model, observe)
+    FluxODEDecoder(slength, tlength, dt, model, observe)
 end
 
 function (dec::FluxODEDecoder)(z::AbstractVector, observe::Function)

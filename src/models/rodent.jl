@@ -58,7 +58,7 @@ julia> mean(rodent.decoder, z)
  1.0  -6.49383e-7  -1.0         4.01425e-5   1.00002
 ```
 """
-function Rodent(slen::Int, tlen::Int, dt::T, encoder) where T
+function Rodent(slen::Int, tlen::Int, dt::T, encoder, observe::Function) where T
     ode = Dense(slen,slen)
     zlen = length(destructure(ode)) + slen
     tspan = (T(0.0), tlen*dt)
@@ -71,7 +71,7 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder) where T
     enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
     σ2x = ones(T, 1)
-    decoder = FluxODEDecoder(slen, tlen, tspan, ode)
+    decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, tlen)
 
     Rodent(prior, enc_dist, dec_dist)
