@@ -2,24 +2,30 @@ export VAE
 export elbo, mmd_mean, mmd_rand
 
 """
-    VAE{T}([prior::Gaussian, zlen::Int] encoder::AbstractCPDF, decoder::AbstractCPDF)
+    VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P] ,e::E ,d::D)
 
 Variational Auto-Encoder.
+
+# Arguments
+* `p`: Prior p(z)
+* `zlength`: Length of latent vector
+* `e`: Encoder p(z|x)
+* `d`: Decoder p(x|z)
 
 # Example
 Create a vanilla VAE with standard normal prior with:
 ```julia-repl
-julia> enc = CMeanVarGaussian{Float32,DiagVar}(Dense(5,4))
-CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
+julia> enc = CMeanVarGaussian{DiagVar}(Dense(5,4))
+CMeanVarGaussian{DiagVar}(mapping=Dense(5, 4))
 
-julia> dec = CMeanVarGaussian{Float32,ScalarVar}(Dense(2,6))
-CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+julia> dec = CMeanVarGaussian{ScalarVar}(Dense(2,6))
+CMeanVarGaussian{ScalarVar}(mapping=Dense(2, 6))
 
 julia> vae = VAE(2, enc, dec)
-VAE{Float32}:
- prior   = (Gaussian{Float32}(μ=2-element NoGradArray{Float32,1}, σ2=2-elemen...)
- encoder = CMeanVarGaussian{Float32,DiagVar}(mapping=Dense(5, 4))
- decoder = CMeanVarGaussian{Float32,ScalarVar}(mapping=Dense(2, 6))
+VAE:
+ prior   = (Gaussian(μ=2-element Array{Float32,1}, σ2=2-element Array{Float32...)
+ encoder = CMeanVarGaussian{DiagVar}(mapping=Dense(5, 4))
+ decoder = CMeanVarGaussian{ScalarVar}(mapping=Dense(2, 6))
 
 julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
 5×1 Array{Float32,2}:
@@ -55,9 +61,9 @@ Evidence lower boundary of the VAE model. `β` scales the KLD term.
 """
 function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     z = rand(m.encoder, x)
-    llh = mean(-loglikelihood(m.decoder, x, z))
+    llh = mean(loglikelihood(m.decoder, x, z))
     kld = mean(kl_divergence(m.encoder, m.prior, x))
-    llh + β*kld
+    llh - β*kld
 end
 
 # mmd via IPMeasures
@@ -84,7 +90,7 @@ function Base.show(io::IO, m::AbstractVAE)
     e = sizeof(e)>70 ? "($(e[1:70-3])...)" : e
     d = repr(m.decoder)
     d = sizeof(d)>70 ? "($(d[1:70-3])...)" : d
-    msg = """$(typeof(m)):
+    msg = """$(nameof(typeof(m))):
      prior   = $(p)
      encoder = $(e)
      decoder = $(d)

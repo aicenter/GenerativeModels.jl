@@ -47,9 +47,8 @@
         σ2z = -ones(dtype, zlen) ./ 100
         enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
-        tspan = (dt, tlen*dt)
         ode = Dense(slen, slen)
-        dec = FluxODEDecoder(slen, tlen, tspan, ode)
+        dec = FluxODEDecoder(slen, tlen, dt, ode)
         μx(z) = reshape(dec(z), slen, tlen, size(z,2))[1,:,:]
         σ2x = ones(dtype, 1) ./ 10
         dec_dist = CMeanGaussian{ScalarVar}(μx, σ2x, tlen)
@@ -68,12 +67,12 @@
     rodent = construct_rodent(setup) # |> gpu
     test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
 
-    ls = elbo(rodent, test_data)
+    ls = -elbo(rodent, test_data)
     ps = params(rodent)
     @test length(ps) > 0
     @test isa(ls, dtype)
 
-    loss(x) = elbo(rodent, x)
+    loss(x) = -elbo(rodent, x)
 
     cb = Flux.throttle(()->(
       @debug "$(loss(test_data)) noise: $(sqrt.(variance(rodent.decoder)))"), 0.1)

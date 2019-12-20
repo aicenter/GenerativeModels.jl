@@ -17,7 +17,7 @@
     
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
     
-        loss = elbo(model, test_data)
+        loss = -elbo(model, test_data)
         ps = params(model)
         @test length(ps) > 0
         @test isa(loss, Real)
@@ -31,7 +31,7 @@
         params_init = get_params(model)
         opt = ADAM()
         data = [(test_data,) for i in 1:10000]
-        lossf(x) = elbo(model, x, β=1e-3)
+        lossf(x) = -elbo(model, x, β=1e-3)
         Flux.train!(lossf, params(model), data, opt)
     
         @test all(param_change(params_init, model)) # did the params change?
