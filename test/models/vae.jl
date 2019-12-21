@@ -7,7 +7,7 @@
         xlen = 4
         zlen = 2
         batch = 20
-        test_data = randn(4, batch)/100 .+ hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
+        test_data = randn(T, 4, batch)/100 .+ hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
         enc = GenerativeModels.stack_layers([xlen, 4, zlen*2], relu, Dense)
         enc_dist = CMeanVarGaussian{DiagVar}(enc)
