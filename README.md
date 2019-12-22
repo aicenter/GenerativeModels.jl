@@ -4,10 +4,12 @@
 # GenerativeModels.jl
 
 This library contains a collection of generative models for anomaly detection.
-It defines learnable (conditional) distributions that can be used in conjuction
-with [`Flux.jl`](https://github.com/FluxML/Flux.jl) and
-[`Zygote.jl`](https://github.com/FluxML/Zygote.jl), that aims to make
-experimenting with new models easy.
+It uses trainable
+[`ConditionalDists.jl`](https://github.com/aicenter/ConditionalDists.jl) that
+can be used in conjuction with [`Flux.jl`](https://github.com/FluxML/Flux.jl)
+models.  Probability measures such as KL divergence are defined in
+[`IPMeasures.jl`](https://github.com/aicenter/IPMeasures.jl) This package aims
+to make experimenting with new models as easy as possible.
 
 As an example, check out how to build a conventional variational autoencoder
 with a diagonal variance on the latent dimension and a scalar variance on the
