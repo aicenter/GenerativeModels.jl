@@ -70,7 +70,6 @@ functionality such as `tagsave` to ensure reproducability of simulations.
 
     |-src
     |  |- models
-    |  |- pdfs
     |  |- anomaly_scores
     |  |- utils
     |-test
@@ -78,10 +77,10 @@ functionality such as `tagsave` to ensure reproducability of simulations.
 The models themselves are defined in `src/models`. Each file contains a
 specific model that inherits from `AbstractGM` and has three fields:
 ```julia
-struct Model{T} <: AbstractGM
-    prior::AbstractPDF
-    encoder::AbstractCPDF
-    decoder::AbstractCPDF
+struct Model{P<:AbstractPDF,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractGM
+    prior::P
+    encoder::E
+    decoder::D
 end
 ```
 
@@ -92,17 +91,15 @@ and implements e.g. custom loss functions.
 
 The distributions used for prior, encoder, and decoder all implement a common
 interface that includes the functions `mean`, `variance`, `mean_var`, `rand`,
-`loglikelihood`, `kld`.
+`loglikelihood`, `kl_divergence` (see [ConditionalDists.jl](https://github.com/aicenter/ConditionalDists.jl)).
 This interface makes it possible that functions such as the ELBO or the anomaly
 scores can be generalized. E.g. the ELBO code looks like this:
 
 ```julia
 function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     z = rand(m.encoder, x)
-    llh = mean(-loglikelihood(m.decoder, x, z))
-    kl  = mean(kld(m.encoder, m.prior, x))
-    llh + β*kl
+    llh = mean(loglikelihood(m.decoder, x, z))
+    kl  = mean(kl_divergence(m.encoder, m.prior, x))
+    llh - β*kl
 end
 ```
-
-Check out `src/pdf/abstract_pdfs.jl` for the fully defined interface.
