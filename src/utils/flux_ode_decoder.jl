@@ -1,7 +1,7 @@
 export FluxODEDecoder
 
 """
-    FluxODEDecoder{M}(slength::Int, tlength::Int, tspan::Tuple,
+    FluxODEDecoder{M}(slength::Int, tlength::Int, dt::Real,
                       model::M, observe::Function)
 
 Uses a Flux `model` as ODE and solves it for the given time span.
@@ -13,7 +13,7 @@ Can use any Flux model as neural ODE. The adjoint is computed via ForwardDiff.
 # Arguments
 * `slength`: length of the ODE state
 * `tlength`: number of ODE solution samples
-* `tspan`: time span for which ODE is solved
+* `dt`: time step with which ODE is sampled
 * `model`: Flux model
 * `observe`: Observation operator. Function that receives ODESolution and
   outputs the observation. Default: observe(sol) = reshape(hcat(sol.u...),:)
