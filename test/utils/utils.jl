@@ -25,6 +25,13 @@
     y = m(x)
     @test size(y) == (2, 6)
 
+    m = GenerativeModels.layer_builder([3,3,2], "tanh", "linear")
+    @test length(m.layers) == 2
+    @test m.layers[1] isa Dense
+    @test m.layers[1].σ == tanh
+    @test m.layers[2] isa Dense
+    @test m.layers[2].σ == identity
+
     @testset "destructure/restructure" begin
         m = Dense(3,3)
         σ = NoGradArray(ones(Float32,3))
