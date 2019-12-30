@@ -26,9 +26,9 @@ version = "0.0.4"
 
 [[ArrayInterface]]
 deps = ["LinearAlgebra", "Requires", "SparseArrays"]
-git-tree-sha1 = "954b48dedb37ce8211209533380352c28e023fc4"
+git-tree-sha1 = "656fd4bcdf204ea96945d9bc1068c0056013438a"
 uuid = "4fba245c-0d91-5ea0-9b3e-6abc04ee57a9"
-version = "2.1.0"
+version = "2.3.1"
 
 [[BSON]]
 git-tree-sha1 = "4c4fdd4d9935fdd820f3f2a5a33d179f5aaea71e"
@@ -57,15 +57,15 @@ version = "2.1.0"
 
 [[CUDAdrv]]
 deps = ["CEnum", "CUDAapi", "Printf"]
-git-tree-sha1 = "0f39fddace3324707469ace7fbcbc7b28d5cf921"
+git-tree-sha1 = "1fce616fa0806c67c133eb1d2f68f0f1a7504665"
 uuid = "c5f51814-7f29-56b8-a69c-e4d8f6be1fde"
-version = "4.0.4"
+version = "5.0.1"
 
 [[CUDAnative]]
 deps = ["Adapt", "CEnum", "CUDAapi", "CUDAdrv", "DataStructures", "InteractiveUtils", "LLVM", "Libdl", "Printf", "TimerOutputs"]
-git-tree-sha1 = "a67b38619d1fa131027bac1c4a81f0012254d1fd"
+git-tree-sha1 = "6e11d5c2c91fc623952e94c4fb73f9c4db74795a"
 uuid = "be33ccc6-a3ff-5ff2-a52e-74243cff1e17"
-version = "2.6.0"
+version = "2.7.0"
 
 [[CodecZlib]]
 deps = ["BinaryProvider", "Libdl", "TranscodingStreams"]
@@ -99,7 +99,7 @@ version = "2.2.0"
 
 [[ConditionalDists]]
 deps = ["Flux", "Random", "Statistics"]
-git-tree-sha1 = "8408ad6f4d449ccb1bc17d714beeb9d513056888"
+git-tree-sha1 = "ad218fd136e59f064f3d154c2b11697088089c8c"
 repo-rev = "master"
 repo-url = "https://github.com/aicenter/ConditionalDists.jl"
 uuid = "c648c4dd-c1e0-49a6-84b9-144ae7fd2468"
@@ -107,9 +107,9 @@ version = "0.1.0"
 
 [[CuArrays]]
 deps = ["AbstractFFTs", "Adapt", "CEnum", "CUDAapi", "CUDAdrv", "CUDAnative", "DataStructures", "GPUArrays", "Libdl", "LinearAlgebra", "MacroTools", "NNlib", "Printf", "Random", "Requires", "SparseArrays", "TimerOutputs"]
-git-tree-sha1 = "e99db1397ce85975203a9d736ab37534730996ca"
+git-tree-sha1 = "51fbe053dea29ed2513e02d38380007310cf4c4b"
 uuid = "3a865a2d-5b23-5a0f-bc46-62713ec82fae"
-version = "1.5.0"
+version = "1.6.0"
 
 [[DataAPI]]
 git-tree-sha1 = "674b67f344687a88310213ddfa8a2b3c76cc4252"
@@ -138,9 +138,9 @@ version = "6.10.0"
 
 [[DiffEqDiffTools]]
 deps = ["ArrayInterface", "LinearAlgebra", "Requires", "SparseArrays", "StaticArrays"]
-git-tree-sha1 = "951600cc05d9626c3282e2ed125492931596e430"
+git-tree-sha1 = "a4ed8a740484627ea41b47f7e1a25dd909a28353"
 uuid = "01453d9d-ee7c-5054-8395-0335cb756afa"
-version = "1.6.0"
+version = "1.7.0"
 
 [[DiffResults]]
 deps = ["StaticArrays"]
@@ -352,9 +352,9 @@ version = "0.2.1"
 
 [[NNlib]]
 deps = ["BinaryProvider", "Libdl", "LinearAlgebra", "Requires", "Statistics"]
-git-tree-sha1 = "f3021e1633f70171afd35f0425ff905144c1ccc2"
+git-tree-sha1 = "135c0de4794d5e214b06f1fb4787af4a72896e61"
 uuid = "872c559c-99b0-510c-b3b7-b6c96a88d5cd"
-version = "0.6.1"
+version = "0.6.2"
 
 [[NaNMath]]
 git-tree-sha1 = "928b8ca9b2791081dc71a51c55347c27c618760f"
@@ -375,9 +375,9 @@ version = "1.1.0"
 
 [[OrdinaryDiffEq]]
 deps = ["ArrayInterface", "DataStructures", "DiffEqBase", "DiffEqDiffTools", "ExponentialUtilities", "ForwardDiff", "GenericSVD", "LinearAlgebra", "Logging", "MacroTools", "MuladdMacro", "Parameters", "RecursiveArrayTools", "Reexport", "SparseArrays", "SparseDiffTools", "StaticArrays"]
-git-tree-sha1 = "8c5607731bb0300b0a07e40ef2f7a953c7ce4d2f"
+git-tree-sha1 = "0817414626015c2dc5badc89e81a55144f603bbc"
 uuid = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
-version = "5.26.6"
+version = "5.26.7"
 
 [[Parameters]]
 deps = ["OrderedCollections"]
@@ -471,9 +471,9 @@ uuid = "2f01184e-e22b-5df5-ae63-d93ebab69eaf"
 
 [[SparseDiffTools]]
 deps = ["Adapt", "ArrayInterface", "Compat", "DataStructures", "DiffEqDiffTools", "ForwardDiff", "InteractiveUtils", "LightGraphs", "LinearAlgebra", "Requires", "SparseArrays", "VertexSafeGraphs"]
-git-tree-sha1 = "cd6b8c596d97d773fe8ab3b356f252cdc9f6bc37"
+git-tree-sha1 = "2efd0a78e58302caedf3aed0b5a9daaa7bca7439"
 uuid = "47a9eef4-7e08-11e9-0b38-333d64bd3804"
-version = "1.1.0"
+version = "1.2.0"
 
 [[SpecialFunctions]]
 deps = ["OpenSpecFun_jll"]

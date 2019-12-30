@@ -10,8 +10,6 @@ using ValueHistories
 using Flux
 using ForwardDiff
 using ConditionalDists
-
-using Revise
 using GenerativeModels
 
 if Flux.use_cuda[] using CuArrays end
