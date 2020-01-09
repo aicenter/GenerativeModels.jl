@@ -23,7 +23,9 @@ Flux.@functor Rodent
 Rodent(p::P, e::E, d::D) where {P,E,D} = Rodent{P,E,D}(p,e,d)
 
 """
-    Rodent(slen::Int, tlen::Int, dt::T, encoder) where T
+    Rodent(slen::Int, tlen::Int, dt::T, encoder;
+           ode=Dense(slen,slen),
+           observe=sol->reshape(hcat(sol.u...), :)) where T
 
 Constructs a VAE with ARD prior on the latent dimension z and an ODE solver
 as decoder. Uses `CMeanGaussian`s for encoder and decoder.
@@ -43,11 +45,13 @@ All ODE params are collected in z = [W,b,ξ₀]:
 julia> slen = 2;               # state length (order of ODE)
 julia> tlen = 30;              # number of timesteps to output from decoder
 julia> dt = 0.2f0;             # timestep
-julia> enc = Dense(slen,slen)  # ODE model
-julia> z = Float32.([0, 1, -1, 0, 0, 0, 1, 0]);  # latent code to produce clean sine
+julia> ode = Dense(slen,slen)  # ODE model
+julia> zlen = length(destructure(ode)) + slen
+julia> enc = Dense(slen*tlen,zlen)  # encoder network
 julia> H(sol) = hcat(sol.u...) # observation operator
+julia> z = Float32.([0, 1, -1, 0, 0, 0, 1, 0]);  # latent code to produce clean sine
 
-julia> rodent = Rodent(slen, tlen, dt, enc, H)
+julia> rodent = Rodent(slen, tlen, dt, enc, ode=ode, observe=H)
 Rodent:
  prior   = (Gaussian{Float32}(μ=8-element NoGradArray{Float32,1}, σ2=8-elemen...)
  encoder = (CMeanGaussian{Float32}(mapping=Dense(5, 8), σ2=8-element Array{Flo...)
@@ -79,10 +83,10 @@ julia> plot(mean(rodent.decoder, z)', labels=["x"  "ẋ"])
        0.13                                                     30.87
 ```
 """
-function Rodent(slen::Int, tlen::Int, dt::T, encoder, observe::Function) where T
-    ode = Dense(slen,slen)
+function Rodent(slen::Int, tlen::Int, dt::T, encoder;
+                ode=Dense(slen,slen),
+                observe=sol->reshape(hcat(sol.u...), :)) where T
     zlen = length(destructure(ode)) + slen
-    tspan = (T(0.0), tlen*dt)
 
     μpz = NoGradArray(zeros(T, zlen))
     λ2z = ones(T, zlen)
@@ -91,7 +95,7 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder, observe::Function) where T
     σ2z = ones(T, zlen) / 100
     enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
-    σ2x = ones(T, 1)
+    σ2x = ones(T, 1) / 10
     decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, tlen)
 

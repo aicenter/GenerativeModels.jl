@@ -30,41 +30,20 @@
         return U, Times, Omega
     end
 
-    function construct_rodent(setup)
-        @unpack batch, tlen, slen, dt, noise, dtype = setup
-        zlen = slen^2 + slen*2
-        tspan = (0f0, dtype.(tlen*dt))
-
-        init(s...) = randn(dtype, s...)/10000
-        act = σ
-        encoder  = Chain(
-            Dense(tlen, 100, act, initW=init, initb=init),
-            Dense(100, zlen, initW=init, initb=init))
-
-        λ2z = ones(dtype, zlen)
-        prior = Gaussian(zeros(dtype, zlen), λ2z)
-
-        σ2z = -ones(dtype, zlen) ./ 100
-        enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
-
-        ode = Dense(slen, slen)
-        dec = FluxODEDecoder(slen, tlen, dt, ode)
-        μx(z) = reshape(dec(z), slen, tlen, size(z,2))[1,:,:]
-        σ2x = ones(dtype, 1) ./ 10
-        dec_dist = CMeanGaussian{ScalarVar}(μx, σ2x, tlen)
-
-        Rodent(prior, enc_dist, dec_dist)
-    end
-
     tlen = 20
     slen = 2
     batch = 10
-    dt = 0.3
+    dt = 0.3f0
+    zlen = 8
     dtype = Float32
     noise = 0.01f0
-    setup = @dict tlen slen batch dt dtype noise
+    H(sol) = hcat(sol.u...)[1,:]
+    init(s...) = randn(dtype, s...)/10000
+    enc  = Chain(
+        Dense(tlen, 100, σ, initW=init, initb=init),
+        Dense(100, zlen, initW=init, initb=init))
 
-    rodent = construct_rodent(setup) # |> gpu
+    rodent = Rodent(slen, tlen, dt, enc, observe=H)
     test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
 
     ls = -elbo(rodent, test_data)
@@ -80,7 +59,7 @@
     η = 0.001
     ω = 0.5
     opt = RMSProp(η)
-    data = [(test_data,) for _ in 1:200]
+    data = [(test_data,) for _ in 1:400]
     Flux.train!(loss, ps, data, opt, cb=cb)
     reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
     rec_err = mean((test_data .- reconstruct(rodent, test_data)).^2)
