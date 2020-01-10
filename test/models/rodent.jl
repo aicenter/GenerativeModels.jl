@@ -43,7 +43,7 @@
         Dense(tlen, 100, σ, initW=init, initb=init),
         Dense(100, zlen, initW=init, initb=init))
 
-    rodent = Rodent(slen, tlen, dt, enc, observe=H)
+    rodent = Rodent(slen, tlen, dt, enc, observe=H, olen=tlen)
     test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
 
     ls = -elbo(rodent, test_data)

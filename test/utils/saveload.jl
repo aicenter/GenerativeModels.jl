@@ -8,7 +8,7 @@
 
     encoder = Dense(tlen, zlen)
     observe(sol) = hcat(sol.u...)[1,:]
-    model = Rodent(slen, tlen, dt, encoder, observe=observe)
+    model = Rodent(slen, tlen, dt, encoder, observe=observe, olen=tlen)
 
     nowarn_logger = SimpleLogger(stdout, Logging.Error)
     model_dir   = mktempdir()

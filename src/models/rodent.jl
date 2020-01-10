@@ -25,16 +25,22 @@ Rodent(p::P, e::E, d::D) where {P,E,D} = Rodent{P,E,D}(p,e,d)
 """
     Rodent(slen::Int, tlen::Int, dt::T, encoder;
            ode=Dense(slen,slen),
-           observe=sol->reshape(hcat(sol.u...), :)) where T
+           observe=sol->reshape(hcat(sol.u...), :),
+           olen=slen*tlen) where T
 
 Constructs a VAE with ARD prior on the latent dimension z and an ODE solver
-as decoder. Uses `CMeanGaussian`s for encoder and decoder.
+as decoder. The decoder `restructure`s z according to the `ode` model and uses
+it as parameters for the ODE decoder.  Uses `CMeanGaussian`s for encoder and
+decoder.
 
 # Arguments
 * `slen`: state length of the ODE
-* `tlen`: number of timesteps that are returned by decoder
+* `tlen`: number of timesteps that are returned by ODE decoder
 * `dt`: sampling timestep of ODE decoder
 * `encoder`: mapping from input `x` to latent code `z`
+* `ode`: ODE model (can be any Flux model)
+* `observe`: observation function for ODE decoder
+* `olen`: length of output of `observe(sol)`
 
 # Example
 With a 2nd order ODE decoder you can describe a harmonic oscillator with dξ=Wξ+b. 
@@ -85,7 +91,8 @@ julia> plot(mean(rodent.decoder, z)', labels=["x"  "ẋ"])
 """
 function Rodent(slen::Int, tlen::Int, dt::T, encoder;
                 ode=Dense(slen,slen),
-                observe=sol->reshape(hcat(sol.u...), :)) where T
+                observe=sol->reshape(hcat(sol.u...), :),
+                olen=slen*tlen) where T
     zlen = length(destructure(ode)) + slen
 
     μpz = NoGradArray(zeros(T, zlen))
@@ -97,7 +104,7 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
 
     σ2x = ones(T, 1) / 10
     decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
-    dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, tlen)
+    dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, olen)
 
     Rodent(prior, enc_dist, dec_dist)
 end
