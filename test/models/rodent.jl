@@ -50,7 +50,7 @@
     Flux.train!(loss, ps, data, opt, cb=cb)
     reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
     rec_err = mean((test_data .- reconstruct(rodent, test_data)).^2)
-    @info "Rec. Error: $rec_err"
+    @debug "Rec. Error: $rec_err"
     @test rec_err < 0.05
 
     # p = plot(test_data, color="gray")
