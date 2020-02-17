@@ -2,39 +2,26 @@
 
     Random.seed!(1)
 
-    function generate_sine_data(nr_examples; steps=30, dt=pi/10, freq_range=[1.0, 1.2])
-        U = []
-        T = []
-        Omega = []
-        for ii in 1:nr_examples
-            omega = freq_range[1] + rand() * sum(freq_range[2] - freq_range[1])
-            start = rand() * 2pi
-
-            t = range(start, length=steps, step=dt)
-            u = sin.(omega * t)
-            push!(U, Float32.(u))
-            push!(T, Float32.(t))
-            push!(Omega, Float32.(omega))
+    """
+    Generate pairs of sine waves and their generating frequency
+    """
+    function generate_sines(ω, batch; ω0=0.5, noise=0.01, dt=0.1, steps=20, T=Float32)
+        U = Array{T,2}(undef, steps, batch)
+        t = T.(range(0, length=steps, step=dt))
+        for ii in 1:batch
+            ω = T(ω0 + rand() * (ω - ω0))
+            ϕ = rand(T) * 2pi
+            u = sin.(ω * t .+ ϕ)
+            U[:,ii] .= T.(u)
         end
-
-        U = hcat(U...)
-        T = hcat(T...)
-
-        U, T, Omega
+        return U
     end
-
-    function generate(ω::T, batch::Int; ω0=0.5, noise=0.01, dt=0.1, steps=20) where T
-        U, Times, Omega = generate_sine_data(
-            batch, steps=steps, dt=T(dt), freq_range=[T(ω0), ω])
-        U .+= randn(T, size(U)) * T(noise)
-        return U, Times, Omega
-    end
-
-    tlen = 20
-    slen = 2
+    
+    tlen  = 20
+    slen  = 2
     batch = 10
-    dt = 0.3f0
-    zlen = 8
+    dt    = 0.3f0
+    zlen  = 8
     dtype = Float32
     noise = 0.01f0
     H(sol) = hcat(sol.u...)[1,:]
@@ -44,7 +31,7 @@
         Dense(100, zlen, initW=init, initb=init))
 
     rodent = Rodent(slen, tlen, dt, enc, observe=H, olen=tlen)
-    test_data = generate(0.5, batch, dt=dt, steps=tlen)[1] # |> gpu
+    test_data = generate_sines(0.5, batch, dt=dt, steps=tlen) # |> gpu
 
     ls = -elbo(rodent, test_data)
     ps = params(rodent)
@@ -63,7 +50,7 @@
     Flux.train!(loss, ps, data, opt, cb=cb)
     reconstruct(m, x) = mean(m.decoder, mean(m.encoder, x))
     rec_err = mean((test_data .- reconstruct(rodent, test_data)).^2)
-    @debug "Rec. Error: $rec_err"
+    @info "Rec. Error: $rec_err"
     @test rec_err < 0.05
 
     # p = plot(test_data, color="gray")

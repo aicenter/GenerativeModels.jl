@@ -96,13 +96,13 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
     zlen = length(destructure(ode)) + slen
 
     μpz = NoGradArray(zeros(T, zlen))
-    λ2z = ones(T, zlen)
+    λ2z = ones(T, zlen) / 20
     prior = Gaussian(μpz, λ2z)
 
-    σ2z = ones(T, zlen) / 100
+    σ2z = ones(T, zlen) / 20
     enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
-    σ2x = ones(T, 1) / 10
+    σ2x = ones(T, 1) / 20
     decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, olen)
 
