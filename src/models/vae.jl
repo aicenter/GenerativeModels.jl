@@ -2,7 +2,7 @@ export VAE
 export elbo, mmd_mean, mmd_rand
 
 """
-    VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P] ,e::E ,d::D)
+    VAE{P<:AbstractPDF,E<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P] ,e::E ,d::D)
 
 Variational Auto-Encoder.
 
@@ -36,7 +36,7 @@ julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
   1.123661
 ```
 """
-struct VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractVAE
+struct VAE{P<:AbstractPDF,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractVAE
     prior::P
     encoder::E
     decoder::D
