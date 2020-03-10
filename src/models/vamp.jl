@@ -44,7 +44,7 @@ _sampleVamp(p::VAMP, ids) =
 	mmd_mean_vamp(m::AbstractVAE, x::AbstractArray, k[; distance])
 
 MMD distance between a VAE VAMP prior and the encoding of X. This version uses mean 
-of encoder and mean of 
+of encoder.
 """
 mmd_mean_vamp(m::AbstractVAE, x::AbstractArray, k; 
 		distance = IPMeasures.pairwisel2) = 
