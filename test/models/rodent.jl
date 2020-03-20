@@ -57,5 +57,7 @@
     # plot!(p, reconstruct(rodent, test_data), ls=:dash)
     # display(p)
 
+    @test occursin("Rodent", sprint(show, rodent))
+
     Random.seed!()  # reset the seed
 end

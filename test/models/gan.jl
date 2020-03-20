@@ -60,7 +60,7 @@
     @test all(param_change(params_disc, model.discriminator))
     @test !any(param_change(params_gen, model.generator))
 
-    msg = summary(model)
+    msg = sprint(show, model)
     @test occursin("GAN", msg)
 
     Random.seed!()

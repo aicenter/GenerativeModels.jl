@@ -76,7 +76,7 @@
         @debug maximum(abs.(test_data - xs))
         @test all(abs.(test_data - xs) .< 0.2) 
 
-        msg = summary(model)
+        msg = sprint(show, model)
         @test occursin("VAE", msg)
         Random.seed!()  # reset the seed
     end
