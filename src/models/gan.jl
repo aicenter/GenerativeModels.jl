@@ -2,7 +2,7 @@ export GAN
 export generator_loss, discriminator_loss
 
 """
-    GAN{P<:AbstractPDF,G<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P], g::G, d::D)
+    GAN{P<:CMD,G<:ACD,D<:ACD}([zlength::Int,p::P], g::G, d::D)
 
 The Generative Adversarial Network.
 
@@ -28,7 +28,7 @@ GAN:
  discriminator = (CMeanGaussian{DiagVar}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
-struct GAN{P<:AbstractPDF,G<:AbstractCPDF,D<:AbstractCPDF} <: AbstractGAN
+struct GAN{P<:CMD,G<:ACD,D<:ACD} <: AbstractGAN
 	prior::P
 	generator::G
 	discriminator::D
@@ -38,7 +38,7 @@ Flux.@functor GAN
 
 GAN(p::P, g::G, d::D) where {P,G,D} = GAN{P,G,D}(p,g,d)
 
-function GAN(zlength::Int, g::AbstractCPDF, d::AbstractCPDF)
+function GAN(zlength::Int, g::ACD, d::ACD)
     T = eltype(first(params(g)))
     μ = NoGradArray(zeros(T, zlength))
     σ = NoGradArray(ones(T, zlength))

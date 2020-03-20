@@ -1,5 +1,4 @@
 using Test
-using Suppressor
 using Logging
 using Parameters
 using Random

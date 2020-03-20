@@ -20,7 +20,8 @@ If lastlayer is "linear", then the last layer is forced to be Dense with linear 
 
 It is also possible to specify dimensions in a vector.
 """
-layer_builder(k::Vector{Int},l::Vector,f::Vector) = Flux.Chain(map(i -> i[1](i[3],i[4],i[2]),zip(l,f,k[1:end-1],k[2:end]))...)
+layer_builder(k::Vector{Int},l::Vector,f::Vector) =
+    Flux.Chain(map(i -> i[1](i[3],i[4],i[2]),zip(l,f,k[1:end-1],k[2:end]))...)
 
 layer_builder(d::Int,k::Int,o::Int,n::Int, args...) =
     layer_builder(vcat(d,fill(k,n-1)...,o), args...)
@@ -109,37 +110,3 @@ Discriminator loss for true data score `st` and generated data score `sg`.
 """
 discriminator_loss(T,st,sg) = - T(0.5)*(mean(log.(st .+ eps(T))) + mean(log.(1 .- sg) .+ eps(T)))
 discriminator_loss(st,sg) = discriminator_loss(Float32,st,sg)
-
-
-"""
-    destructure(m)
-
-Returns all parameters of a Flux model in one long vector.
-This includes **all** `AbstractArray` fields
-(Adapted from DiffEqFlux.jl)
-"""
-function destructure(m)
-    xs = []
-    Flux.fmap(m) do x
-        x isa AbstractArray && push!(xs, x)
-        return x
-    end
-    return vcat(vec.(xs)...)
-end
-
-"""
-    restructure(m, xs::AbstractVector)
-
-Populate a Flux model with parameters as given in a long vector of xs.
-xs must include **all** `AbstractArray` fields.
-(Adapted from DiffEqFlux.jl)
-"""
-function restructure(m, xs::AbstractVector)
-    i = 0
-    Flux.fmap(m) do x
-        x isa AbstractArray || return x
-        x = reshape(xs[i.+(1:length(x))], size(x))
-        i += length(x)
-        return x
-    end
-end

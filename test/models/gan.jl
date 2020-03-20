@@ -6,7 +6,7 @@
     batchsize = 20
     T = Float32
 
-    test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) #|> gpu
+    test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) |> gpu
 
     gen = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu)
     gen_dist = CMeanGaussian{DiagVar}(gen, NoGradArray(ones(T,xlen)))
@@ -14,7 +14,7 @@
     disc = GenerativeModels.stack_layers([xlen, 10, 10, 1], relu, Dense; last = Flux.σ)
     disc_dist = CMeanGaussian{DiagVar}(disc, NoGradArray(ones(T,1)))
 
-    model = GAN(zlen, gen_dist, disc_dist) #|> gpu
+    model = GAN(zlen, gen_dist, disc_dist) |> gpu
 
     zs = rand(model.prior, batchsize)
     @test size(zs) == (zlen, batchsize)
@@ -60,7 +60,7 @@
     @test all(param_change(params_disc, model.discriminator))
     @test !any(param_change(params_gen, model.generator))
 
-    msg = @capture_out show(model)
+    msg = sprint(show, model)
     @test occursin("GAN", msg)
 
     Random.seed!()

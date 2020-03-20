@@ -6,7 +6,7 @@
 
     ode = Dense(slength, slength)
     dec = FluxODEDecoder(slength, xlength, dt, ode)
-    ps = GenerativeModels.destructure(ode)
+    ps = Flux.destructure(ode)[1]
     u0 = rand(slength)
     z  = vcat(ps, u0)
 

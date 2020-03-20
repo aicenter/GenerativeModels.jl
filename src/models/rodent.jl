@@ -93,7 +93,7 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
                 ode=Dense(slen,slen),
                 observe=sol->reshape(hcat(sol.u...), :),
                 olen=slen*tlen) where T
-    zlen = length(destructure(ode)) + slen
+    zlen = length(Flux.destructure(ode)[1]) + slen
 
     μpz = NoGradArray(zeros(T, zlen))
     λ2z = ones(T, zlen) / 20
@@ -126,7 +126,7 @@ function elbo(m::ConstSpecRodent, x::AbstractArray)
     sz = rand(m.encoder.spec, x)
     z  = cz .+ sz
 
-    llh = sum(loglikelihood(m.decoder, x, z))
+    llh = sum(logpdf(m.decoder, x, z))
     ckl = sum(kl_divergence(m.encoder.cnst, m.const_prior))
     skl = sum(kl_divergence(m.encoder.spec, m.spec_prior, sz))
 

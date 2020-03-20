@@ -47,7 +47,7 @@
         xlen = 4
         zlen = 2
         batch = 20
-        test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) # |> gpu
+        test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
 
         enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
         enc_dist = CMeanGaussian{DiagVar}(enc, NoGradArray(ones(T,zlen)))
@@ -55,7 +55,7 @@
         dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
         dec_dist = CMeanGaussian{DiagVar}(dec, NoGradArray(ones(T,xlen)))
 
-        model = VAE(zlen, enc_dist, dec_dist) # |> gpu
+        model = VAE(zlen, enc_dist, dec_dist) |> gpu
 
         # test training
         params_init = get_params(model)
@@ -76,7 +76,7 @@
         @debug maximum(abs.(test_data - xs))
         @test all(abs.(test_data - xs) .< 0.2) 
 
-        msg = @capture_out show(model)
+        msg = sprint(show, model)
         @test occursin("VAE", msg)
         Random.seed!()  # reset the seed
     end

@@ -32,19 +32,4 @@
     @test m.layers[2] isa Dense
     @test m.layers[2].σ == identity
 
-    @testset "destructure/restructure" begin
-        m = Dense(3,3)
-        σ = NoGradArray(ones(Float32,3))
-        g = CMeanGaussian{DiagVar}(m, σ)
-
-        z = GenerativeModels.destructure(g)
-        @test z isa Vector
-        @test length(z) == 3*3 + 3 + 3
-
-        _z = rand(Float32,3*3 + 3 + 3)
-        _g = GenerativeModels.restructure(g, _z)
-
-        @test _g.mapping.W[1] != g.mapping.W[1]
-        @test _g.mapping.W[1] == _z[1]
-    end
 end
