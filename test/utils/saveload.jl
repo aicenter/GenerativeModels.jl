@@ -37,7 +37,7 @@
 
     opt = ADAM()
     lossf(x) = -elbo(model, x, β=1e-3)
-    data = [(randn(Float32, tlen),)]
+    data = [(randn(Float32, tlen, 1),)]
     Flux.train!(lossf, params(model), data, opt)
     params_trained = get_params(model)
 

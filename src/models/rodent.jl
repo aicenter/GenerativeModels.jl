@@ -93,7 +93,7 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
                 ode=Dense(slen,slen),
                 observe=sol->reshape(hcat(sol.u...), :),
                 olen=slen*tlen) where T
-    zlen = length(destructure(ode)) + slen
+    zlen = length(Flux.destructure(ode)[1]) + slen
 
     μpz = NoGradArray(zeros(T, zlen))
     λ2z = ones(T, zlen) / 20
