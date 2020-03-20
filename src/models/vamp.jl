@@ -1,11 +1,10 @@
-import ConditionalDists: AbstractCGaussian
 export VAMP, mmd_mean_vamp
 """
 	VAMP{K,P}
 
 Vamp prior with K pseudoinputs P.
 """
-struct VAMP{K<:Int,P<:AbstractArray} <: AbstractPDF # add type here
+struct VAMP{K<:Int,P<:AbstractArray} <: CMD # add type here
 	K::K
 	pseudoinputs::P
 
