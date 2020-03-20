@@ -2,7 +2,7 @@ export VAE
 export elbo, mmd_mean, mmd_rand
 
 """
-    VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF}([zlength::Int,p::P] ,e::E ,d::D)
+    VAE{P<:Gaussian,E<:ACD,D<:ACD}([zlength::Int,p::P] ,e::E ,d::D)
 
 Variational Auto-Encoder.
 
@@ -36,7 +36,7 @@ julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
   1.123661
 ```
 """
-struct VAE{P<:Gaussian,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractVAE
+struct VAE{P<:Gaussian,E<:ACD,D<:ACD} <: AbstractVAE
     prior::P
     encoder::E
     decoder::D
@@ -46,7 +46,7 @@ Flux.@functor VAE
 
 VAE(p::P, e::E, d::D) where {P,E,D} = VAE{P,E,D}(p,e,d)
 
-function VAE(zlength::Int, enc::AbstractCPDF, dec::AbstractCPDF)
+function VAE(zlength::Int, enc::ACD, dec::ACD)
     T = eltype(first(params(enc)))
     μp = NoGradArray(zeros(T, zlength))
     σ2p = NoGradArray(ones(T, zlength))
@@ -61,7 +61,7 @@ Evidence lower boundary of the VAE model. `β` scales the KLD term.
 """
 function elbo(m::AbstractVAE, x::AbstractArray; β=1)
     z = rand(m.encoder, x)
-    llh = mean(loglikelihood(m.decoder, x, z))
+    llh = mean(logpdf(m.decoder, x, z))
     kld = mean(kl_divergence(m.encoder, m.prior, x))
     llh - β*kld
 end
