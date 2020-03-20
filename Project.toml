@@ -1,7 +1,7 @@
 name = "GenerativeModels"
 uuid = "6ac2c632-c4cd-11e9-0501-33c4b9b2f9c9"
 authors = ["Niklas Heim <heim.niklas@gmail.com>"]
-version = "0.1.1"
+version = "0.1.2"
 
 [deps]
 BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
@@ -20,7 +20,7 @@ ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 
 [compat]
 BSON = "0.2"
-ConditionalDists = "0.2"
+ConditionalDists = "0.3"
 DiffEqBase = "6.15"
 Distributions = "0.23"
 DrWatson = "1.9"
