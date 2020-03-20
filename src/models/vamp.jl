@@ -1,4 +1,5 @@
 export VAMP, mmd_mean_vamp
+import ConditionalDists: rand # so that there is no conflict
 """
 	VAMP{K,P}
 

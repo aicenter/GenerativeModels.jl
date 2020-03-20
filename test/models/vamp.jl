@@ -2,6 +2,7 @@ using Test
 using ConditionalDists
 using GenerativeModels
 using Flux
+using CuArrays
 
 @testset "src/models/vamp.jl" begin
 	xdim, zdim, n, K = 4, 2, 6, 2
