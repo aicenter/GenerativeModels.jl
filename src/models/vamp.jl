@@ -1,19 +1,49 @@
 export VAMP, mmd_mean_vamp
 import ConditionalDists: rand # so that there is no conflict
 """
-	VAMP{K,P}
+	VAMP{K<:Int,P<:AbstractArray}(K::Int, xdim::Union{Tuple, Int})
+	VAMP{K<:Int,P<:AbstractArray}(X::P)
 
-Vamp prior with K pseudoinputs P.
+Vamp prior with `K` pseudoinputs `P`. If only the pseudoinput `X` is given, `K` is the size of 
+the last dimension. 
+
+# Arguments
+* `K`: Number of pseudoinputs
+* `xdim`: Size of an individual pseudoinput
+* `X`: Pseudoinput array
+
+# Example
+Initialize a VAMP with K pseudoinputs of size xdim:
+```julia-repl
+julia> v = VAMP(2, 2)
+VAMP{Int64,Array{Float32,2}}(
+K: 2
+pseudoinputs: Float32[0.876433 0.56233144; 0.24732344 0.44447201]
+)
+
+julia> v = VAMP(2, (3, 2))
+VAMP{Int64,Array{Float32,3}}(
+K: 2
+pseudoinputs: Float32[0.21458945 0.8710681; 0.2402707 -0.20706704; 0.9916858 0.6571086]
+
+Float32[0.6324719 0.27955383; -0.39046887 0.18451884; -0.18170312 -1.3017029]
+)
+
+julia> v = VAMP(zeros(3,2))
+VAMP{Int64,Array{Float64,2}}(
+K: 2
+pseudoinputs: [0.0 0.0; 0.0 0.0; 0.0 0.0]
+)
+```
 """
 struct VAMP{K<:Int,P<:AbstractArray} <: CMD # add type here
 	K::K
 	pseudoinputs::P
 
-#	VAMP(K::Int, xdim::Union{Tuple, Int}) = new(K, Flux.param(randn(Float32, xdim..., K)))
-#	VAMP(K::Int, X::AbstractArray) = new(K, Flux.Tracker.istracked(X) ? X : Flux.param(X))
+	VAMP(K::Int, xdim::Union{Tuple, Int}) = new{Int, typeof(randn(Float32, xdim..., K))}(K, randn(Float32, xdim..., K))
+	VAMP(X::AbstractArray) = new{Int, typeof(X)}(size(X)[end], X)
+	VAMP(K::Int, X::AbstractArray) = new{Int, typeof(X)}(K, X) # this is needed for gpu conversion
 end
-# TODO - better pseudoinputs initializers
-# TODO - check gpu compatibility
 
 Flux.@functor VAMP
 

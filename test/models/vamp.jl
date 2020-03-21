@@ -1,11 +1,13 @@
 @testset "src/models/vamp.jl" begin
 	# test different constructors
 	xdim, zdim, n, K = 4, 2, 6, 2
-	v = VAMP(K, zeros(Float32, xdim, K))
+	v = VAMP(zeros(Float32, xdim, K))
+	@test length(params(v)) == 1
+	v = VAMP(K, xdim)
 	@test length(params(v)) == 1
 
 	# test gpu compatibility
-	v = VAMP(K, zeros(Float32, xdim, K)) |> gpu
+	v = VAMP(zeros(Float32, xdim, K)) |> gpu
 	@test typeof(v.pseudoinputs) == typeof(gpu(zeros(Float32,2,2))) # works even when gpu not available
 
     # also test it as a part of a VAE model, test trainability
@@ -15,7 +17,7 @@
 	dec = f32(Chain(Dense(zdim, hdim, relu), Dense(hdim, xdim+1)))
 	q = CMeanVarGaussian{DiagVar}(enc)
 	p = CMeanVarGaussian{ScalarVar}(dec)
-    v = VAMP(K, zeros(Float32, xdim, K))
+    v = VAMP(K, xdim)
 	m = VAE(v, q, p) |> gpu # gpu will make a copy of v
 	@test typeof(m.prior.pseudoinputs) == typeof(gpu(zeros(Float32,2,2))) # works even when gpu not available
 	
