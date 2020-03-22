@@ -7,20 +7,37 @@
 	@test length(params(v)) == 1
 
 	# test gpu compatibility
+	cutype = typeof(gpu(zeros(Float32,2,2)))
 	v = VAMP(zeros(Float32, xdim, K)) |> gpu
-	@test typeof(v.pseudoinputs) == typeof(gpu(zeros(Float32,2,2))) # works even when gpu not available
+	@test typeof(v.pseudoinputs) == cutype # works even when gpu not available
+
+	# test constructors
+	x = f32(hcat(ones(xdim, n), -ones(xdim, n)) + randn(xdim, n*2)/15) |> gpu
+
+	# mean constructor - K slightly perturbed means of X
+	v = init_vamp_mean(3, cpu(x), 0.1f0)
+	@test size(v.pseudoinputs) == (xdim,3)
+	@test typeof(v.pseudoinputs) == Array{Float32,2}	
+	v = init_vamp_mean(3, cpu(x)) |> gpu
+	@test typeof(v.pseudoinputs) == cutype
+
+	# rand constructor - randomly selects K samples from X
+	v = init_vamp_sample(3, cpu(x))
+	@test size(v.pseudoinputs) == (xdim,3)
+	@test typeof(v.pseudoinputs) == Array{Float32,2}	
+	v = init_vamp_sample(3, cpu(x)) |> gpu
+	@test typeof(v.pseudoinputs) == cutype
 
     # also test it as a part of a VAE model, test trainability
-	x = f32(hcat(ones(xdim, n), -ones(xdim, n)) + randn(xdim, n*2)/15) |> gpu
 	hdim = 50
 	enc = f32(Chain(Dense(xdim, hdim, relu), Dense(hdim, zdim*2)))
 	dec = f32(Chain(Dense(zdim, hdim, relu), Dense(hdim, xdim+1)))
 	q = CMeanVarGaussian{DiagVar}(enc)
 	p = CMeanVarGaussian{ScalarVar}(dec)
-    v = VAMP(K, xdim)
+    v = init_vamp_mean(K, cpu(x), 0.1f0)
 	m = VAE(v, q, p) |> gpu # gpu will make a copy of v
 	@test typeof(m.prior.pseudoinputs) == typeof(gpu(zeros(Float32,2,2))) # works even when gpu not available
-	
+
 	# extract original param vals
     vamp_params_init = get_params(m.prior)
     model_params_init = get_params(m)

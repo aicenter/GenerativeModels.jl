@@ -1,4 +1,4 @@
-export VAMP, mmd_mean_vamp
+export VAMP, mmd_mean_vamp, init_vamp_mean, init_vamp_sample
 import ConditionalDists: rand # so that there is no conflict
 """
 	VAMP{K<:Int,P<:AbstractArray}(K::Int, xdim::Union{Tuple, Int})
@@ -51,6 +51,21 @@ _nograd_rand(a,b) = rand(a,b)
 _nograd_repeat(a,b) = repeat(a,b)
 Flux.Zygote.@nograd _nograd_rand
 Flux.Zygote.@nograd _nograd_repeat 
+
+"""
+	init_vamp_mean(K::Int, X::AbstractArray[, σ=1f0])
+
+Initialize a VAMP whose pseudoinputs are `K` slightly perturbed means of `X`. Currently only works
+for X on cpu.
+"""
+init_vamp_mean(K::Int, X::AbstractArray, σ=1f0) = VAMP(K, σ*randn(eltype(X), size(X)[1:end-1]..., K) .+ mean(X, dims=ndims(X)))
+
+"""
+	init_vamp_sample(K::Int, X::AbstractArray)
+
+Initialize a VAMP whose pseudoinputs are `K` random samples of `X`.
+"""
+init_vamp_sample(K::Int, X::AbstractArray) = VAMP(K,  X[repeat([:], ndims(X)-1)..., rand(1:size(X)[end], K)])
 
 """
 	rand(p::VAMP[, batchsize, component_id])
