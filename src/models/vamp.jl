@@ -1,11 +1,11 @@
 export VAMP, mmd_mean_vamp, init_vamp_mean, init_vamp_sample
 import ConditionalDists: rand # so that there is no conflict
 """
-	VAMP{K<:Int,P<:AbstractArray}(K::Int, xdim::Union{Tuple, Int})
 	VAMP{K<:Int,P<:AbstractArray}(X::P)
-
-Vamp prior with `K` pseudoinputs `P`. If only the pseudoinput `X` is given, `K` is the size of 
-the last dimension. 
+	VAMP{K<:Int,P<:AbstractArray}(K::Int, xdim::Union{Tuple, Int})
+	
+Vamp prior with `K` pseudoinputs of type `P`. If only the pseudoinput `X` is given, `K` is the size of 
+the last dimension of the input array. 
 
 # Arguments
 * `K`: Number of pseudoinputs
@@ -39,11 +39,9 @@ pseudoinputs: [0.0 0.0; 0.0 0.0; 0.0 0.0]
 struct VAMP{K<:Int,P<:AbstractArray} <: CMD # add type here
 	K::K
 	pseudoinputs::P
-
-	VAMP(K::Int, xdim::Union{Tuple, Int}) = new{Int, typeof(randn(Float32, xdim..., K))}(K, randn(Float32, xdim..., K))
-	VAMP(X::AbstractArray) = new{Int, typeof(X)}(size(X)[end], X)
-	VAMP(K::Int, X::AbstractArray) = new{Int, typeof(X)}(K, X) # this is needed for gpu conversion
 end
+VAMP(K::Int, xdim::Union{Tuple, Int}) = VAMP{Int, typeof(randn(Float32, xdim..., K))}(K, randn(Float32, xdim..., K))
+VAMP(X::AbstractArray) = VAMP{Int, typeof(X)}(size(X)[end], X)
 
 Flux.@functor VAMP
 
