@@ -1,4 +1,27 @@
-export FluxODEDecoder
+export FluxDecoder, FluxODEDecoder
+
+"""
+    FluxDecoder{M}(model)
+
+Simple decoder that, when called with an additional parameter vector,
+restructures it into `model` and calls model(x)
+
+julia> dec = FluxDecoder(Dense(2,3))
+julia> ps = rand(9)
+julia> dec(rand(2,10), ps) 
+3×10 Array{Float64,2}:
+ 0.508304  0.620386  0.423422  …  0.595583  0.551536  0.565597  0.255811
+ 1.75512   1.32246   1.57151      1.82269   1.2394    1.73934   0.844125
+ 1.45708   0.92777   1.28766      1.49607   0.863829  1.4156    0.546213
+"""
+struct FluxDecoder{M}
+    model::M
+    restructure::Function
+end
+
+FluxDecoder(m) = FluxDecoder(m, Flux.destructure(m)[2])
+(d::FluxDecoder)(x::AbstractMatrix, ps::AbstractVector) = d.restructure(ps)(x)
+(d::FluxDecoder)(x::AbstractMatrix) = d.model(x)
 
 """
     FluxODEDecoder{M}(slength::Int, tlength::Int, dt::Real,
