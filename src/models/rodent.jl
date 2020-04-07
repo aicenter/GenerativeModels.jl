@@ -12,7 +12,7 @@ with ARD prior and an ODE decoder.
 * `e`: Encoder p(z|x)
 * `d`: Decoder p(x|z)
 """
-struct Rodent{H<:InverseGamma,P<:Gaussian,E<:CMeanGaussian,D<:CMeanGaussian} <: AbstractVAE
+struct Rodent{H,P,E<:CMeanGaussian,D<:CMeanGaussian} <: AbstractGM
     hyperprior::InverseGamma
     prior::Gaussian
     encoder::CMeanGaussian
@@ -114,4 +114,12 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, olen)
 
     Rodent(prior, enc_dist, dec_dist)
+end
+
+function elbo(m::Rodent, x::AbstractArray; β=1)
+    z = rand(m.encoder, x)
+    llh = sum(logpdf(m.decoder, x, z))
+    kld = sum(kl_divergence(m.encoder, m.prior))
+    lpλ = sum(logpdf(m.hyperprior, var(m.prior)))
+    llh - β*(kld - lpλ)
 end

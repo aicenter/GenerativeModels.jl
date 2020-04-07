@@ -1,24 +1,25 @@
 export ARDNet
 
-const ACG = ConditionalDists.ACGaussian
+const ACG = ConditionalDists.AbstractConditionalGaussian
+
 const FDCMeanGaussian = CMeanGaussian{V,<:FluxDecoder} where V
 
 """
-    ARDNet{P<:Gaussian,E<:Gaussian,D<:ACGaussian,H<:TuringInverseWishart}
+    ARDNet(h::InverseGamma, p::Gaussian, e::Gaussian, d::ACGaussian)
 
 Generative model that emposes the sparsifying ARD (*Automatic Relevance
 Determination*) prior on the weights of the decoder mapping:
 
 p(x|z) = N(x|ϕ(z),σx²)
 p(z)   = N(z|0,diag(λz²))
-p(λz)  = iW(λ|ψ,v)
+p(λz)  = iG(λ|α0,β0)
 
 where the posterior on z is a multivariate Gaussian
 q(z|x) = N(z|μz,σz²)
 """
-struct ARDNet{P<:Gaussian,E<:Gaussian,D<:ACG,H<:InverseGamma} <: AbstractGM
-    prior::P
+struct ARDNet{H<:InverseGamma,P<:Gaussian,E<:Gaussian,D<:ACG} <: AbstractGM
     hyperprior::H
+    prior::P
     encoder::E
     decoder::D
 end

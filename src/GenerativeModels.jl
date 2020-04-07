@@ -29,9 +29,9 @@ module GenerativeModels
     include(joinpath("utils", "utils.jl"))
 
     include(joinpath("models", "vae.jl"))
+    include(joinpath("models", "ardnet.jl"))
     include(joinpath("models", "rodent.jl"))
     include(joinpath("models", "gan.jl"))
     include(joinpath("models", "vamp.jl"))
-    include(joinpath("models", "ardnet.jl"))
 
 end # module
