@@ -21,7 +21,7 @@ end
 
 Flux.@functor Rodent
 
-Rodent(p::P, e::E, d::D) where {P,E,D} = Rodent{P,E,D}(p,e,d)
+Rodent(h::H, p::P, e::E, d::D) where {H,P,E,D} = Rodent{H,P,E,D}(h,p,e,d)
 
 """
     Rodent(slen::Int, tlen::Int, dt::T, encoder;
@@ -113,13 +113,13 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
     decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, olen)
 
-    Rodent(prior, enc_dist, dec_dist)
+    Rodent(hyperprior, prior, enc_dist, dec_dist)
 end
 
-function elbo(m::Rodent, x::AbstractArray; β=1)
+function elbo(m::Rodent, x::AbstractMatrix; β=1)
     z = rand(m.encoder, x)
     llh = sum(logpdf(m.decoder, x, z))
-    kld = sum(kl_divergence(m.encoder, m.prior))
+    kld = sum(kl_divergence(m.encoder, m.prior, x))
     lpλ = sum(logpdf(m.hyperprior, var(m.prior)))
     llh - β*(kld - lpλ)
 end
