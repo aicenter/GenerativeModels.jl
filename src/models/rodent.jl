@@ -12,7 +12,8 @@ with ARD prior and an ODE decoder.
 * `e`: Encoder p(z|x)
 * `d`: Decoder p(x|z)
 """
-struct Rodent{P<:Gaussian,E<:CMeanGaussian,D<:CMeanGaussian} <: AbstractVAE
+struct Rodent{H,P,E<:CMeanGaussian,D<:CMeanGaussian} <: AbstractGM
+    hyperprior::InverseGamma
     prior::Gaussian
     encoder::CMeanGaussian
     decoder::CMeanGaussian
@@ -20,7 +21,7 @@ end
 
 Flux.@functor Rodent
 
-Rodent(p::P, e::E, d::D) where {P,E,D} = Rodent{P,E,D}(p,e,d)
+Rodent(h::H, p::P, e::E, d::D) where {H,P,E,D} = Rodent{H,P,E,D}(h,p,e,d)
 
 """
     Rodent(slen::Int, tlen::Int, dt::T, encoder;
@@ -95,50 +96,30 @@ function Rodent(slen::Int, tlen::Int, dt::T, encoder;
                 olen=slen*tlen) where T
     zlen = length(Flux.destructure(ode)[1]) + slen
 
+    # hyperprior
+    hyperprior = InverseGamma(T(1), T(1), zlen, true)
+
+    # prior
     μpz = NoGradArray(zeros(T, zlen))
     λ2z = ones(T, zlen) / 20
     prior = Gaussian(μpz, λ2z)
 
+    # encoder
     σ2z = ones(T, zlen) / 20
     enc_dist = CMeanGaussian{DiagVar}(encoder, σ2z)
 
+    # decoder
     σ2x = ones(T, 1) / 20
     decoder = FluxODEDecoder(slen, tlen, dt, ode, observe)
     dec_dist = CMeanGaussian{ScalarVar}(decoder, σ2x, olen)
 
-    Rodent(prior, enc_dist, dec_dist)
+    Rodent(hyperprior, prior, enc_dist, dec_dist)
 end
 
-struct ConstSpecRodent{CP<:Gaussian,SP<:Gaussian,E<:ConstSpecGaussian,D<:CMeanGaussian} <: AbstractVAE
-    const_prior::CP
-    spec_prior::SP
-    encoder::E
-    decoder::D
-end
-
-ConstSpecRodent(cp::CP, sp::SP, e::E, d::D) where {CP,SP,E,D} =
-    ConstSpecRodent{CP,SP,E,D}(cp,sp,e,d)
-
-Flux.@functor ConstSpecRodent
-
-function elbo(m::ConstSpecRodent, x::AbstractArray)
-    cz = rand(m.encoder.cnst) 
-    sz = rand(m.encoder.spec, x)
-    z  = cz .+ sz
-
+function elbo(m::Rodent, x::AbstractMatrix; β=1)
+    z = rand(m.encoder, x)
     llh = sum(logpdf(m.decoder, x, z))
-    ckl = sum(kl_divergence(m.encoder.cnst, m.const_prior))
-    skl = sum(kl_divergence(m.encoder.spec, m.spec_prior, sz))
-
-    llh - ckl - skl
-end
-
-function Base.show(io::IO, m::ConstSpecRodent)
-    msg = """$(typeof(m)):
-     const_prior = $(summary(m.const_prior)))
-     spec_prior = $(summary(m.spec_prior))
-     encoder = $(summary(m.encoder))
-     decoder = $(summary(m.decoder))
-    """
-    print(io, msg)
+    kld = sum(kl_divergence(m.encoder, m.prior, x))
+    lpλ = sum(logpdf(m.hyperprior, var(m.prior)))
+    llh - β*(kld - lpλ)
 end
