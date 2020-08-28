@@ -20,7 +20,7 @@ ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 
 [compat]
 BSON = "0.2"
-ConditionalDists = "0.3"
+ConditionalDists = "0.3, 0.4"
 DiffEqBase = "6"
 Distributions = "0.23"
 DrWatson = "1"
