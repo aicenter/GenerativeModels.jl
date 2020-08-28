@@ -1,5 +1,4 @@
 export train!, softplus_safe
-export diffeq_rd
 
 # for over/underflow in logs
 """
