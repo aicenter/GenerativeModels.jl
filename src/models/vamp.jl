@@ -1,5 +1,3 @@
-export VAMP, mmd_mean_vamp, init_vamp_mean, init_vamp_sample
-import ConditionalDists: rand # so that there is no conflict
 """
 	VAMP{K<:Int,P<:AbstractArray}(X::P)
 	VAMP{K<:Int,P<:AbstractArray}(K::Int, xdim::Union{Tuple, Int})
@@ -36,14 +34,18 @@ pseudoinputs: [0.0 0.0; 0.0 0.0; 0.0 0.0]
 )
 ```
 """
-struct VAMP{K<:Int,P<:AbstractArray} <: CMD # add type here
+struct VAMP{K<:Int,P<:AbstractArray} <: ContinuousMultivariateDistribution # add type here
 	K::K
 	pseudoinputs::P
 end
-VAMP(K::Int, xdim::Union{Tuple, Int}) = VAMP{Int, typeof(randn(Float32, xdim..., K))}(K, randn(Float32, xdim..., K))
-VAMP(X::AbstractArray) = VAMP{Int, typeof(X)}(size(X)[end], X)
+VAMP(K::Int, xdim::Union{Tuple, Int}) = VAMP(K, randn(Float32, xdim..., K))
+VAMP(X::AbstractArray) = VAMP(size(X)[end], X)
 
 Flux.@functor VAMP
+
+function Flux.trainable(m::VAE{<:VAMP})
+    (prior=m.prior, encoder=m.encoder, decoder=m.decoder)
+end
 
 _nograd_rand(a,b) = rand(a,b)
 _nograd_repeat(a,b) = repeat(a,b)
@@ -70,11 +72,11 @@ init_vamp_sample(K::Int, X::AbstractArray) = VAMP(K,  X[repeat([:], ndims(X)-1).
 
 Sample batchsize pseudoinputs of VAMP.
 """
-function rand(p::VAMP, batchsize::Int=1)
+function Random.rand(p::VAMP, batchsize::Int=1)
 	ids = _nograd_rand(1:p.K, batchsize)
 	_sampleVamp(p, ids)
 end
-function rand(p::VAMP, batchsize::Int, k::Int)
+function Random.rand(p::VAMP, batchsize::Int, k::Int)
 	k > p.K ? error("requested samples from pseudoinput $k, only $(p.K) available") : 
 		nothing
 	ids = _nograd_repeat([k], batchsize)
@@ -84,11 +86,14 @@ _sampleVamp(p::VAMP, ids) =
 	p.pseudoinputs[_nograd_repeat([:], ndims(p.pseudoinputs)-1)..., ids]
 
 """
-	mmd_mean_vamp(m::AbstractVAE, x::AbstractArray, k[; distance])
+    mmd_mean_vamp(m::AbstractVAE{<:VAMP}, x::AbstractArray, k[; distance])
 
 MMD distance between a VAE VAMP prior and the encoding of X. This version uses mean 
 of encoder.
 """
-mmd_mean_vamp(m::AbstractVAE, x::AbstractArray, k; 
-		distance = IPMeasures.pairwisel2) = 
-    	mmd(k, mean(m.encoder, x), mean(m.encoder, rand(m.prior, size(x, 2))), distance)
+function mmd_mean(m::VAE{<:VAMP}, x::AbstractArray, k::AbstractKernel;
+                  distance = IPMeasures.pairwisel2)
+    mmd(k, mean(m.encoder, x), mean(m.encoder, rand(m.prior, size(x, 2))), distance)
+end
+
+mmd_mean_vamp(m,x,k,distance=IPMeasures.pairwisel2) = mmd_mean(m,x,k,distance)

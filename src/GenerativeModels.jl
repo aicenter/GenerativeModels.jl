@@ -17,15 +17,16 @@ module GenerativeModels
                              DistributionsAD.TuringDiagMvNormal,
                              DistributionsAD.TuringScalMvNormal}
 
-    export VAE, GAN
+    export VAE, GAN, VAMP
     export elbo, mmd_mean, mmd_rand, generator_loss, discriminator_loss
     export train!, softplus_safe, save_checkpoint, load_checkpoint
-
+    export mmd_mean_vamp, init_vamp_mean, init_vamp_sample
 
     abstract type AbstractGM end
     abstract type AbstractVAE <: AbstractGM end
     abstract type AbstractGAN <: AbstractGM end
 
+    # TODO: move to GMExtensions.jl
     # include(joinpath("utils", "saveload.jl"))
     include(joinpath("utils", "utils.jl"))
 
@@ -36,7 +37,7 @@ module GenerativeModels
 
     include(joinpath("models", "vae.jl"))
     include(joinpath("models", "gan.jl"))
-    #include(joinpath("models", "vamp.jl"))
+    include(joinpath("models", "vamp.jl"))
 
     # TODO: wrap in requires
     #using ForwardDiff

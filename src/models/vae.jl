@@ -30,7 +30,7 @@ julia> mean(vae.decoder, mean(vae.encoder, rand(5)))
   1.123661
 ```
 """
-struct VAE{P<:TuMvNormal,E<:ConditionalMvNormal,D<:ConditionalMvNormal} <: AbstractVAE
+struct VAE{P<:ContinuousMultivariateDistribution,E<:ConditionalMvNormal,D<:ConditionalMvNormal} <: AbstractVAE
     prior::P
     encoder::E
     decoder::D
