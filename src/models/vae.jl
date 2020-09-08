@@ -1,6 +1,3 @@
-export VAE
-export elbo, mmd_mean, mmd_rand
-
 """
     VAE([zlength::Int,p::P] ,e::E ,d::D)
 
@@ -45,6 +42,11 @@ function Flux.trainable(m::VAE)
     (encoder=m.encoder, decoder=m.decoder)
 end
 
+# to make Flux.gpu work on VAE we need:
+Flux.@functor DistributionsAD.TuringScalMvNormal
+Flux.@functor DistributionsAD.TuringDiagMvNormal
+Flux.@functor DistributionsAD.TuringDenseMvNormal
+
 function VAE(zlength::Int, enc::ConditionalMvNormal, dec::ConditionalMvNormal)
     W = first(Flux.params(enc))
     μ = fill!(similar(W, zlength), 0)
@@ -77,7 +79,7 @@ end
 Maximum mean discrepancy of a VAE given data `x` and kernel `k`.
 Uses mean of encoded data.
 """
-function mmd_mean(m::AbstractVAE, x::AbstractArray, k::Kernel = GaussianKernel())
+function mmd_mean(m::AbstractVAE, x::AbstractArray, k::AbstractKernel = GaussianKernel())
     mmd(k, mean(m.encoder,x), rand(m.prior,size(x,2)))
 end
 
@@ -87,7 +89,7 @@ end
 Maximum mean discrepancy of a VAE given data `x` and kernel `k`.
 Samples from the encoder.
 """
-function mmd_rand(m::AbstractVAE, x::AbstractArray, k::Kernel = GaussianKernel())
+function mmd_rand(m::AbstractVAE, x::AbstractArray, k::AbstractKernel = GaussianKernel())
     mmd(k, rand(m.encoder,x), rand(m.prior,size(x,2)))
 end
 
