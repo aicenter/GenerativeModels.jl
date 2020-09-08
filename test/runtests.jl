@@ -27,10 +27,10 @@ param_change(frozen_params, model) =
 	map(x-> x[1] != x[2], zip(frozen_params, collect(Flux.params(model))))
 
 include(joinpath("models", "vae.jl"))
-# include(joinpath("models", "gan.jl"))
+include(joinpath("models", "gan.jl"))
 # include(joinpath("models", "rodent.jl"))
 # include(joinpath("models", "vamp.jl"))
 # 
 # include(joinpath("utils", "flux_ode_decoder.jl"))
-# include(joinpath("utils", "saveload.jl"))
-# include(joinpath("utils", "utils.jl"))
+#include(joinpath("utils", "saveload.jl"))
+include(joinpath("utils", "utils.jl"))

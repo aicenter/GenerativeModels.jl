@@ -1,6 +1,3 @@
-export GAN
-export generator_loss, discriminator_loss
-
 """
     GAN{P<:CMD,G<:ACD,D<:ACD}([zlength::Int,p::P], g::G, d::D)
 
@@ -28,7 +25,7 @@ GAN:
  discriminator = (CMeanGaussian{DiagVar}(mapping=Dense(4, 1, σ), σ2=1-element Array...)
 ```
 """
-struct GAN{P<:CMD,G<:ACD,D<:ACD} <: AbstractGAN
+struct GAN{P<:ContinuousMultivariateDistribution,G<:ACD,D<:ACD} <: AbstractGAN
 	prior::P
 	generator::G
 	discriminator::D
@@ -36,13 +33,13 @@ end
 
 Flux.@functor GAN
 
-GAN(p::P, g::G, d::D) where {P,G,D} = GAN{P,G,D}(p,g,d)
+function Flux.trainable(m::GAN)
+    (generator=m.generator, discriminator=m.discriminator)
+end
 
 function GAN(zlength::Int, g::ACD, d::ACD)
-    T = eltype(first(params(g)))
-    μ = NoGradArray(zeros(T, zlength))
-    σ = NoGradArray(ones(T, zlength))
-    prior = Gaussian(μ, σ)
+    T = eltype(first(Flux.params(g)))
+    prior = DistributionsAD.TuringMvNormal(zeros(T,zlength), ones(T,zlength))
     GAN(prior, g, d)
 end
 
@@ -55,8 +52,10 @@ Loss of the GAN generator. The input is either the random code `z` or
 from.
 """
 function generator_loss(m::GAN, z::AbstractArray)
-    T = eltype(m.prior.μ)
-    generator_loss(T, m.discriminator.mapping(mean(m.generator,z)))
+    T = eltype(m.prior)
+    x = mean(m.generator,z)
+    y = mean(m.discriminator, x)
+    generator_loss(mean(m.discriminator, mean(m.generator,z)))
 end
 
 generator_loss(m::GAN, batchsize::Int) =
@@ -70,10 +69,10 @@ prior samples `z`.  If z is not given, it is automatically generated from the
 model prior.
 """
 function discriminator_loss(m::GAN, x::AbstractArray, z::AbstractArray)
-    T = eltype(m.prior.μ)
+    T = eltype(m.prior)
     st = mean(m.discriminator,x)
-    sg = mean(m.discriminator, m.generator.mapping(z))
-    discriminator_loss(T, st, sg)
+    sg = mean(m.discriminator, mean(m.generator,z))
+    discriminator_loss(st, sg)
 end
 
 discriminator_loss(m::GAN, x::AbstractArray) =

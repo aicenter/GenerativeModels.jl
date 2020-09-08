@@ -1,7 +1,3 @@
-export save_checkpoint
-export load_checkpoint
-
-
 """
     save_checkpoint(filename, model, history; keep=100)
 
