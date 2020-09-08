@@ -8,16 +8,21 @@ module GenerativeModels
     using Distributions
     using DistributionsAD
     using Distances
-    using KernelFunctions
     @reexport using ConditionalDists
-    #@reexport using IPMeasures
+    @reexport using IPMeasures
 
 
+    using IPMeasures: AbstractKernel
     using ConditionalDists: AbstractConditionalDistribution
     const ACD = AbstractConditionalDistribution
     const TuMvNormal = Union{DistributionsAD.TuringDenseMvNormal,
                              DistributionsAD.TuringDiagMvNormal,
                              DistributionsAD.TuringScalMvNormal}
+
+    export VAE
+    export elbo, mmd_mean, mmd_rand
+    export train!, softplus_safe
+
 
     #using Flux: @adjoint
     #using DiffEqBase: ODEProblem, solve
@@ -29,8 +34,6 @@ module GenerativeModels
 
     #include(joinpath("utils", "flux_ode_decoder.jl"))
     #include(joinpath("utils", "saveload.jl"))
-    include(joinpath("utils", "kld.jl"))
-    include(joinpath("utils", "mmd.jl"))
     include(joinpath("utils", "utils.jl"))
 
     include(joinpath("models", "vae.jl"))

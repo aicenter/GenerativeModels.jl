@@ -9,13 +9,19 @@ Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
 DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-KernelFunctions = "ec8451be-7e33-11e9-00cf-bbf324bd1392"
+IPMeasures = "d7dc6e0c-a753-11e8-227e-b362679e0b17"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
 
 [compat]
 ConditionalDists = "0.4"
+Distances = "0.9"
+Distributions = "0.23"
+DistributionsAD = "0.6"
+Flux = "0.11"
+IPMeasures = "0.2"
+Reexport = "0.2"
 julia = "1"
 
 [extras]

@@ -9,10 +9,16 @@
         batch = 20
         test_data = randn(T, 4, batch)/100 .+ hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
-        enc = GenerativeModels.stack_layers([xlen, 4, zlen], relu, Dense)
+        enc = Chain(Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    SplitLayer(xlen, [zlen,zlen], [identity,softplus]))
         enc_dist = ConditionalMvNormal(enc)
     
-        dec = GenerativeModels.stack_layers([zlen, 4, xlen], relu, Dense)
+        dec = Chain(Dense(zlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    SplitLayer(xlen, [xlen,1], [identity,softplus]))
         dec_dist = ConditionalMvNormal(dec)
     
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
@@ -60,7 +66,7 @@
         # test training
         params_init = get_params(model)
         opt = ADAM()
-        k = GenerativeModels.IMQKernel()
+        k = IMQKernel(1f0)
         mmd(x) = GenerativeModels.mmd_mean(model, x, k)
         data = (test_data,)
         lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(x)

@@ -1,5 +1,3 @@
-export train!, softplus_safe
-
 # for over/underflow in logs
 """
 	softplus_safe(x,T=Float32)

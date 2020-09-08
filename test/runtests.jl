@@ -10,7 +10,10 @@ using Flux
 # using ForwardDiff
 using Distributions
 using ConditionalDists
+using IPMeasures
 using GenerativeModels
+
+using ConditionalDists: SplitLayer
 
 if Flux.use_cuda[] using CUDA end
 
