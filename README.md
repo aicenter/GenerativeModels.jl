@@ -1,3 +1,5 @@
+
+
 [![Build Status](https://travis-ci.com/aicenter/GenerativeModels.jl.svg?branch=master)](https://travis-ci.com/aicenter/GenerativeModels.jl)
 [![codecov](https://codecov.io/gh/aicenter/GenerativeModels.jl/branch/master/graph/badge.svg)](https://codecov.io/gh/aicenter/GenerativeModels.jl)
 
@@ -11,99 +13,98 @@ models.  Probability measures such as KL divergence are defined in
 [`IPMeasures.jl`](https://github.com/aicenter/IPMeasures.jl) This package aims
 to make experimenting with new models as easy as possible.
 
-As an example, check out how to build a conventional variational autoencoder
-with a diagonal variance on the latent dimension and a scalar variance on the
-reconstruction:
+As an example, check out how to build a conventional variational autoencoder (VAE)
+that reconstructs MNIST below.
 
-```julia
-using Distributions
-using DistributionsAD
+# Reconstructing MNIST
+First we load the MNIST training dataset
+````julia
+
+using MLDatasets, Flux
+train_x, _ = MNIST.traindata(Float32)
+flat_x = reshape(train_x, :, size(train_x,3)) |> gpu
+data = Flux.Data.DataLoader(flat_x, batchsize=200, shuffle=true);
+````
+
+
+
+
+and define some parameters for a VAE with an input length `xlength` and latent
+vector of `zlength`.
+````julia
+
+using ConditionalDists
+
+xlength = size(flat_x, 1)
+zlength = 2
+hdim    = 512
+hd2     = Int(hdim/2)
+````
+
+
+
+
+We define an `encoder` with diagonal variance on the latent dimension,
+which is just a Flux model wrapped in a `ConditionalMvNormal`.  The Flux model
+must return a tuple with the appropriate number of parameters - in case of a
+`MvNormal` two: mean and variance.  Hence, the `SplitLayer` returns two vectors
+of `zlength`, one of which (the variance) is constrained to be positive.
+````julia
+
+using ConditionalDists: SplitLayer
+
+# mapping that will be trained to output mean and variance
+enc_map = Chain(Dense(xlength, hdim, relu),
+                Dense(hdim, hd2, relu),
+                SplitLayer(hd2, [zlength,zlength], [identity,softplus]))
+# conditional encoder (can be called e.g. like `rand(encoder,x)`, see ConditionalDists.jl)
+encoder = ConditionalMvNormal(enc_map)
+````
+
+
+
+
+The decoder will return a Multivariate Normal with scalar variance:
+````julia
+
+dec_map = Chain(Dense(zlength, hd2, relu),
+                Dense(hd2, hdim, relu),
+                SplitLayer(hdim, [xlength,1], σ))
+decoder = ConditionalMvNormal(dec_map)
+````
+
+
+
+
+Now we can create the VAE model and train it to maximize the ELBO.
+````julia
 using GenerativeModels
-using Flux
 
-xlen  = 5
-zlen  = 2
-T     = Float32
+model = VAE(zlength, encoder, decoder) |> gpu
+loss(x) = -elbo(model,x)
 
-μ = NoGradArray(zeros(dtype, zlen))  # NoGradArray is filtered when calling `Flux.params`
-σ = NoGradArray(ones(dtype, zlen))
-prior = Gaussian(μ, σ)
+ps = Flux.params(model)
+opt = ADAM()
 
-encoder = Dense(xlen, zlen*2)  # encoder returns mean and diagonal variance
-encoder_dist = CMeanVarGaussian{DiagVar}(encoder)
-
-decoder = Dense(zlen, xlen+1)  # decoder returns mean and scalar variance
-decoder_dist = CMeanVarGaussian{ScalarVar}(decoder)
-
-vae = VAE(prior, encoder_dist, decoder_dist)
-length(params(vae)) == 4  # we only get trainable params from the two Dense layers
-```
-
-Now you have a model that you can call `params(vae)` on and use Flux as you are
-used to. You can also easily sample from it once you are done training:
-
-```julia
-z = rand(vae.prior, 10)   # sample 10 times from the prior
-μ = mean(vae.decoder, z)  # get decoder means
-x = rand(vae.decoder, z)  # get decoder samples
-```
-
-But say, you want to learn the variance of your prior during training... Easy!
-Just turn the prior variance into a normal `Array`:
-```julia
-trainable_prior = Gaussian(NoGradArray(zeros(zlen)), ones(zlen))
-
-vae = VAE(trainable_prior, encoder_dist, decoder_dist)
-length(params(vae)) == 5  # prior variance is now included in trainable params
-```
-
-Done!
-
-
-## Development
-
-To start julia with the exact package versions that are specified in the
-dependencies run `julia --project` from the root of this repo.
-
-Where possible, custom checkpointing/other convenience functions should be using
-[`DrWatson.jl`](https://juliadynamics.github.io/DrWatson.jl/stable/)
-functionality such as `tagsave` to ensure reproducability of simulations.
-
-
-### Structure
-
-    |-src
-    |  |- models
-    |  |- anomaly_scores
-    |  |- utils
-    |-test
-
-The models themselves are defined in `src/models`. Each file contains a
-specific model that inherits from `AbstractGM` and has three fields:
-```julia
-struct Model{P<:AbstractPDF,E<:AbstractCPDF,D<:AbstractCPDF} <: AbstractGM
-    prior::P
-    encoder::E
-    decoder::D
+for e in 1:50
+    @info "Epoch $e" loss(flat_x)
+    Flux.train!(loss, ps, data, opt)
 end
-```
-
-and implements e.g. custom loss functions.
+````
 
 
-### Model / distribution interface
 
-The distributions used for prior, encoder, and decoder all implement a common
-interface that includes the functions `mean`, `variance`, `mean_var`, `rand`,
-`loglikelihood`, `kl_divergence` (see [ConditionalDists.jl](https://github.com/aicenter/ConditionalDists.jl)).
-This interface makes it possible that functions such as the ELBO or the anomaly
-scores can be generalized. E.g. the ELBO code looks like this:
 
-```julia
-function elbo(m::AbstractVAE, x::AbstractArray; β=1)
-    z = rand(m.encoder, x)
-    llh = mean(loglikelihood(m.decoder, x, z))
-    kl  = mean(kl_divergence(m.encoder, m.prior, x))
-    llh - β*kl
-end
-```
+
+Some test reconstructions and the corresponding latent space are shown below:
+````julia
+
+model = model |> cpu
+test_x, test_y = MNIST.testdata(Float32)
+p1 = plot_reconstructions(model, test_x[:,:,1:6])
+````
+
+
+![](figures/README_7_1.png)
+
+![](figures/README_8_1.png)
