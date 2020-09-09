@@ -3,7 +3,7 @@
 
 # GenerativeModels.jl
 
-This library contains a collection of generative models for anomaly detection.
+This library contains a collection of generative models.
 It uses trainable
 [`ConditionalDists.jl`](https://github.com/aicenter/ConditionalDists.jl) that
 can be used in conjuction with [`Flux.jl`](https://github.com/FluxML/Flux.jl)
@@ -16,12 +16,14 @@ with a diagonal variance on the latent dimension and a scalar variance on the
 reconstruction:
 
 ```julia
+using Distributions
+using DistributionsAD
 using GenerativeModels
 using Flux
 
 xlen  = 5
 zlen  = 2
-dtype = Float32
+T     = Float32
 
 μ = NoGradArray(zeros(dtype, zlen))  # NoGradArray is filtered when calling `Flux.params`
 σ = NoGradArray(ones(dtype, zlen))
