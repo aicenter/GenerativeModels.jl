@@ -1,13 +1,8 @@
 using Test
 using Logging
-#using Parameters
 using Random
-# using BSON
-# using DrWatson
-# using ValueHistories
 
 using Flux
-# using ForwardDiff
 using Distributions
 using ConditionalDists
 using IPMeasures
@@ -26,12 +21,7 @@ get_params(model) =  map(copy, collect(Flux.params(model)))
 param_change(frozen_params, model) = 
 	map(x-> x[1] != x[2], zip(frozen_params, collect(Flux.params(model))))
 
-include(joinpath("models", "vae.jl"))
-include(joinpath("models", "gan.jl"))
-include(joinpath("models", "vamp.jl"))
-
-#include(joinpath("utils", "saveload.jl"))
-include(joinpath("utils", "utils.jl"))
-
-# include(joinpath("utils", "flux_ode_decoder.jl"))
-# include(joinpath("models", "rodent.jl"))
+include("utils.jl")
+include("vae.jl")
+include("gan.jl")
+include("vamp.jl")

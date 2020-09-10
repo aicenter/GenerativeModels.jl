@@ -1,4 +1,4 @@
-@testset "src/models/vamp.jl" begin
+@testset "VAMP" begin
     # test different constructors
     xdim, zdim, n, K = 4, 2, 6, 2
     v = VAMP(zeros(Float32, xdim, K))
