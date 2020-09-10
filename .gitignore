@@ -1,3 +1,8 @@
+# Weave.jl
+cache
+jl_*
+README.html
+
 # vim
 *.swp
 

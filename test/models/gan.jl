@@ -9,10 +9,10 @@
     test_data = hcat(ones(T,xlen,Int(batchsize/2)), -ones(T,xlen,Int(batchsize/2))) |> gpu
 
     gen = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu)
-    gen_dist = CMeanGaussian{DiagVar}(gen, NoGradArray(ones(T,xlen)))
+    gen_dist = ConditionalMvNormal(gen)
 
     disc = GenerativeModels.stack_layers([xlen, 10, 10, 1], relu, Dense; last = Flux.σ)
-    disc_dist = CMeanGaussian{DiagVar}(disc, NoGradArray(ones(T,1)))
+    disc_dist = ConditionalMvNormal(disc)
 
     model = GAN(zlen, gen_dist, disc_dist) |> gpu
 
@@ -26,7 +26,7 @@
     @test size(dds) == (1, batchsize)
 
     # test parameters
-    ps = params(model)
+    ps = Flux.params(model)
     @test length(ps) == 12
 
     # # test losses

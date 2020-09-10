@@ -9,16 +9,22 @@
         batch = 20
         test_data = randn(T, 4, batch)/100 .+ hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
     
-        enc = GenerativeModels.stack_layers([xlen, 4, zlen*2], relu, Dense)
-        enc_dist = CMeanVarGaussian{DiagVar}(enc)
+        enc = Chain(Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    SplitLayer(xlen, [zlen,zlen], [identity,softplus]))
+        enc_dist = ConditionalMvNormal(enc)
     
-        dec = GenerativeModels.stack_layers([zlen, 4, xlen+1], relu, Dense)
-        dec_dist = CMeanVarGaussian{ScalarVar}(dec)
+        dec = Chain(Dense(zlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    Dense(xlen, xlen, relu),
+                    SplitLayer(xlen, [xlen,1], [identity,softplus]))
+        dec_dist = ConditionalMvNormal(dec)
     
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
     
         loss = - elbo(model, test_data)
-        ps = params(model)
+        ps = Flux.params(model)
         @test length(ps) > 0
         @test isa(loss, Real)
     
@@ -32,7 +38,7 @@
         opt = ADAM()
         data = [(test_data,) for i in 1:2000]
         lossf(x) = - elbo(model, x, β=1e0)
-        Flux.train!(lossf, params(model), data, opt)
+        Flux.train!(lossf, Flux.params(model), data, opt)
     
         @test all(param_change(params_init, model)) # did the params change?
         nxs = mean(model.decoder, rand(model.encoder, test_data))
@@ -50,27 +56,27 @@
         test_data = hcat(ones(T,xlen,Int(batch/2)), -ones(T,xlen,Int(batch/2))) |> gpu
 
         enc = GenerativeModels.stack_layers([xlen, 10, 10, zlen], relu, Dense)
-        enc_dist = CMeanGaussian{DiagVar}(enc, NoGradArray(ones(T,zlen)))
+        enc_dist = ConditionalMvNormal(enc)
 
         dec = GenerativeModels.stack_layers([zlen, 10, 10, xlen], relu, Dense)
-        dec_dist = CMeanGaussian{DiagVar}(dec, NoGradArray(ones(T,xlen)))
+        dec_dist = ConditionalMvNormal(dec)
 
         model = VAE(zlen, enc_dist, dec_dist) |> gpu
 
         # test training
         params_init = get_params(model)
         opt = ADAM()
-        k = IMQKernel(1.0f0)
+        k = IMQKernel(1f0)
         mmd(x) = GenerativeModels.mmd_mean(model, x, k)
         data = (test_data,)
         lossf(x) = Flux.mse(x, mean(model.decoder, mean(model.encoder,x))) + mmd(x)
         GenerativeModels.update_params!(model, data, lossf, opt)
-        ps = params(model)
+        ps = Flux.params(model)
         @test all(param_change(params_init, model)) 
 
         # this works well but has quite a large variance
         data = [(test_data,) for _ in 1:10000]
-        Flux.train!(lossf, params(model), data, opt)
+        Flux.train!(lossf, Flux.params(model), data, opt)
         zs = mean(model.encoder, test_data)
         xs = mean(model.decoder, zs)
         @debug maximum(abs.(test_data - xs))

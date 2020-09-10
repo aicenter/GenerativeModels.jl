@@ -4,39 +4,30 @@ authors = ["Niklas Heim <heim.niklas@gmail.com>"]
 version = "0.1.1"
 
 [deps]
-BSON = "fbb218c0-5317-5bc6-957e-2ee96dd4b1f0"
 ConditionalDists = "c648c4dd-c1e0-49a6-84b9-144ae7fd2468"
-DiffEqBase = "2b5f629d-d688-5b77-993f-72d75c75574e"
+Distances = "b4f34e82-e78d-54a5-968a-f98e89d6e8f7"
 Distributions = "31c24e10-a181-5473-b8eb-7969acd0382f"
-DrWatson = "634d3b9d-ee7a-5ddf-bec9-22491ea816e1"
+DistributionsAD = "ced4e74d-a319-5a8a-b0ac-84af2272839c"
 Flux = "587475ba-b771-5e3f-ad9e-33799f191a9c"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 IPMeasures = "d7dc6e0c-a753-11e8-227e-b362679e0b17"
-OrdinaryDiffEq = "1dea7af3-3e70-54e6-95c3-0bf5283fa5ed"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 Reexport = "189a3867-3050-52da-a836-e630ba90ab69"
 Statistics = "10745b16-79ce-11e8-11f9-7d13ad32a3b2"
-ValueHistories = "98cad3c8-aec3-5f06-8e41-884608649ab7"
 
 [compat]
-BSON = "0.2"
-ConditionalDists = "0.3"
-DiffEqBase = "6"
+ConditionalDists = "0.4"
+Distances = "0.9"
 Distributions = "0.23"
-DrWatson = "1"
-Flux = "0.10"
-ForwardDiff = "0.10"
-IPMeasures = "0.1"
-OrdinaryDiffEq = "5"
+DistributionsAD = "0.6"
+Flux = "0.11"
+IPMeasures = "0.2"
 Reexport = "0.2"
-ValueHistories = "0.5"
 julia = "1"
 
 [extras]
-CuArrays = "3a865a2d-5b23-5a0f-bc46-62713ec82fae"
 Logging = "56ddb016-857b-54e1-b83d-db4d58db5568"
 Parameters = "d96e819e-fc66-5662-9728-84c9c7592b0a"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "Logging", "Parameters", "CuArrays"]
+test = ["Test", "Logging", "Parameters"]

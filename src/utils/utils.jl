@@ -1,6 +1,3 @@
-export train!, softplus_safe
-export diffeq_rd
-
 # for over/underflow in logs
 """
 	softplus_safe(x,T=Float32)
@@ -96,17 +93,19 @@ end
 
 ### GAN ###
 """
-    gen_loss([T=Float32], sg)
+    gen_loss(sg::AbstractArray)
 
 Generator loss for generated data score `sg`.
 """
-generator_loss(T,sg) = - mean(log.(sg) .+ eps(T))
-generator_loss(sg) = generator_loss(Float32,sg)
+function generator_loss(sg::AbstractArray{T}) where T<:Real
+    - mean(log.(sg) .+ eps(T))
+end
 
 """
-    disc_loss([T=Float32], st, sg)
+    disc_loss(st::AbstractArray, sg::AbstractArray)
 
 Discriminator loss for true data score `st` and generated data score `sg`.
 """
-discriminator_loss(T,st,sg) = - T(0.5)*(mean(log.(st .+ eps(T))) + mean(log.(1 .- sg) .+ eps(T)))
-discriminator_loss(st,sg) = discriminator_loss(Float32,st,sg)
+function discriminator_loss(st::AbstractArray{T}, sg::AbstractArray{T}) where T<:Real
+    - T(0.5)*(mean(log.(st .+ eps(T))) + mean(log.(1 .- sg) .+ eps(T)))
+end
