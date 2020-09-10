@@ -1,4 +1,4 @@
-@testset "utils/utils.jl" begin
+@testset "utils.jl" begin
     
     # softplus
     s = (3,4,2)

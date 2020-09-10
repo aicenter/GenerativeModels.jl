@@ -1,4 +1,4 @@
-@testset "models/gan.jl" begin
+@testset "GAN" begin
     Random.seed!(1)
 
     xlen = 4
