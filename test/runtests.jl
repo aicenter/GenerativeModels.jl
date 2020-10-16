@@ -10,7 +10,10 @@ using GenerativeModels
 
 using ConditionalDists: SplitLayer
 
-if Flux.use_cuda[] using CUDA end
+if Flux.use_cuda[]
+    using CUDA
+    CUDA.allowscalar(false)
+end
 
 # set logging to debug to get more test output
 logger = ConsoleLogger(stdout, Logging.Info)
