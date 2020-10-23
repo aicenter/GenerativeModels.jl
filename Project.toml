@@ -1,7 +1,7 @@
 name = "GenerativeModels"
 uuid = "6ac2c632-c4cd-11e9-0501-33c4b9b2f9c9"
 authors = ["Niklas Heim <heim.niklas@gmail.com>"]
-version = "0.2.0"
+version = "0.2.1"
 
 [deps]
 ConditionalDists = "c648c4dd-c1e0-49a6-84b9-144ae7fd2468"
