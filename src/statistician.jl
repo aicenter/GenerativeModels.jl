@@ -1,8 +1,3 @@
-# script to initialize Neural Statisticianistician Model as a structure
-using IPMeasures, DistributionsAD, GenerativeModels, ConditionalDists, Flux, Distributions
-using ConditionalDists: SplitLayer
-using IPMeasures: _kld_gaussian
-
 """
     Statistician()
 
@@ -57,8 +52,6 @@ The β terms scale the KLDs:
 - β2: KL[q(z|c,x) || p(z|c)]
 """
 
-(m::KLDivergence)(p::ConditionalDists.BMN, q::ConditionalDists.BMN) = _kld_gaussian(p,q)
-
 function lossNS(x, model::Statistician;β1=1.0,β2=1.0)
     # instance network
 	v = model.instance_encoder(x)
@@ -104,3 +97,5 @@ function Base.show(io::IO, m::Statistician)
     """
 	print(io, msg)
 end
+
+#(m::KLDivergence)(p::ConditionalDists.BMN, q::ConditionalDists.BMN) = _kld_gaussian(p,q)
