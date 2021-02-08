@@ -6,7 +6,6 @@ module GenerativeModels
 
     using Distributions
     using DistributionsAD
-    using Distances
     @reexport using ConditionalDists
     @reexport using IPMeasures
 
