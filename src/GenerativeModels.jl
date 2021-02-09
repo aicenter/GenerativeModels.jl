@@ -21,8 +21,7 @@ module GenerativeModels
     export train!, softplus_safe, save_checkpoint, load_checkpoint
     export mmd_mean_vamp, init_vamp_mean, init_vamp_sample
 
-    export Statistician
-    export lossNS
+    export NeuralStatistician
 
     abstract type AbstractGM end
     abstract type AbstractVAE <: AbstractGM end
