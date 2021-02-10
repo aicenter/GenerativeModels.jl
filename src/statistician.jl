@@ -1,18 +1,41 @@
 """
-    NeuralStatistician()
+    NeuralStatistician(IE, [clength::Int, pc], enc_c, cond_z, enc_z, dec)
 
 Neural Statistician model from https://arxiv.org/abs/1606.02185
 paper Towards a Neural Statistician.
 
 Acts on bag data (sets of instances).
 
-There are six parts:
-- instance encoder
-- context prior (isotropic Gaussian)
-- context encoder q(c|D)
-- conditional p(z|c)
-- latent instance encoder q(z|x,c)
-- decoder p(x|z)
+# Arguments
+* `IE`: instance encoder (trainable neural network)
+* `pc`: MvNormal prior p(c)
+* `clength`: dimension of context prior MvNormal distribution
+* `enc_c`: context encoder q(c|D)
+* `cond_z`: conditional p(z|c)
+* `enc_z`: instance encoder q(z|x,c)
+* `dec`: decoder p(x|z)
+
+# Example
+Create a Neural Statistician model:
+```julia-repl
+julia> idim, vdim, cdim, zdim = 5, 3, 2, 4
+julia> instance_enc = Chain(Dense(idim,15,swish),Dense(15,vdim))
+julia> enc_c = SplitLayer(vdim,[cdim,1])
+julia> enc_c_dist = ConditionalMvNormal(enc_c)
+julia> cond_z = SplitLayer(cdim,[zdim,1])
+julia> cond_z_dist = ConditionalMvNormal(cond_z)
+julia> enc_z = SplitLayer(cdim+vdim,[zdim,1])
+julia> enc_z_dist = ConditionalMvNormal(enc_z)
+julia> dec = SplitLayer(zdim,[idim,1])
+julia> dec_dist = ConditionalMvNormal(dec)
+
+julia> model = NeuralStatistician(instance_enc, cdim, enc_c_dist, cond_z_dist, enc_z_dist, dec_dist)
+
+julia> bag = randn(idim,12)
+julia> loss(x) = -elbo(model,x)
+julia> loss(bag)
+10430.707315113537
+```
 """
 struct NeuralStatistician{IE,pc <: ContinuousMultivariateDistribution,qc <: ConditionalMvNormal,pz <: ConditionalMvNormal,qz <: ConditionalMvNormal,D <: ConditionalMvNormal} # <: AbstractNS
     instance_encoder::IE
@@ -29,7 +52,7 @@ function Flux.trainable(m::NeuralStatistician)
     (instance_encoder = m.instance_encoder, encoder_c = m.encoder_c, conditional_z = m.conditional_z, encoder_z = m.encoder_z, decoder = m.decoder)
 end
 
-function NeuralStatistician(clength::Int, IE, enc_c::ConditionalMvNormal, cond_z::ConditionalMvNormal, enc_z::ConditionalMvNormal, dec::ConditionalMvNormal)
+function NeuralStatistician(IE, clength::Int, enc_c::ConditionalMvNormal, cond_z::ConditionalMvNormal, enc_z::ConditionalMvNormal, dec::ConditionalMvNormal)
     W = first(Flux.params(enc_c))
     μ_c = fill!(similar(W, clength), 0)
     σ_c = fill!(similar(W, clength), 1)
@@ -46,11 +69,13 @@ Neural Statistician log-likelihood lower bound.
 For a Neural Statistician model, simply create a loss
 function as
     
-    `loss(x) = -elbo(NeuralStatistician,x)`
+    `loss(x) = -elbo(model,x)`
+
+where `model` is a NeuralStatistician type.
 
 The β terms scale the KLDs:
-- β1: KL[q(c|D) || p(c)]
-- β2: KL[q(z|c,x) || p(z|c)]
+* β1: KL[q(c|D) || p(c)]
+* β2: KL[q(z|c,x) || p(z|c)]
 """
 function elbo(m::NeuralStatistician, x::AbstractArray;β1=1.0,β2=1.0)
     # instance network
@@ -97,4 +122,4 @@ function Base.show(io::IO, m::NeuralStatistician)
 end
 
 # needs to extend kl_divergence from IPMeasures
-# (m::KLDivergence)(p::ConditionalDists.BMN, q::ConditionalDists.BMN) = _kld_gaussian(p,q)
+# (m::KLDivergence)(p::ConditionalDists.BMN, q::ConditionalDists.BMN) = IPMeasures._kld_gaussian(p,q)
