@@ -21,6 +21,8 @@ module GenerativeModels
     export train!, softplus_safe, save_checkpoint, load_checkpoint
     export mmd_mean_vamp, init_vamp_mean, init_vamp_sample
 
+    export NeuralStatistician
+
     abstract type AbstractGM end
     abstract type AbstractVAE <: AbstractGM end
     abstract type AbstractGAN <: AbstractGM end
@@ -35,5 +37,6 @@ module GenerativeModels
     include("vae.jl")
     include("gan.jl")
     include("vamp.jl")
+    include("statistician.jl")
 
 end # module
