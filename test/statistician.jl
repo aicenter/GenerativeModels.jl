@@ -27,7 +27,7 @@
     dec_dist = ConditionalMvNormal(dec)
 
     # model initialization
-    model = NeuralStatistician(cdim, instance_enc, enc_c_dist, cond_z_dist, enc_z_dist, dec_dist)
+    model = NeuralStatistician(instance_enc, cdim, enc_c_dist, cond_z_dist, enc_z_dist, dec_dist)
 
     # training init
     params_init = get_params(model)
@@ -36,7 +36,7 @@
 
     # loss
     # extend kl_divergence from IPMeasures
-    using IPMeasures: kl_divergence, _kld_gaussian
+    using IPMeasures: _kld_gaussian
     (m::KLDivergence)(p::ConditionalDists.BMN, q::ConditionalDists.BMN) = _kld_gaussian(p,q)
     loss(x) = -elbo(model,x)
 
